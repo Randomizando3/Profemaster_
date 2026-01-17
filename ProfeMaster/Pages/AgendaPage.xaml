@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.AgendaPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}"
+    Title="Agenda">
+
+    <Grid Padding="16" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+            <Grid Padding="12" ColumnDefinitions="*,Auto,Auto">
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Agenda" FontAttributes="Bold" />
+                    <Label x:Name="SubLabel" Text="Geral (todas as turmas)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                </VerticalStackLayout>
+
+                <Button Grid.Column="1" Text="Atualizar" BackgroundColor="#243056" Clicked="OnRefreshClicked"/>
+                <Button Grid.Column="2" Text="+ Novo" Background="{StaticResource PmGradient}" Clicked="OnAddClicked"/>
+            </Grid>
+        </Border>
+
+        <!-- Filtros simples -->
+        <Border Grid.Row="1" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+            <Grid Padding="12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                <Label Text="Filtro" FontAttributes="Bold"/>
+                <Button Grid.Column="1" Text="Limpar" BackgroundColor="#243056" Clicked="OnClearFilterClicked"/>
+
+                <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+                    <Button Text="Geral"
+                            Background="{StaticResource PmGradient}"
+                            Clicked="OnModeAllClicked"/>
+
+                    <Button Grid.Column="1"
+                            Text="Por Turma"
+                            BackgroundColor="#243056"
+                            Clicked="OnModeClassClicked"/>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- Lista -->
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Items}">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="0,0,0,10" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 18">
+                        <Grid Padding="14" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+                            <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16"/>
+                            <Label Grid.Row="1" Text="{Binding Type}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+
+                            <Label Grid.Row="2"
+                                   Text="{Binding InstitutionName}"
+                                   TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <Label Grid.Row="3"
+                                   Text="{Binding ClassName}"
+                                   TextColor="{StaticResource PmMuted}" FontSize="12"/>
+
+                            <VerticalStackLayout Grid.Column="1" Grid.RowSpan="4" Spacing="8" VerticalOptions="Center">
+                                <Button Text="Editar" BackgroundColor="#243056" Clicked="OnEditClicked"/>
+                                <Button Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDeleteClicked"/>
+                            </VerticalStackLayout>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>

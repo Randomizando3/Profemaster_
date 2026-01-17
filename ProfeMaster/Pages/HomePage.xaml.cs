@@ -34,4 +34,10 @@ public partial class HomePage : ContentPage
         await _store.ClearSessionAsync();
         await Shell.Current.GoToAsync("//login");
     }
+
+    private async void OnGoAgenda(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("agenda");
+    }
+
 }

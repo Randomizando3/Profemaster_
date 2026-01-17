@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Class="ProfeMaster.Pages.InstitutionsPage"
+    x:Class="ProfeMaster.Pages.StudentsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     BackgroundColor="{StaticResource PmBg}"
-    Title="Instituições">
+    Title="Alunos/Contatos">
 
     <Grid Padding="16" RowSpacing="12">
         <Grid.RowDefinitions>
@@ -14,28 +14,29 @@
 
         <Border Grid.Row="0" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
             <Grid Padding="12" ColumnDefinitions="*,Auto,Auto">
-                <Label Text="Gerencie suas instituições" FontAttributes="Bold" VerticalOptions="Center"/>
+                <VerticalStackLayout Spacing="2">
+                    <Label Text="Alunos/Contatos" FontAttributes="Bold"/>
+                    <Label x:Name="CtxLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                </VerticalStackLayout>
                 <Button Grid.Column="1" Text="Atualizar" BackgroundColor="#243056" Clicked="OnRefreshClicked"/>
-                <Button Grid.Column="2" Text="+ Nova" Background="{StaticResource PmGradient}" Clicked="OnAddClicked"/>
+                <Button Grid.Column="2" Text="+ Novo" Background="{StaticResource PmGradient}" Clicked="OnAddClicked"/>
             </Grid>
         </Border>
 
-        <CollectionView Grid.Row="1" x:Name="List" ItemsSource="{Binding Institutions}">
+        <CollectionView Grid.Row="1" ItemsSource="{Binding Students}">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
                     <Border Margin="0,0,0,10" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 18">
-                        <Grid Padding="14" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto">
+                        <Grid Padding="14" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
                             <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="16"/>
-                            <Label Grid.Row="1" Text="{Binding Type}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <Label Grid.Row="1" Text="{Binding Phone}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <Label Grid.Row="2" Text="{Binding Email}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <Label Grid.Row="3" Text="{Binding Notes}" TextColor="{StaticResource PmMuted}" FontSize="12" LineBreakMode="TailTruncation"/>
 
-                            <Label Grid.Row="2" Text="{Binding Notes}" TextColor="{StaticResource PmMuted}" FontSize="12" LineBreakMode="TailTruncation"/>
-
-                            <HorizontalStackLayout Grid.Column="1" Grid.RowSpan="3" Spacing="8" VerticalOptions="Center">
-                                <Button Text="Turmas" Background="{StaticResource PmGradient}" Clicked="OnClassesClicked"/>
+                            <HorizontalStackLayout Grid.Column="1" Grid.RowSpan="4" Spacing="8" VerticalOptions="Center">
                                 <Button Text="Editar" BackgroundColor="#243056" Clicked="OnEditClicked"/>
                                 <Button Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDeleteClicked"/>
                             </HorizontalStackLayout>
-
                         </Grid>
                     </Border>
                 </DataTemplate>

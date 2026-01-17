@@ -150,4 +150,13 @@ public partial class InstitutionsPage : ContentPage
         Institutions.Remove(inst);
         await _store.SaveInstitutionsCacheAsync(Institutions.ToList());
     }
+
+    private async void OnClassesClicked(object sender, EventArgs e)
+    {
+        if (sender is not Button btn) return;
+        if (btn.BindingContext is not Institution inst) return;
+
+        await Shell.Current.GoToAsync($"classes?institutionId={Uri.EscapeDataString(inst.Id)}&institutionName={Uri.EscapeDataString(inst.Name)}");
+    }
+
 }

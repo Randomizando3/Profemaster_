@@ -39,9 +39,10 @@
                     Background="{StaticResource PmGradient}"
                     Clicked="OnGoInstitutions"/>
 
-            <Button Text="Agenda (em breve no MVP)"
-                    BackgroundColor="#243056"
-                    IsEnabled="False"/>
+            <Button Text="Agenda"
+                Background="{StaticResource PmGradient}"
+                Clicked="OnGoAgenda"/>
+
 
             <Button Text="Planos e Materiais (em breve no MVP)"
                     BackgroundColor="#243056"

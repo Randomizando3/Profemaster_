@@ -1,6 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using ProfeMaster.Pages;
 using ProfeMaster.Services;
+using Microsoft.Maui.LifecycleEvents;
+
+
+#if WINDOWS
+using Microsoft.UI.Windowing;
+using Windows.Graphics;
+using WinRT.Interop;
+#endif
 
 namespace ProfeMaster;
 
@@ -28,6 +36,39 @@ public static class MauiProgram
         builder.Services.AddTransient<RegisterPage>();
         builder.Services.AddTransient<HomePage>();
         builder.Services.AddTransient<InstitutionsPage>();
+        builder.Services.AddTransient<ClassesPage>();
+        builder.Services.AddTransient<StudentsPage>();
+
+
+#if WINDOWS
+    builder.ConfigureLifecycleEvents(events =>
+    {
+        events.AddWindows(w =>
+        {
+            w.OnWindowCreated(window =>
+            {
+                try
+                {
+                    var hwnd = WindowNative.GetWindowHandle(window);
+                    var id = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hwnd);
+                    var appWindow = AppWindow.GetFromWindowId(id);
+
+                    // “Phone-ish”: largura ~390 e altura 700
+                    appWindow.Resize(new SizeInt32(390, 700));
+
+                    // Opcional: impede que maximize
+                    if (appWindow.Presenter is OverlappedPresenter p)
+                    {
+                        p.IsMaximizable = false;
+                        p.IsResizable = true; // deixe true se quiser ajustar manualmente
+                    }
+                }
+                catch { /* ignore */ }
+            });
+        });
+    }); 
+#endif
+
 
 #if DEBUG
         builder.Logging.AddDebug();
