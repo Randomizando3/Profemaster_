@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Application
+    x:Class="ProfeMaster.App"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Application.Resources>
+        <ResourceDictionary>
+
+            <!-- Paleta -->
+            <Color x:Key="PmBg">#0B1020</Color>
+            <Color x:Key="PmCard">#121A33</Color>
+            <Color x:Key="PmText">#F2F4FF</Color>
+            <Color x:Key="PmMuted">#A9B0D0</Color>
+
+            <Color x:Key="PmA">#6D5BFF</Color>
+            <Color x:Key="PmB">#22D3EE</Color>
+            <Color x:Key="PmC">#FF4FD8</Color>
+
+            <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,1">
+                <GradientStop Color="{StaticResource PmA}" Offset="0.0" />
+                <GradientStop Color="{StaticResource PmB}" Offset="0.55" />
+                <GradientStop Color="{StaticResource PmC}" Offset="1.0" />
+            </LinearGradientBrush>
+
+            <!-- Estilos -->
+            <Style TargetType="Label">
+                <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            </Style>
+
+            <Style TargetType="Entry">
+                <Setter Property="TextColor" Value="{StaticResource PmText}" />
+                <Setter Property="PlaceholderColor" Value="{StaticResource PmMuted}" />
+                <Setter Property="BackgroundColor" Value="#1A2450" />
+                <Setter Property="Margin" Value="0,6,0,0" />
+                <Setter Property="HeightRequest" Value="48" />
+                <Setter Property="FontSize" Value="14" />
+            </Style>
+
+            <Style TargetType="Button">
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="CornerRadius" Value="14" />
+                <Setter Property="HeightRequest" Value="50" />
+                <Setter Property="FontAttributes" Value="Bold" />
+            </Style>
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

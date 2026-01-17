@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.HomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}">
+
+    <Grid Padding="16" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" StrokeThickness="0" BackgroundColor="{StaticResource PmCard}" StrokeShape="RoundRectangle 20">
+            <Grid Padding="16" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                <Label Text="Bem-vindo(a)" FontSize="18" FontAttributes="Bold"/>
+                <Button Grid.Column="1" Text="Sair" BackgroundColor="#243056" Clicked="OnLogoutClicked" />
+
+                <Label Grid.Row="1" Grid.ColumnSpan="2" x:Name="EmailLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+            </Grid>
+        </Border>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="12">
+
+            <Border StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#6D5BFF" Offset="0"/>
+                        <GradientStop Color="#22D3EE" Offset="1"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <VerticalStackLayout Padding="16" Spacing="6">
+                    <Label Text="Sua rotina, em um só lugar" FontSize="16" FontAttributes="Bold" />
+                    <Label Text="Múltiplas instituições, turmas e aulas. Tudo sincronizado quando online." FontSize="12" TextColor="#071022" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="Instituições"
+                    Background="{StaticResource PmGradient}"
+                    Clicked="OnGoInstitutions"/>
+
+            <Button Text="Agenda (em breve no MVP)"
+                    BackgroundColor="#243056"
+                    IsEnabled="False"/>
+
+            <Button Text="Planos e Materiais (em breve no MVP)"
+                    BackgroundColor="#243056"
+                    IsEnabled="False"/>
+
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

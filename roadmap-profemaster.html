@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cronograma • ProfeMaster UP (MVP)</title>
+
+<style>
+:root {
+  --primary: #2563eb;
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --text: #222;
+  --muted: #666;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background: var(--bg);
+  margin: 0;
+  padding: 16px;
+  color: var(--text);
+}
+
+.header {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+.header img {
+  max-width: 180px;
+  margin-bottom: 12px;
+}
+
+.header h1 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.header p {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.phase {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.phase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.phase-header h2 {
+  font-size: 18px;
+  margin: 0;
+  color: var(--primary);
+  line-height: 1.25;
+}
+
+.percent {
+  background: var(--primary);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.phase small {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--muted);
+}
+
+.checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.checklist input {
+  margin-right: 10px;
+  margin-top: 3px;
+  flex: 0 0 auto;
+}
+
+.footer {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 24px;
+}
+
+.note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.badge {
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,0.08);
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <img src="https://izzihub.com.br/imagens/logo.png" alt="IzziHub">
+  <h1>Cronograma de Desenvolvimento — MVP ProfeMaster UP</h1>
+  <p>
+    Organização docente com multi-instituições, offline-first, sincronização e IA<br>
+    <strong>.NET MAUI • C# • Firebase • SQLite • IA (OpenAI)</strong><br>
+    <span class="badge">Prazo estimado: 35 dias úteis</span>
+  </p>
+</div>
+
+<!-- FASE 1 (7 dias: Natal) -->
+<div class="phase">
+  <div class="phase-header">
+    <h2>Fase 1 — Telas, UX e Identidade Visual (Natal)</h2>
+    <span class="percent">15%</span>
+  </div>
+  <small>Dias 1 a 7</small>
+  <ul class="checklist">
+    <li><input type="checkbox">Definição do fluxo principal do professor (multi-instituições)</li>
+    <li><input type="checkbox">Wireframe e layout das telas-chave: Instituições, Turmas, Alunos, Agenda, Planos, Atividades, Materiais</li>
+    <li><input type="checkbox">Padrões de UI: componentes, estados vazios, feedbacks, loading e validações</li>
+    <li><input type="checkbox">Protótipo navegável (estrutura visual aprovada para acelerar o desenvolvimento)</li>
+    <li><input type="checkbox">Checklist final de telas do MVP e ajustes de usabilidade</li>
+  </ul>
+  <div class="note">Entrega: telas definidas e aprovadas para execução rápida nas próximas fases.</div>
+</div>
+
+<!-- FASE 2 -->
+<div class="phase">
+  <div class="phase-header">
+    <h2>Fase 2 — Base Técnica do App + Firebase + SQLite</h2>
+    <span class="percent">30%</span>
+  </div>
+  <small>Dias 8 a 13</small>
+  <ul class="checklist">
+    <li><input type="checkbox">Criação do projeto .NET MAUI (Android + Windows desktop incluso)</li>
+    <li><input type="checkbox">Arquitetura MVVM (camadas, serviços, DI e navegação)</li>
+    <li><input type="checkbox">Configuração Firebase (Auth, Firestore e Storage)</li>
+    <li><input type="checkbox">Login/cadastro/recuperação + sessão persistente</li>
+    <li><input type="checkbox">Banco local SQLite (tabelas, repositórios e migrações)</li>
+  </ul>
+  <div class="note">Entrega: app estruturado e pronto para evoluir com offline-first e cloud.</div>
+</div>
+
+<!-- FASE 3 (mais tempo: offline + sync) -->
+<div class="phase">
+  <div class="phase-header">
+    <h2>Fase 3 — Offline-First e Sincronização Automática (Cloud)</h2>
+    <span class="percent">45%</span>
+  </div>
+  <small>Dias 14 a 20</small>
+  <ul class="checklist">
+    <li><input type="checkbox">Estratégia de sincronização (fila de alterações / upsert / timestamps)</li>
+    <li><input type="checkbox">Regras de conflito (prioridade local x cloud, resolução simples no MVP)</li>
+    <li><input type="checkbox">Sincronização automática ao detectar internet (com retry e backoff)</li>
+    <li><input type="checkbox">Logs de sync e estados (sincronizando / offline / erro / ok)</li>
+    <li><input type="checkbox">Testes de cenários: cria offline → sincroniza, edita offline → atualiza, perde conexão</li>
+  </ul>
+  <div class="note">Entrega: núcleo “robusto” do app para funcionar bem sem internet e sincronizar com segurança.</div>
+</div>
+
+<!-- FASE 4 -->
+<div class="phase">
+  <div class="phase-header">
+    <h2>Fase 4 — Cadastros (Instituições, Turmas e Alunos/Contatos)</h2>
+    <span class="percent">60%</span>
+  </div>
+  <small>Dias 21 a 25</small>
+  <ul class="checklist">
+    <li><input type="checkbox">CRUD de Instituições (pública, privada, particular) + seleção rápida</li>
+    <li><input type="checkbox">CRUD de Turmas por instituição (detalhes e organização)</li>
+    <li><input type="checkbox">Cadastro de alunos/contatos (nome, telefone/WhatsApp, observações)</li>
+    <li><input type="checkbox">Busca e filtros por instituição/turma/aluno</li>
+    <li><input type="checkbox">Sincronização integrada com o núcleo offline-first</li>
+  </ul>
+  <div class="note">Entrega: organização completa dos dados essenciais do professor.</div>
+</div>
+
+<!-- FASE 5 (mais tempo: agenda é complexa) -->
+<div class="phase">
+  <div class="phase-header">
+    <h2>Fase 5 — Agenda de Aulas e Eventos (Semanal/Mensal/Anual)</h2>
+    <span class="percent">80%</span>
+  </div>
+  <small>Dias 26 a 31</small>
+  <ul class="checklist">
+    <li><input type="checkbox">Agenda semanal e mensal (navegação e performance)</li>
+    <li><input type="checkbox">Visão anual (overview por meses + atalhos)</li>
+    <li><input type="checkbox">Cadastro de aula/evento vinculado à instituição e turma</li>
+    <li><input type="checkbox">Recorrência simples (ex: semanal) e regras básicas no MVP</li>
+    <li><input type="checkbox">Sincronização + funcionamento offline da agenda</li>
+  </ul>
+  <div class="note">Entrega: agenda pronta para uso diário com múltiplas instituições.</div>
+</div>
+
+<!-- FASE 6 (PDF + materiais + WhatsApp + IA + polimento) -->
+<div class="phase">
+  <div class="phase-header">
+    <h2>Fase 6 — Planos, Atividades/Provas, PDF, Materiais, WhatsApp, IA e Entrega</h2>
+    <span class="percent">100%</span>
+  </div>
+  <small>Dias 32 a 35</small>
+  <ul class="checklist">
+    <li><input type="checkbox">Criação/organização de planos de aula (por turma, tema e data)</li>
+    <li><input type="checkbox">Criação de atividades e provas + geração de PDF</li>
+    <li><input type="checkbox">Organização/armazenamento de materiais (local + cloud via Storage)</li>
+    <li><input type="checkbox">Botão de envio para WhatsApp (compartilhar PDF/arquivo/texto)</li>
+    <li><input type="checkbox">Integração IA: gerar plano de aula + gerar atividade/questões (templates do MVP)</li>
+    <li><input type="checkbox">Testes finais (offline/online, sync, PDF, armazenamento, WhatsApp) + ajustes de UX</li>
+    <li><input type="checkbox">Entrega do código-fonte + instruções de build/configuração + base para monetização futura</li>
+  </ul>
+  <div class="note">
+    Observação: publicação nas lojas fica por conta do cliente (contas Google/Apple e validações).
+  </div>
+</div>
+
+<div class="footer">
+  Cronograma técnico — ProfeMaster UP (MVP)
+</div>
+
+</body>
+</html>
