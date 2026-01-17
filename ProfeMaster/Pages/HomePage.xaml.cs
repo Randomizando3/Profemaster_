@@ -40,4 +40,9 @@ public partial class HomePage : ContentPage
         await Shell.Current.GoToAsync("agenda");
     }
 
+    private async void OnGoPlans(object sender, EventArgs e)
+    {
+        await Shell.Current.GoToAsync("plans");
+    }
+
 }

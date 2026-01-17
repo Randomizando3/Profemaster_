@@ -40,13 +40,13 @@
                     Clicked="OnGoInstitutions"/>
 
             <Button Text="Agenda"
-                Background="{StaticResource PmGradient}"
-                Clicked="OnGoAgenda"/>
+        Background="{StaticResource PmGradient}"
+        Clicked="OnGoAgenda"/>
 
+            <Button Text="Planos de Aula"
+        Background="{StaticResource PmGradient}"
+        Clicked="OnGoPlans"/>
 
-            <Button Text="Planos e Materiais (em breve no MVP)"
-                    BackgroundColor="#243056"
-                    IsEnabled="False"/>
 
         </VerticalStackLayout>
     </Grid>

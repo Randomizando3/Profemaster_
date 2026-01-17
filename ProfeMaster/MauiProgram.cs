@@ -31,6 +31,8 @@ public static class MauiProgram
         builder.Services.AddSingleton<LocalStore>();
         builder.Services.AddSingleton<FirebaseAuthService>();
         builder.Services.AddSingleton<FirebaseDbService>();
+        builder.Services.AddSingleton<FirebaseStorageService>();
+
 
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<RegisterPage>();
@@ -38,6 +40,12 @@ public static class MauiProgram
         builder.Services.AddTransient<InstitutionsPage>();
         builder.Services.AddTransient<ClassesPage>();
         builder.Services.AddTransient<StudentsPage>();
+        builder.Services.AddTransient<PlansPage>();
+        builder.Services.AddTransient<PlanDetailsPage>();
+        builder.Services.AddTransient<PlanEditorPage>();
+        builder.Services.AddTransient<AgendaEventEditorPage>();
+        builder.Services.AddTransient<AgendaEventDetailsPage>();
+
 
 
 #if WINDOWS

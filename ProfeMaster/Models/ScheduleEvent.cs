@@ -20,4 +20,7 @@ public sealed class ScheduleEvent
     public string Type { get; set; } = "Aula"; // Aula, Prova, Evento etc.
 
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    public string LinkedPlanId { get; set; } = "";
+    public string LinkedPlanTitle { get; set; } = "";
 }

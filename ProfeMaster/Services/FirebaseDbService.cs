@@ -180,4 +180,86 @@ public sealed class FirebaseDbService
         return resp.IsSuccessStatusCode;
     }
 
+
+
+
+    // ===== PLANOS (GERAL) =====
+    public async Task<List<LessonPlan>> GetPlansAllAsync(string uid, string? idToken)
+    {
+        var url = $"{BaseUrl}/users/{uid}/plans/all.json{AuthParam(idToken)}";
+        var dict = await _http.GetFromJsonAsync<Dictionary<string, LessonPlan>>(url);
+        if (dict == null) return new();
+
+        foreach (var kv in dict)
+            kv.Value.Id = string.IsNullOrWhiteSpace(kv.Value.Id) ? kv.Key : kv.Value.Id;
+
+        return dict.Values.OrderByDescending(x => x.Date).ToList();
+    }
+
+    public async Task<bool> UpsertPlanAllAsync(string uid, string? idToken, LessonPlan plan)
+    {
+        plan.Id = string.IsNullOrWhiteSpace(plan.Id) ? Guid.NewGuid().ToString("N") : plan.Id;
+
+        var url = $"{BaseUrl}/users/{uid}/plans/all/{plan.Id}.json{AuthParam(idToken)}";
+        var resp = await _http.PutAsJsonAsync(url, plan);
+        return resp.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeletePlanAllAsync(string uid, string? idToken, string planId)
+    {
+        var url = $"{BaseUrl}/users/{uid}/plans/all/{planId}.json{AuthParam(idToken)}";
+        var resp = await _http.DeleteAsync(url);
+        return resp.IsSuccessStatusCode;
+    }
+
+    // ===== PLANOS (POR TURMA) =====
+    public async Task<List<LessonPlan>> GetPlansByClassAsync(string uid, string institutionId, string classId, string? idToken)
+    {
+        var url = $"{BaseUrl}/users/{uid}/plans/byClass/{institutionId}/{classId}.json{AuthParam(idToken)}";
+        var dict = await _http.GetFromJsonAsync<Dictionary<string, LessonPlan>>(url);
+        if (dict == null) return new();
+
+        foreach (var kv in dict)
+            kv.Value.Id = string.IsNullOrWhiteSpace(kv.Value.Id) ? kv.Key : kv.Value.Id;
+
+        return dict.Values.OrderByDescending(x => x.Date).ToList();
+    }
+
+    public async Task<bool> UpsertPlanByClassAsync(string uid, string institutionId, string classId, string? idToken, LessonPlan plan)
+    {
+        plan.Id = string.IsNullOrWhiteSpace(plan.Id) ? Guid.NewGuid().ToString("N") : plan.Id;
+
+        var url = $"{BaseUrl}/users/{uid}/plans/byClass/{institutionId}/{classId}/{plan.Id}.json{AuthParam(idToken)}";
+        var resp = await _http.PutAsJsonAsync(url, plan);
+        return resp.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeletePlanByClassAsync(string uid, string institutionId, string classId, string? idToken, string planId)
+    {
+        var url = $"{BaseUrl}/users/{uid}/plans/byClass/{institutionId}/{classId}/{planId}.json{AuthParam(idToken)}";
+        var resp = await _http.DeleteAsync(url);
+        return resp.IsSuccessStatusCode;
+    }
+
+
+    public async Task<List<ScheduleEvent>> GetAgendaAllRecentAsync(string uid, string? idToken, int daysBack = 90, int daysForward = 365)
+    {
+        var all = await GetAgendaAllAsync(uid, idToken);
+        var min = DateTime.Today.AddDays(-daysBack);
+        var max = DateTime.Today.AddDays(daysForward);
+        return all.Where(x => x.Start >= min && x.Start <= max)
+                  .OrderBy(x => x.Start)
+                  .ToList();
+    }
+
+
+    public async Task<List<LessonPlan>> GetPlansLinkedToEventAsync(string uid, string eventId, string? idToken)
+    {
+        var all = await GetPlansAllAsync(uid, idToken);
+        return all.Where(p => p.LinkedEventId == eventId)
+                  .OrderByDescending(p => p.Date)
+                  .ToList();
+    }
+
+
 }

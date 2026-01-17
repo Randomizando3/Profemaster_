@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.PlanDetailsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}"
+    Title="Detalhes do Plano">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+                    <Label x:Name="TitleLabel" FontAttributes="Bold" FontSize="18"/>
+                    <Label x:Name="MetaLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+
+                    <Label Text="Vinculado à Agenda" FontAttributes="Bold"/>
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Picker x:Name="AgendaPicker" Title="Selecione um evento (opcional)" />
+                        <Button Grid.Column="1" Text="Salvar vínculo" BackgroundColor="#243056" Clicked="OnSaveAgendaLink"/>
+                    </Grid>
+                    <Label x:Name="AgendaLinkLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+
+
+                    <Label Text="Objetivos" FontAttributes="Bold"/>
+                    <Label x:Name="ObjLabel" />
+
+                    <Label Text="Conteúdo" FontAttributes="Bold"/>
+                    <Label x:Name="ContentLabel" />
+
+                    <Label Text="Etapas" FontAttributes="Bold"/>
+                    <Label x:Name="StepsLabel" />
+
+                    <Label Text="Avaliação" FontAttributes="Bold"/>
+                    <Label x:Name="EvalLabel" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                        <Label Text="Materiais" FontAttributes="Bold"/>
+                        <Button Grid.Column="1" Text="+ Link" BackgroundColor="#243056" Clicked="OnAddLink"/>
+                        <Button Grid.Column="2" x:Name="UploadBtn" Text="Upload" Background="{StaticResource PmGradient}" Clicked="OnUpload"/>
+                    </Grid>
+
+                    <CollectionView x:Name="MatList">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,10" BackgroundColor="#0f172a" StrokeThickness="0" StrokeShape="RoundRectangle 14">
+                                    <Grid Padding="12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                        <Label Text="{Binding Title}" FontAttributes="Bold" TextColor="White"/>
+                                        <Label Grid.Row="1" Text="{Binding Url}" TextColor="#cbd5e1" FontSize="12" LineBreakMode="TailTruncation"/>
+
+                                        <HorizontalStackLayout Grid.Column="1" Grid.RowSpan="2" Spacing="8" VerticalOptions="Center">
+                                            <Button Text="Abrir" BackgroundColor="#243056" Clicked="OnOpenMaterial"/>
+                                            <Button Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDeleteMaterial"/>
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Text="Editar" BackgroundColor="#243056" Clicked="OnEdit"/>
+                <Button Grid.Column="1" Text="Vincular à Agenda" Background="{StaticResource PmGradient}" Clicked="OnLinkAgenda"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

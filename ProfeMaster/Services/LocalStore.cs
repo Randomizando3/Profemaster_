@@ -78,5 +78,22 @@ public sealed class LocalStore
     public Task<List<Models.ScheduleEvent>?> LoadAgendaClassCacheAsync(string institutionId, string classId) =>
         LoadAsync<List<Models.ScheduleEvent>>(AgendaClassPath(institutionId, classId));
 
+    private static string PlansAllPath => Path.Combine(BaseDir, "plans_all.json");
+    private static string PlansClassPath(string institutionId, string classId) =>
+        Path.Combine(BaseDir, $"plans_{institutionId}_{classId}.json");
+
+    public Task SavePlansAllCacheAsync(List<Models.LessonPlan> list) =>
+        SaveAsync(PlansAllPath, list);
+
+    public Task<List<Models.LessonPlan>?> LoadPlansAllCacheAsync() =>
+        LoadAsync<List<Models.LessonPlan>>(PlansAllPath);
+
+    public Task SavePlansClassCacheAsync(string institutionId, string classId, List<Models.LessonPlan> list) =>
+        SaveAsync(PlansClassPath(institutionId, classId), list);
+
+    public Task<List<Models.LessonPlan>?> LoadPlansClassCacheAsync(string institutionId, string classId) =>
+        LoadAsync<List<Models.LessonPlan>>(PlansClassPath(institutionId, classId));
+
+
 
 }

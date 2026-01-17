@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.AgendaEventDetailsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}"
+    Title="Detalhes do Evento">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+                    <Label x:Name="TitleLabel" FontAttributes="Bold" FontSize="18"/>
+                    <Label x:Name="MetaLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+
+                    <Label Text="Tipo" FontAttributes="Bold"/>
+                    <Label x:Name="TypeLabel" />
+
+                    <Label Text="Período" FontAttributes="Bold"/>
+                    <Label x:Name="PeriodLabel" />
+
+                    <Label Text="Descrição" FontAttributes="Bold"/>
+                    <Label x:Name="DescLabel" />
+
+                    <Label x:Name="LinkLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Label Text="Planos vinculados" FontAttributes="Bold"/>
+                        <Button Grid.Column="1" Text="Vincular" Background="{StaticResource PmGradient}" Clicked="OnLinkPlan"/>
+                    </Grid>
+
+                    <CollectionView x:Name="LinkedPlansList" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,10" BackgroundColor="#0f172a" StrokeThickness="0" StrokeShape="RoundRectangle 14">
+                                    <Grid Padding="12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                        <Label Text="{Binding Title}" FontAttributes="Bold" TextColor="White"/>
+                                        <Label Grid.Row="1" Text="{Binding Date, StringFormat='Data: {0:dd/MM/yyyy}'}" TextColor="#cbd5e1" FontSize="12"/>
+
+                                        <HorizontalStackLayout Grid.Column="1" Grid.RowSpan="2" Spacing="8" VerticalOptions="Center">
+                                            <Button Text="Abrir" BackgroundColor="#243056" Clicked="OnOpenPlan"/>
+                                            <Button Text="Desvincular" BackgroundColor="#3A2040" Clicked="OnUnlinkPlan"/>
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                </VerticalStackLayout>
+            </Border>
+
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Text="Editar" BackgroundColor="#243056" Clicked="OnEdit"/>
+                <Button Grid.Column="1" Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDelete"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

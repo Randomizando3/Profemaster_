@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.PlanEditorPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}"
+    Title="Plano de Aula">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+                    <Label Text="Dados do Plano" FontAttributes="Bold" />
+
+                    <Entry x:Name="TitleEntry" Placeholder="Título do plano" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <DatePicker x:Name="DatePick" />
+                        <Button Grid.Column="1" Text="Vincular à Agenda (opcional)" BackgroundColor="#243056" Clicked="OnLinkAgendaClicked"/>
+                    </Grid>
+
+                    <Label Text="Objetivos" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Editor x:Name="ObjEditor" AutoSize="TextChanges" Placeholder="Objetivos..." />
+
+                    <Label Text="Conteúdo" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Editor x:Name="ContentEditor" AutoSize="TextChanges" Placeholder="Conteúdo..." />
+
+                    <Label Text="Etapas" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Editor x:Name="StepsEditor" AutoSize="TextChanges" Placeholder="Passo a passo..." />
+
+                    <Label Text="Avaliação" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Editor x:Name="EvalEditor" AutoSize="TextChanges" Placeholder="Como avaliar..." />
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Text="Cancelar" BackgroundColor="#3A2040" Clicked="OnCancel"/>
+                <Button Grid.Column="1" Text="Salvar" Background="{StaticResource PmGradient}" Clicked="OnSave"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

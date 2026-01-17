@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.AgendaEventEditorPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}"
+    Title="Evento da Agenda">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+
+                    <Label Text="Evento" FontAttributes="Bold"/>
+
+                    <!-- Vínculo -->
+                    <Label Text="Instituição e Turma" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Picker x:Name="InstitutionPicker" Title="Instituição" SelectedIndexChanged="OnInstitutionChanged"/>
+                        <Picker x:Name="ClassPicker" Grid.Column="1" Title="Turma" SelectedIndexChanged="OnClassChanged"/>
+                    </Grid>
+
+                    <Entry x:Name="TitleEntry" Placeholder="Título" />
+                    <Entry x:Name="TypeEntry" Placeholder="Tipo (Aula/Prova/Evento)" />
+
+                    <Label Text="Data" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <DatePicker x:Name="DatePick" />
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Início" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <TimePicker x:Name="StartPick" />
+                        </VerticalStackLayout>
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="Fim" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <TimePicker x:Name="EndPick" />
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Label Text="Descrição" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Editor x:Name="DescEditor" AutoSize="TextChanges" Placeholder="Detalhes..." />
+
+                    <Label x:Name="LinkLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Text="Cancelar" BackgroundColor="#3A2040" Clicked="OnCancel"/>
+                <Button Grid.Column="1" Text="Salvar" Background="{StaticResource PmGradient}" Clicked="OnSave"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

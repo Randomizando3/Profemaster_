@@ -21,7 +21,7 @@ node_modules/
 *.log
 config/FirebaseConfig.cs
 ProfeMaster/config/FirebaseConfig.cs
-
+ProfeMaster/Services/FirebaseStorageService.cs
 
 # --- Arquivos de Sistema Operacional ---
 .DS_Store

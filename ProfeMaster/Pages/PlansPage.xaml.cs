@@ -4,13 +4,13 @@ using ProfeMaster.Services;
 
 namespace ProfeMaster.Pages;
 
-public partial class AgendaPage : ContentPage
+public partial class PlansPage : ContentPage
 {
     private readonly LocalStore _store;
     private readonly FirebaseDbService _db;
     private readonly FirebaseStorageService _storage;
 
-    public ObservableCollection<ScheduleEvent> Items { get; } = new();
+    public ObservableCollection<LessonPlan> Items { get; } = new();
 
     private string _uid = "";
     private string _token = "";
@@ -23,7 +23,7 @@ public partial class AgendaPage : ContentPage
     private Institution? _selectedInst;
     private Classroom? _selectedClass;
 
-    public AgendaPage(LocalStore store, FirebaseDbService db, FirebaseStorageService storage)
+    public PlansPage(LocalStore store, FirebaseDbService db, FirebaseStorageService storage)
     {
         InitializeComponent();
         _store = store;
@@ -79,10 +79,8 @@ public partial class AgendaPage : ContentPage
 
             ClassPicker.ItemsSource = _classes.Select(x => x.Name).ToList();
 
-            if (_classes.Count > 0)
-                ClassPicker.SelectedIndex = 0;
-            else
-                ClassPicker.SelectedIndex = -1;
+            if (_classes.Count > 0) ClassPicker.SelectedIndex = 0;
+            else ClassPicker.SelectedIndex = -1;
         }
         catch
         {
@@ -99,11 +97,11 @@ public partial class AgendaPage : ContentPage
         if (_modeAll)
         {
             PickersBox.IsVisible = false;
-            SubLabel.Text = "Geral (todas as turmas)";
+            SubLabel.Text = "Geral (todos)";
 
-            var cached = await _store.LoadAgendaAllCacheAsync();
+            var cached = await _store.LoadPlansAllCacheAsync();
             if (cached != null)
-                foreach (var x in cached.OrderBy(x => x.Start)) Items.Add(x);
+                foreach (var p in cached.OrderByDescending(x => x.Date)) Items.Add(p);
 
             await LoadAllFromCloudAsync();
         }
@@ -119,9 +117,9 @@ public partial class AgendaPage : ContentPage
 
             SubLabel.Text = $"{_selectedInst.Name} • {_selectedClass.Name}";
 
-            var cached = await _store.LoadAgendaClassCacheAsync(_selectedInst.Id, _selectedClass.Id);
+            var cached = await _store.LoadPlansClassCacheAsync(_selectedInst.Id, _selectedClass.Id);
             if (cached != null)
-                foreach (var x in cached.OrderBy(x => x.Start)) Items.Add(x);
+                foreach (var p in cached.OrderByDescending(x => x.Date)) Items.Add(p);
 
             await LoadClassFromCloudAsync(_selectedInst.Id, _selectedClass.Id);
         }
@@ -131,10 +129,10 @@ public partial class AgendaPage : ContentPage
     {
         try
         {
-            var list = await _db.GetAgendaAllAsync(_uid, _token);
+            var list = await _db.GetPlansAllAsync(_uid, _token);
             Items.Clear();
-            foreach (var e in list.OrderBy(x => x.Start)) Items.Add(e);
-            await _store.SaveAgendaAllCacheAsync(list);
+            foreach (var p in list) Items.Add(p);
+            await _store.SavePlansAllCacheAsync(list);
         }
         catch { }
     }
@@ -143,10 +141,10 @@ public partial class AgendaPage : ContentPage
     {
         try
         {
-            var list = await _db.GetAgendaByClassAsync(_uid, institutionId, classId, _token);
+            var list = await _db.GetPlansByClassAsync(_uid, institutionId, classId, _token);
             Items.Clear();
-            foreach (var e in list.OrderBy(x => x.Start)) Items.Add(e);
-            await _store.SaveAgendaClassCacheAsync(institutionId, classId, list);
+            foreach (var p in list) Items.Add(p);
+            await _store.SavePlansClassCacheAsync(institutionId, classId, list);
         }
         catch { }
     }
@@ -216,65 +214,61 @@ public partial class AgendaPage : ContentPage
 
     private async void OnAddClicked(object sender, EventArgs e)
     {
-        var ev = new ScheduleEvent
+        var plan = new LessonPlan
         {
-            Title = "",
-            Type = "Aula",
-            Description = "",
-            Start = DateTime.Today.AddHours(8),
-            End = DateTime.Today.AddHours(9),
+            Date = DateTime.Today,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
-        // se estiver em modo turma, fixa vínculo
+        // se estiver em modo turma, já fixa vínculo
         if (!_modeAll && _selectedInst != null && _selectedClass != null)
         {
-            ev.InstitutionId = _selectedInst.Id;
-            ev.InstitutionName = _selectedInst.Name;
-            ev.ClassId = _selectedClass.Id;
-            ev.ClassName = _selectedClass.Name;
+            plan.InstitutionId = _selectedInst.Id;
+            plan.InstitutionName = _selectedInst.Name;
+            plan.ClassId = _selectedClass.Id;
+            plan.ClassName = _selectedClass.Name;
         }
 
-        await Navigation.PushModalAsync(new AgendaEventEditorPage(_db, _store, ev));
+        await Navigation.PushModalAsync(new PlanEditorPage(_db, _store, plan));
         await RefreshCurrentModeAsync();
     }
 
     private async void OnEditClicked(object sender, EventArgs e)
     {
         if (sender is not Button btn) return;
-        if (btn.BindingContext is not ScheduleEvent ev) return;
+        if (btn.BindingContext is not LessonPlan plan) return;
 
-        await Navigation.PushModalAsync(new AgendaEventEditorPage(_db, _store, ev));
+        await Navigation.PushModalAsync(new PlanEditorPage(_db, _store, plan));
         await RefreshCurrentModeAsync();
     }
 
     private async void OnDeleteClicked(object sender, EventArgs e)
     {
         if (sender is not Button btn) return;
-        if (btn.BindingContext is not ScheduleEvent ev) return;
+        if (btn.BindingContext is not LessonPlan plan) return;
 
-        var confirm = await DisplayAlert("Excluir", $"Excluir \"{ev.Title}\"?", "Sim", "Não");
+        var confirm = await DisplayAlert("Excluir", $"Excluir \"{plan.Title}\"?", "Sim", "Não");
         if (!confirm) return;
 
-        await _db.DeleteAgendaAllAsync(_uid, _token, ev.Id);
+        await _db.DeletePlanAllAsync(_uid, _token, plan.Id);
 
-        if (!string.IsNullOrWhiteSpace(ev.InstitutionId) && !string.IsNullOrWhiteSpace(ev.ClassId))
+        if (!string.IsNullOrWhiteSpace(plan.InstitutionId) && !string.IsNullOrWhiteSpace(plan.ClassId))
         {
-            await _db.DeleteAgendaByClassAsync(_uid, ev.InstitutionId, ev.ClassId, _token, ev.Id);
+            await _db.DeletePlanByClassAsync(_uid, plan.InstitutionId, plan.ClassId, _token, plan.Id);
         }
 
-        Items.Remove(ev);
+        Items.Remove(plan);
         await RefreshCurrentModeAsync();
     }
 
+    // (Opcional) seleção abre detalhes completos
     private async void OnSelected(object sender, SelectionChangedEventArgs e)
     {
-        var ev = e.CurrentSelection?.FirstOrDefault() as ScheduleEvent;
-        if (ev == null) return;
+        var plan = e.CurrentSelection?.FirstOrDefault() as LessonPlan;
+        if (plan == null) return;
 
         ((CollectionView)sender).SelectedItem = null;
-        await Navigation.PushAsync(new AgendaEventDetailsPage(_store, _db, _storage, ev));
-
+        await Navigation.PushAsync(new PlanDetailsPage(_store, _db, _storage, plan));
     }
 
 }

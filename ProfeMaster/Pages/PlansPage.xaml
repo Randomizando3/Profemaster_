@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage
-    x:Class="ProfeMaster.Pages.AgendaPage"
+    x:Class="ProfeMaster.Pages.PlansPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     BackgroundColor="{StaticResource PmBg}"
-    Title="Agenda">
+    Title="Planos de Aula">
 
     <Grid Padding="16" RowSpacing="12">
         <Grid.RowDefinitions>
@@ -13,18 +13,16 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- HEADER -->
         <Border Grid.Row="0" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
             <Grid Padding="12" ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
-                <Label Text="Agenda" FontAttributes="Bold" FontSize="16"/>
+                <Label Text="Planos de Aula" FontAttributes="Bold" FontSize="16"/>
                 <Button Grid.Column="1" Text="Atualizar" BackgroundColor="#243056" Clicked="OnRefreshClicked"/>
                 <Button Grid.Column="2" Text="+ Novo" Background="{StaticResource PmGradient}" Clicked="OnAddClicked"/>
 
-                <Label Grid.Row="1" Grid.ColumnSpan="3" x:Name="SubLabel" Text="Geral (todas as turmas)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                <Label Grid.Row="1" Grid.ColumnSpan="3" x:Name="SubLabel" Text="Geral (todos)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
             </Grid>
         </Border>
 
-        <!-- MODOS + PICKERS -->
         <Border Grid.Row="1" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
             <VerticalStackLayout Padding="12" Spacing="10">
 
@@ -54,7 +52,6 @@
             </VerticalStackLayout>
         </Border>
 
-        <!-- LISTA -->
         <CollectionView Grid.Row="2"
                 ItemsSource="{Binding Items}"
                 SelectionMode="Single"
@@ -64,11 +61,11 @@
                     <Border Margin="0,0,0,10" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 18">
                         <Grid Padding="14" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
                             <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16"/>
-                            <Label Grid.Row="1" Text="{Binding Type}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <Label Grid.Row="1" Text="{Binding Date, StringFormat='Data: {0:dd/MM/yyyy}'}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
                             <Label Grid.Row="2" Text="{Binding InstitutionName}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
                             <Label Grid.Row="3" Text="{Binding ClassName}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
 
-                            <!-- mantém botões (opcional) -->
+                            <!-- mantém botões (opcional), mas agora não são necessários -->
                             <VerticalStackLayout Grid.Column="1" Grid.RowSpan="4" Spacing="8" VerticalOptions="Center">
                                 <Button Text="Editar" BackgroundColor="#243056" Clicked="OnEditClicked"/>
                                 <Button Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDeleteClicked"/>
