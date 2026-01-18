@@ -3,116 +3,550 @@
     x:Class="ProfeMaster.Pages.AgendaEventEditorPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}"
-    Title="Novo item da Agenda">
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+
+        <!-- ===== Paleta inline (igual Agenda) ===== -->
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+
+        <Color x:Key="PmChipPlan">#23BFC2</Color>
+        <Color x:Key="PmChipEvent">#F04646</Color>
+        <Color x:Key="PmChipExam">#0B8F3A</Color>
+        <Color x:Key="PmChipLesson">#8B2CE2</Color>
+
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+
+        <!-- ====== Card padrão ====== -->
+        <Style x:Key="PmCardStyle" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF"/>
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}"/>
+            <Setter Property="StrokeThickness" Value="2"/>
+            <Setter Property="StrokeShape" Value="RoundRectangle 18"/>
+        </Style>
+
+        <!-- ====== Campo padrão (Border que envolve input) ====== -->
+        <Style x:Key="PmFieldStyle" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF"/>
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}"/>
+            <Setter Property="StrokeThickness" Value="2"/>
+            <Setter Property="StrokeShape" Value="RoundRectangle 16"/>
+            <Setter Property="Padding" Value="12,10"/>
+        </Style>
+
+        <!-- ====== Chip do tipo ====== -->
+        <Style x:Key="KindChipStyle" TargetType="Border">
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="StrokeShape" Value="RoundRectangle 12"/>
+            <Setter Property="Padding" Value="12,7"/>
+            <Setter Property="HorizontalOptions" Value="End"/>
+            <Setter Property="VerticalOptions" Value="Center"/>
+            <Setter Property="BackgroundColor" Value="{StaticResource PmChipLesson}"/>
+        </Style>
+
+    </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+        <Grid Padding="18" RowSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <!-- CARD: Tipo + Vínculo -->
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-                <VerticalStackLayout Padding="14" Spacing="10">
+            <!-- ===== TOP BAR (título discreto + botão fechar) ===== -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="10">
 
-                    <Label Text="Tipo do item" FontAttributes="Bold" />
+                <VerticalStackLayout Spacing="2">
+                    <Label x:Name="TopTitle"
+                           Text="Novo item"
+                           FontAttributes="Bold"
+                           FontSize="16"
+                           TextColor="{StaticResource PmText}"/>
+                    <Label x:Name="TopSubtitle"
+                           Text="Preencha os dados abaixo"
+                           FontSize="11"
+                           TextColor="{StaticResource PmMuted}"/>
+                </VerticalStackLayout>
 
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Picker x:Name="KindPicker"
-                                Title="Selecione o tipo"
-                                SelectedIndexChanged="OnKindChanged" />
+                <Border Grid.Column="1"
+                        BackgroundColor="#F2F2F2"
+                        StrokeThickness="0"
+                        StrokeShape="5"
+                        WidthRequest="32"
+                        HeightRequest="32"
+                        HorizontalOptions="End"
+                        VerticalOptions="Center">
+                    <Button Text="✕"
+                            Clicked="OnCancel"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource PmText}"
+                            FontAttributes="Bold"
+                            FontSize="16"
+                            Padding="0,0,0,20"/>
+                </Border>
 
-                        <Button Grid.Column="1"
-                                x:Name="BtnClearLink"
-                                Text="Limpar vínculo"
-                                BackgroundColor="#243056"
-                                Clicked="OnClearLinked"
-                                IsVisible="False"/>
+            </Grid>
+
+            <!-- ===== CARD: Tipo + vínculo ===== -->
+            <Border Grid.Row="1" Style="{StaticResource PmCardStyle}">
+                <VerticalStackLayout Padding="14" Spacing="12">
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Label Text="Tipo do item"
+                               FontAttributes="Bold"
+                               FontSize="12"
+                               TextColor="{StaticResource PmText}"
+                               VerticalOptions="Center"/>
+
+                        <!-- chip visual do tipo (fica sempre visível) -->
+                        <Border x:Name="KindChip"
+                                Grid.Column="1"
+                                Style="{StaticResource KindChipStyle}">
+                            <Label x:Name="KindChipLabel"
+                                   Text="Aula"
+                                   TextColor="#FFFFFF"
+                                   FontSize="10"
+                                   FontAttributes="Bold"/>
+                        </Border>
                     </Grid>
 
+                    <!-- Picker de tipo custom (campo visível) -->
+                    <Border Style="{StaticResource PmFieldStyle}">
+                        <Grid ColumnDefinitions="*,Auto"
+                              RowDefinitions="Auto,Auto">
+
+                            <Label Text="Selecione o tipo"
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}"
+                                   Margin="0,0,0,2"/>
+
+                            <!-- display -->
+                            <Label Grid.Row="1"
+                                   x:Name="KindDisplay"
+                                   Text="Aula"
+                                   FontSize="12"
+                                   TextColor="{StaticResource PmText}"
+                                   LineBreakMode="TailTruncation"
+                                   MaxLines="1"/>
+
+                            <Label Grid.Column="1"
+                                   Grid.RowSpan="2"
+                                   Text="▾"
+                                   FontSize="16"
+                                   TextColor="{StaticResource PmMuted}"
+                                   VerticalOptions="Center"
+                                   Margin="8,0,0,0"/>
+
+                            <!-- picker real invisível -->
+                            <Picker x:Name="KindPicker"
+                                    Grid.RowSpan="2"
+                                    Grid.ColumnSpan="2"
+                                    Title="Tipo"
+                                    SelectedIndexChanged="OnKindChanged"
+                                    Opacity="0.02"
+                                    BackgroundColor="#FFFFFF"
+                                    TextColor="{StaticResource PmText}"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Botão limpar vínculo -->
+                    <Button x:Name="BtnClearLink"
+                            Text="Limpar vínculo"
+                            BackgroundColor="#F2F2F2"
+                            TextColor="{StaticResource PmText}"
+                            FontAttributes="Bold"
+                            FontSize="11"
+                            CornerRadius="14"
+                            Padding="14,12"
+                            Clicked="OnClearLinked"
+                            IsVisible="False"/>
+
                     <!-- Vínculos (um por tipo) -->
-                    <VerticalStackLayout x:Name="LinkLessonBox" Spacing="6" IsVisible="False">
-                        <Label Text="Aula (opcional)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                        <Picker x:Name="LessonPicker"
-                                Title="Vincular uma aula existente (opcional)"
-                                SelectedIndexChanged="OnLessonLinkedChanged"/>
+                    <VerticalStackLayout x:Name="LinkLessonBox" Spacing="8" IsVisible="False">
+                        <Label Text="Aula (opcional)"
+                               TextColor="{StaticResource PmMuted}"
+                               FontSize="11"/>
+
+                        <Border Style="{StaticResource PmFieldStyle}">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+
+                                <Label Text="Escolha uma aula"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}"
+                                       Margin="0,0,0,2"/>
+
+                                <Label Grid.Row="1"
+                                       Text="{Binding Source={x:Reference LessonPicker}, Path=SelectedItem}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource PmText}"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1"/>
+
+                                <Label Grid.Column="1" Grid.RowSpan="2"
+                                       Text="▾"
+                                       FontSize="16"
+                                       TextColor="{StaticResource PmMuted}"
+                                       VerticalOptions="Center"
+                                       Margin="8,0,0,0"/>
+
+                                <Picker x:Name="LessonPicker"
+                                        Grid.RowSpan="2"
+                                        Grid.ColumnSpan="2"
+                                        Title="Aula"
+                                        SelectedIndexChanged="OnLessonLinkedChanged"
+                                        Opacity="0.02"
+                                        BackgroundColor="#FFFFFF"
+                                        TextColor="{StaticResource PmText}"/>
+                            </Grid>
+                        </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout x:Name="LinkPlanBox" Spacing="6" IsVisible="False">
-                        <Label Text="Plano de aula (recomendado)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                        <Picker x:Name="PlanPicker"
-                                Title="Selecione um plano de aula"
-                                SelectedIndexChanged="OnPlanLinkedChanged"/>
+                    <VerticalStackLayout x:Name="LinkPlanBox" Spacing="8" IsVisible="False">
+                        <Label Text="Plano de aula (recomendado)"
+                               TextColor="{StaticResource PmMuted}"
+                               FontSize="11"/>
+
+                        <Border Style="{StaticResource PmFieldStyle}">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                <Label Text="Escolha um plano"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}"
+                                       Margin="0,0,0,2"/>
+
+                                <Label Grid.Row="1"
+                                       Text="{Binding Source={x:Reference PlanPicker}, Path=SelectedItem}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource PmText}"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1"/>
+
+                                <Label Grid.Column="1" Grid.RowSpan="2"
+                                       Text="▾"
+                                       FontSize="16"
+                                       TextColor="{StaticResource PmMuted}"
+                                       VerticalOptions="Center"
+                                       Margin="8,0,0,0"/>
+
+                                <Picker x:Name="PlanPicker"
+                                        Grid.RowSpan="2"
+                                        Grid.ColumnSpan="2"
+                                        Title="Plano"
+                                        SelectedIndexChanged="OnPlanLinkedChanged"
+                                        Opacity="0.02"
+                                        BackgroundColor="#FFFFFF"
+                                        TextColor="{StaticResource PmText}"/>
+                            </Grid>
+                        </Border>
+
                         <Label x:Name="PlanHintLabel"
                                TextColor="{StaticResource PmMuted}"
-                               FontSize="12"
+                               FontSize="10"
                                Text="Ao selecionar um plano, o intervalo (início/fim) será preenchido automaticamente."/>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout x:Name="LinkEventBox" Spacing="6" IsVisible="False">
-                        <Label Text="Evento (opcional)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                        <Picker x:Name="EventPicker"
-                                Title="Vincular um evento existente (opcional)"
-                                SelectedIndexChanged="OnEventLinkedChanged"/>
+                    <VerticalStackLayout x:Name="LinkEventBox" Spacing="8" IsVisible="False">
+                        <Label Text="Evento (opcional)"
+                               TextColor="{StaticResource PmMuted}"
+                               FontSize="11"/>
+
+                        <Border Style="{StaticResource PmFieldStyle}">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                <Label Text="Escolha um evento"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}"
+                                       Margin="0,0,0,2"/>
+
+                                <Label Grid.Row="1"
+                                       Text="{Binding Source={x:Reference EventPicker}, Path=SelectedItem}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource PmText}"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1"/>
+
+                                <Label Grid.Column="1" Grid.RowSpan="2"
+                                       Text="▾"
+                                       FontSize="16"
+                                       TextColor="{StaticResource PmMuted}"
+                                       VerticalOptions="Center"
+                                       Margin="8,0,0,0"/>
+
+                                <Picker x:Name="EventPicker"
+                                        Grid.RowSpan="2"
+                                        Grid.ColumnSpan="2"
+                                        Title="Evento"
+                                        SelectedIndexChanged="OnEventLinkedChanged"
+                                        Opacity="0.02"
+                                        BackgroundColor="#FFFFFF"
+                                        TextColor="{StaticResource PmText}"/>
+                            </Grid>
+                        </Border>
                     </VerticalStackLayout>
 
-                    <VerticalStackLayout x:Name="LinkExamBox" Spacing="6" IsVisible="False">
-                        <Label Text="Prova (opcional)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                        <Picker x:Name="ExamPicker"
-                                Title="Vincular uma prova existente (opcional)"
-                                SelectedIndexChanged="OnExamLinkedChanged"/>
+                    <VerticalStackLayout x:Name="LinkExamBox" Spacing="8" IsVisible="False">
+                        <Label Text="Prova (opcional)"
+                               TextColor="{StaticResource PmMuted}"
+                               FontSize="11"/>
+
+                        <Border Style="{StaticResource PmFieldStyle}">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                <Label Text="Escolha uma prova"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}"
+                                       Margin="0,0,0,2"/>
+
+                                <Label Grid.Row="1"
+                                       Text="{Binding Source={x:Reference ExamPicker}, Path=SelectedItem}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource PmText}"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1"/>
+
+                                <Label Grid.Column="1" Grid.RowSpan="2"
+                                       Text="▾"
+                                       FontSize="16"
+                                       TextColor="{StaticResource PmMuted}"
+                                       VerticalOptions="Center"
+                                       Margin="8,0,0,0"/>
+
+                                <Picker x:Name="ExamPicker"
+                                        Grid.RowSpan="2"
+                                        Grid.ColumnSpan="2"
+                                        Title="Prova"
+                                        SelectedIndexChanged="OnExamLinkedChanged"
+                                        Opacity="0.02"
+                                        BackgroundColor="#FFFFFF"
+                                        TextColor="{StaticResource PmText}"/>
+                            </Grid>
+                        </Border>
                     </VerticalStackLayout>
 
                 </VerticalStackLayout>
             </Border>
 
-            <!-- CARD: Dados -->
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+            <!-- ===== CARD: Dados ===== -->
+            <Border Grid.Row="2" Style="{StaticResource PmCardStyle}">
                 <VerticalStackLayout Padding="14" Spacing="10">
 
-                    <Label Text="Dados" FontAttributes="Bold" />
+                    <Label Text="Dados"
+                           FontAttributes="Bold"
+                           FontSize="12"
+                           TextColor="{StaticResource PmText}" />
 
-                    <Entry x:Name="TitleEntry" Placeholder="Nome do item (ex: Aula de Matemática / Prova / Evento)" />
+                    <Border Style="{StaticResource PmFieldStyle}">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Nome"
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
+                            <Entry x:Name="TitleEntry"
+                                   Placeholder="Ex: Aula de Matemática"
+                                   PlaceholderColor="#B0B0B0"
+                                   FontSize="12"
+                                   TextColor="{StaticResource PmText}"
+                                   BackgroundColor="Transparent" />
+                        </VerticalStackLayout>
+                    </Border>
 
-                    <Editor x:Name="DescEditor"
-                            AutoSize="TextChanges"
-                            Placeholder="Descrição (opcional)..." />
+                    <Border Style="{StaticResource PmFieldStyle}">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Descrição (opcional)"
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
+                            <Editor x:Name="DescEditor"
+                                    AutoSize="TextChanges"
+                                    Placeholder="Escreva uma observação..."
+                                    PlaceholderColor="#B0B0B0"
+                                    FontSize="12"
+                                    TextColor="{StaticResource PmText}"
+                                    BackgroundColor="Transparent"
+                                    HeightRequest="90" />
+                        </VerticalStackLayout>
+                    </Border>
 
                 </VerticalStackLayout>
             </Border>
 
-            <!-- CARD: Data e Hora -->
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-                <VerticalStackLayout Padding="14" Spacing="10">
+            <!-- ===== CARD: Data e hora ===== -->
+            <Border Grid.Row="3" Style="{StaticResource PmCardStyle}">
+                <VerticalStackLayout Padding="14" Spacing="12">
 
-                    <Label Text="Data e horário" FontAttributes="Bold"/>
+                    <Label Text="Data e horário"
+                           FontAttributes="Bold"
+                           FontSize="12"
+                           TextColor="{StaticResource PmText}"/>
 
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Início" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            <DatePicker x:Name="StartDatePicker" DateSelected="OnAnyDateChanged"/>
-                            <TimePicker x:Name="StartTimePicker" PropertyChanged="OnAnyTimeChanged"/>
+
+                        <!-- Início -->
+                        <VerticalStackLayout Spacing="8">
+                            <Label Text="Início"
+                                   TextColor="{StaticResource PmMuted}"
+                                   FontSize="11"/>
+
+                            <!-- DatePicker (campo visível + overlay) -->
+                            <Border Style="{StaticResource PmFieldStyle}">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <Label Text="Data"
+                                           FontSize="10"
+                                           TextColor="{StaticResource PmMuted}"
+                                           Margin="0,0,0,2"/>
+                                    <Label Grid.Row="1"
+                                           Text="{Binding Source={x:Reference StartDatePicker}, Path=Date, StringFormat='{0:dd/MM/yyyy}'}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource PmText}"/>
+
+                                    <Label Grid.Column="1" Grid.RowSpan="2"
+                                           Text="📅"
+                                           FontSize="14"
+                                           TextColor="{StaticResource PmMuted}"
+                                           VerticalOptions="Center"
+                                           Margin="8,0,0,0"/>
+
+                                    <DatePicker x:Name="StartDatePicker"
+                                                Grid.RowSpan="2"
+                                                Grid.ColumnSpan="2"
+                                                DateSelected="OnAnyDateChanged"
+                                                Opacity="0.02"
+                                                BackgroundColor="#FFFFFF"
+                                                TextColor="{StaticResource PmText}"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- TimePicker (campo visível + overlay) -->
+                            <Border Style="{StaticResource PmFieldStyle}">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <Label Text="Hora"
+                                           FontSize="10"
+                                           TextColor="{StaticResource PmMuted}"
+                                           Margin="0,0,0,2"/>
+                                    <Label Grid.Row="1"
+                                           Text="{Binding Source={x:Reference StartTimePicker}, Path=Time, StringFormat='{0:hh\\:mm}'}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource PmText}"/>
+
+                                    <Label Grid.Column="1" Grid.RowSpan="2"
+                                           Text="⏱"
+                                           FontSize="14"
+                                           TextColor="{StaticResource PmMuted}"
+                                           VerticalOptions="Center"
+                                           Margin="8,0,0,0"/>
+
+                                    <TimePicker x:Name="StartTimePicker"
+                                                Grid.RowSpan="2"
+                                                Grid.ColumnSpan="2"
+                                                PropertyChanged="OnAnyTimeChanged"
+                                                Opacity="0.02"
+                                                BackgroundColor="#FFFFFF"
+                                                TextColor="{StaticResource PmText}"/>
+                                </Grid>
+                            </Border>
+
                         </VerticalStackLayout>
 
-                        <VerticalStackLayout Grid.Column="1" Spacing="6">
-                            <Label Text="Fim" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            <DatePicker x:Name="EndDatePicker" DateSelected="OnAnyDateChanged"/>
-                            <TimePicker x:Name="EndTimePicker" PropertyChanged="OnAnyTimeChanged"/>
+                        <!-- Fim -->
+                        <VerticalStackLayout Grid.Column="1" Spacing="8">
+                            <Label Text="Fim"
+                                   TextColor="{StaticResource PmMuted}"
+                                   FontSize="11"/>
+
+                            <Border Style="{StaticResource PmFieldStyle}">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <Label Text="Data"
+                                           FontSize="10"
+                                           TextColor="{StaticResource PmMuted}"
+                                           Margin="0,0,0,2"/>
+                                    <Label Grid.Row="1"
+                                           Text="{Binding Source={x:Reference EndDatePicker}, Path=Date, StringFormat='{0:dd/MM/yyyy}'}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource PmText}"/>
+
+                                    <Label Grid.Column="1" Grid.RowSpan="2"
+                                           Text="📅"
+                                           FontSize="14"
+                                           TextColor="{StaticResource PmMuted}"
+                                           VerticalOptions="Center"
+                                           Margin="8,0,0,0"/>
+
+                                    <DatePicker x:Name="EndDatePicker"
+                                                Grid.RowSpan="2"
+                                                Grid.ColumnSpan="2"
+                                                DateSelected="OnAnyDateChanged"
+                                                Opacity="0.02"
+                                                BackgroundColor="#FFFFFF"
+                                                TextColor="{StaticResource PmText}"/>
+                                </Grid>
+                            </Border>
+
+                            <Border Style="{StaticResource PmFieldStyle}">
+                                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                    <Label Text="Hora"
+                                           FontSize="10"
+                                           TextColor="{StaticResource PmMuted}"
+                                           Margin="0,0,0,2"/>
+                                    <Label Grid.Row="1"
+                                           Text="{Binding Source={x:Reference EndTimePicker}, Path=Time, StringFormat='{0:hh\\:mm}'}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource PmText}"/>
+
+                                    <Label Grid.Column="1" Grid.RowSpan="2"
+                                           Text="⏱"
+                                           FontSize="14"
+                                           TextColor="{StaticResource PmMuted}"
+                                           VerticalOptions="Center"
+                                           Margin="8,0,0,0"/>
+
+                                    <TimePicker x:Name="EndTimePicker"
+                                                Grid.RowSpan="2"
+                                                Grid.ColumnSpan="2"
+                                                PropertyChanged="OnAnyTimeChanged"
+                                                Opacity="0.02"
+                                                BackgroundColor="#FFFFFF"
+                                                TextColor="{StaticResource PmText}"/>
+                                </Grid>
+                            </Border>
+
                         </VerticalStackLayout>
+
                     </Grid>
 
                     <Label x:Name="RangeHintLabel"
                            TextColor="{StaticResource PmMuted}"
-                           FontSize="12"
+                           FontSize="10"
                            Text="Dica: Plano de aula e Evento podem ocupar vários dias. Aula/Prova normalmente é um único dia." />
+
+                    <!-- AÇÕES -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
+                        <Button Text="Cancelar"
+                                Clicked="OnCancel"
+                                CornerRadius="14"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                TextColor="#FFFFFF"
+                                BackgroundColor="#B24A74"
+                                Padding="14,12"/>
+
+                        <Button Grid.Column="1"
+                                Text="Salvar"
+                                Clicked="OnSave"
+                                CornerRadius="14"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                TextColor="#FFFFFF"
+                                Background="{StaticResource PmGradient}"
+                                Padding="14,12"/>
+                    </Grid>
 
                 </VerticalStackLayout>
             </Border>
 
-            <!-- AÇÕES -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Cancelar" BackgroundColor="#3A2040" Clicked="OnCancel"/>
-                <Button Grid.Column="1" Text="Salvar" Background="{StaticResource PmGradient}" Clicked="OnSave"/>
-            </Grid>
-
-        </VerticalStackLayout>
+        </Grid>
     </ScrollView>
 </ContentPage>

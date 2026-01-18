@@ -3,99 +3,268 @@
     x:Class="ProfeMaster.Pages.AgendaEventDetailsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}"
-    Title="Detalhes">
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+    <Grid>
 
-            <!-- CARD PRINCIPAL -->
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-                <VerticalStackLayout Padding="14" Spacing="10">
-                    <Label x:Name="TitleLabel" FontAttributes="Bold" FontSize="18"/>
-                    <Label x:Name="MetaLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+        <!-- ===== TOP BAR (X) ===== -->
+        <Grid Padding="14"
+              RowDefinitions="Auto,*"
+              BackgroundColor="#FFFFFF">
 
-                    <Label Text="Tipo" FontAttributes="Bold"/>
-                    <Label x:Name="TypeLabel" />
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" VerticalOptions="Start">
+                <!-- Espaçador esquerdo p/ centralizar visualmente -->
+                <BoxView WidthRequest="40" HeightRequest="40" Opacity="0" />
 
-                    <Label Text="Período" FontAttributes="Bold"/>
-                    <Label x:Name="PeriodLabel" />
+                <Label Grid.Column="1"
+                       Text="Detalhes"
+                       FontAttributes="Bold"
+                       FontSize="13"
+                       TextColor="#2B2B2B"
+                       HorizontalTextAlignment="Center"
+                       VerticalTextAlignment="Center" />
 
-                    <Label Text="Descrição" FontAttributes="Bold"/>
-                    <Label x:Name="DescLabel" />
+                <!-- Botão X -->
+                <Border Grid.Column="2"
+                        WidthRequest="32"
+                        HeightRequest="32"
+                        StrokeThickness="0"
+                        StrokeShape="5"
+                        BackgroundColor="#F2F2F2"
+                        HorizontalOptions="End"
+                        VerticalOptions="Center">
+                    <Button Text="✕"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            BackgroundColor="Transparent"
+                            TextColor="#2B2B2B"
+                            Padding="0,0,0,20"
+                            Clicked="OnClose" />
+                </Border>
+            </Grid>
 
-                    <!-- VÍNCULO (APENAS ATALHO) -->
-                    <Border x:Name="LinkCard"
-                            BackgroundColor="#0f172a"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 16"
-                            IsVisible="False">
-                        <VerticalStackLayout Padding="12" Spacing="10">
-                            <Label x:Name="LinkTitleLabel"
-                                   Text="Vínculo"
-                                   FontAttributes="Bold"
-                                   TextColor="White"/>
+            <!-- ===== CONTEÚDO ===== -->
+            <ScrollView Grid.Row="1">
+                <VerticalStackLayout Padding="18" Spacing="12">
 
-                            <Label x:Name="LinkInfoLabel"
-                                   Text=""
-                                   TextColor="#cbd5e1"
-                                   FontSize="12"/>
+                    <!-- CARD PRINCIPAL -->
+                    <Border BackgroundColor="#FFFFFF"
+                            Stroke="#E6E6E6"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 18">
 
-                            <Button x:Name="BtnOpenLinked"
-                                    Text="Ver detalhes"
-                                    Background="{StaticResource PmGradient}"
-                                    Clicked="OnOpenLinked"/>
+                        <VerticalStackLayout Padding="14" Spacing="10">
+
+                            <!-- Título + Chip -->
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                <Label x:Name="TitleLabel"
+                                       FontAttributes="Bold"
+                                       FontSize="16"
+                                       TextColor="#2B2B2B"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="2"
+                                       VerticalOptions="Center"/>
+
+                                <!-- CHIP Tipo -->
+                                <Border x:Name="TypeChip"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 10"
+                                        Padding="12,6"
+                                        HorizontalOptions="End"
+                                        VerticalOptions="Center"
+                                        BackgroundColor="#8B2CE2">
+                                    <Label x:Name="TypeChipLabel"
+                                           Text="Aula"
+                                           FontSize="11"
+                                           FontAttributes="Bold"
+                                           TextColor="#FFFFFF"
+                                           VerticalTextAlignment="Center"
+                                           HorizontalTextAlignment="Center"/>
+                                </Border>
+                            </Grid>
+
+                            <Label x:Name="MetaLabel"
+                                   FontSize="11"
+                                   TextColor="#7B7B7B" />
+
+                            <!-- Separador -->
+                            <BoxView HeightRequest="1"
+                                     BackgroundColor="#F0F0F0"
+                                     Margin="0,4,0,2"/>
+
+                            <!-- Tipo -->
+                            <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
+                                <Label Text="Tipo"
+                                       FontAttributes="Bold"
+                                       FontSize="12"
+                                       TextColor="#4B4B4B"/>
+                                <Label x:Name="TypeLabel"
+                                       Grid.Row="1"
+                                       FontSize="12"
+                                       TextColor="#2B2B2B"/>
+                            </Grid>
+
+                            <!-- Período -->
+                            <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
+                                <Label Text="Período"
+                                       FontAttributes="Bold"
+                                       FontSize="12"
+                                       TextColor="#4B4B4B"/>
+                                <Label x:Name="PeriodLabel"
+                                       Grid.Row="1"
+                                       FontSize="12"
+                                       TextColor="#2B2B2B"/>
+                            </Grid>
+
+                            <!-- Descrição -->
+                            <Grid RowDefinitions="Auto,Auto" RowSpacing="4">
+                                <Label Text="Descrição"
+                                       FontAttributes="Bold"
+                                       FontSize="12"
+                                       TextColor="#4B4B4B"/>
+                                <Label x:Name="DescLabel"
+                                       Grid.Row="1"
+                                       FontSize="12"
+                                       TextColor="#2B2B2B"/>
+                            </Grid>
+
+                            <!-- VÍNCULO (ATALHO) -->
+                            <Border x:Name="LinkCard"
+                                    IsVisible="False"
+                                    BackgroundColor="#FFFFFF"
+                                    Stroke="#E6E6E6"
+                                    StrokeThickness="2"
+                                    StrokeShape="RoundRectangle 16"
+                                    Margin="0,6,0,0">
+
+                                <VerticalStackLayout Padding="12" Spacing="8">
+                                    <Label x:Name="LinkTitleLabel"
+                                           Text="Vínculo"
+                                           FontAttributes="Bold"
+                                           FontSize="12"
+                                           TextColor="#4B4B4B"/>
+
+                                    <Label x:Name="LinkInfoLabel"
+                                           Text=""
+                                           FontSize="12"
+                                           TextColor="#2B2B2B"/>
+
+                                    <Button x:Name="BtnOpenLinked"
+                                            Text="Ver detalhes"
+                                            Clicked="OnOpenLinked"
+                                            CornerRadius="14"
+                                            FontAttributes="Bold"
+                                            FontSize="12"
+                                            TextColor="#FFFFFF"
+                                            BackgroundColor="#7A5AF8"
+                                            Padding="14,10"/>
+                                </VerticalStackLayout>
+                            </Border>
+
                         </VerticalStackLayout>
                     </Border>
 
+                    <!-- PLANOS VINCULADOS (LEGADO / EVENTO) -->
+                    <Border x:Name="LinkedPlansCard"
+                            IsVisible="False"
+                            BackgroundColor="#FFFFFF"
+                            Stroke="#E6E6E6"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 18">
+
+                        <VerticalStackLayout Padding="14" Spacing="10">
+
+                            <Label Text="Planos vinculados a este evento"
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="#2B2B2B"/>
+
+                            <CollectionView x:Name="LinkedPlansList" SelectionMode="None">
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Margin="0,0,0,12"
+                                                BackgroundColor="#FFFFFF"
+                                                Stroke="#E6E6E6"
+                                                StrokeThickness="2"
+                                                StrokeShape="RoundRectangle 16">
+
+                                            <Grid Padding="12"
+                                                  ColumnDefinitions="*,Auto"
+                                                  RowDefinitions="Auto,Auto"
+                                                  ColumnSpacing="10"
+                                                  RowSpacing="4">
+
+                                                <Label Text="{Binding Title}"
+                                                       FontAttributes="Bold"
+                                                       FontSize="13"
+                                                       TextColor="#2B2B2B"
+                                                       LineBreakMode="TailTruncation"
+                                                       MaxLines="1" />
+
+                                                <Label Grid.Row="1"
+                                                       Text="{Binding Date, StringFormat='Data: {0:dd/MM/yyyy}'}"
+                                                       FontSize="11"
+                                                       TextColor="#7B7B7B"/>
+
+                                                <HorizontalStackLayout Grid.Column="1"
+                                                                       Grid.RowSpan="2"
+                                                                       Spacing="8"
+                                                                       VerticalOptions="Center">
+                                                    <Button Text="Abrir"
+                                                            BackgroundColor="#F2F2F2"
+                                                            TextColor="#2B2B2B"
+                                                            FontAttributes="Bold"
+                                                            FontSize="12"
+                                                            CornerRadius="12"
+                                                            Padding="12,8"
+                                                            Clicked="OnOpenPlan"/>
+
+                                                    <Button Text="Desvincular"
+                                                            BackgroundColor="#B24A74"
+                                                            TextColor="#FFFFFF"
+                                                            FontAttributes="Bold"
+                                                            FontSize="12"
+                                                            CornerRadius="12"
+                                                            Padding="12,8"
+                                                            Clicked="OnUnlinkPlan"/>
+                                                </HorizontalStackLayout>
+
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
+
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- AÇÕES -->
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,12">
+                        <Button Text="Editar"
+                                Clicked="OnEdit"
+                                CornerRadius="14"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                TextColor="#FFFFFF"
+                                BackgroundColor="#7A5AF8"
+                                Padding="14,10"/>
+                        <Button Grid.Column="1"
+                                Text="Excluir"
+                                Clicked="OnDelete"
+                                CornerRadius="14"
+                                FontAttributes="Bold"
+                                FontSize="12"
+                                TextColor="#FFFFFF"
+                                BackgroundColor="#B24A74"
+                                Padding="14,10"/>
+                    </Grid>
+
                 </VerticalStackLayout>
-            </Border>
+            </ScrollView>
 
-            <!-- PLANOS VINCULADOS (LEGADO / SOMENTE PARA EVENTO) -->
-            <Border x:Name="LinkedPlansCard"
-                    BackgroundColor="{StaticResource PmCard}"
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 20"
-                    IsVisible="False">
-                <VerticalStackLayout Padding="14" Spacing="10">
-                    <Label Text="Planos vinculados a este evento" FontAttributes="Bold"/>
+        </Grid>
 
-                    <CollectionView x:Name="LinkedPlansList" SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Border Margin="0,0,0,10"
-                                        BackgroundColor="#0f172a"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 14">
-                                    <Grid Padding="12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                        <Label Text="{Binding Title}" FontAttributes="Bold" TextColor="White"/>
-                                        <Label Grid.Row="1"
-                                               Text="{Binding Date, StringFormat='Data: {0:dd/MM/yyyy}'}"
-                                               TextColor="#cbd5e1"
-                                               FontSize="12"/>
-
-                                        <HorizontalStackLayout Grid.Column="1"
-                                                               Grid.RowSpan="2"
-                                                               Spacing="8"
-                                                               VerticalOptions="Center">
-                                            <Button Text="Abrir" BackgroundColor="#243056" Clicked="OnOpenPlan"/>
-                                            <Button Text="Desvincular" BackgroundColor="#3A2040" Clicked="OnUnlinkPlan"/>
-                                        </HorizontalStackLayout>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
-
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- AÇÕES -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Editar" BackgroundColor="#243056" Clicked="OnEdit"/>
-                <Button Grid.Column="1" Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDelete"/>
-            </Grid>
-
-        </VerticalStackLayout>
-    </ScrollView>
+    </Grid>
 </ContentPage>

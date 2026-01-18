@@ -427,5 +427,28 @@ public partial class AgendaEventDetailsPage : ContentPage
 
         await Navigation.PopAsync();
     }
+
+
+    private async void OnClose(object sender, EventArgs e)
+    {
+        // Se estiver como Modal (PushModalAsync), fecha modal.
+        if (Navigation.ModalStack.Count > 0)
+        {
+            await Navigation.PopModalAsync();
+            return;
+        }
+
+        // Se estiver como PushAsync normal, volta na pilha.
+        if (Navigation.NavigationStack.Count > 1)
+        {
+            await Navigation.PopAsync();
+            return;
+        }
+
+        // Fallback: tenta voltar via Shell
+        if (Shell.Current != null)
+            await Shell.Current.GoToAsync("..");
+    }
+
 }
 

@@ -212,6 +212,7 @@ public partial class AgendaEventEditorPage : ContentPage
         NormalizeRangeByKind(CurrentKindNormalized());
 
         BtnClearLink.IsVisible = !string.IsNullOrWhiteSpace(_ev.LinkedId);
+        SyncKindVisual();
     }
 
     private static int KindToIndex(string kind)
@@ -243,7 +244,11 @@ public partial class AgendaEventEditorPage : ContentPage
             "Prova" => "Prova: normalmente é um único dia. Ajuste o horário se quiser.",
             _ => "Aula: normalmente é um único dia. Ajuste o horário e descrição se quiser."
         };
+
+        // <<< ESSENCIAL: mantém chip e combobox visual sincronizados
+        SyncKindVisual();
     }
+
 
     private string CurrentKindNormalized()
     {
@@ -273,8 +278,11 @@ public partial class AgendaEventEditorPage : ContentPage
         BtnClearLink.IsVisible = false;
 
         NormalizeRangeByKind(kind);
+
+        // ApplyKindToUi já chama SyncKindVisual()
         ApplyKindToUi();
     }
+
 
     private void NormalizeRangeByKind(string kind)
     {
@@ -644,4 +652,35 @@ public partial class AgendaEventEditorPage : ContentPage
             return (null, null);
         }
     }
+
+    private void SyncKindVisual()
+    {
+        // kind NORMALIZADO (Aula, Plano, Evento, Prova)
+        var kind = CurrentKindNormalized();
+
+        // texto que aparece no app (você pediu "Plano de Aulas")
+        var display = kind switch
+        {
+            "Plano" => "Plano de Aulas",
+            _ => kind
+        };
+
+        // atualiza labels visuais
+        if (KindDisplay != null) KindDisplay.Text = display;
+        if (KindChipLabel != null) KindChipLabel.Text = display;
+
+        // cor do chip (igual AgendaPage)
+        if (KindChip != null)
+        {
+            KindChip.BackgroundColor = kind switch
+            {
+                "Aula" => Color.FromArgb("#8B2CE2"),
+                "Plano" => Color.FromArgb("#23BFC2"),
+                "Evento" => Color.FromArgb("#F04646"),
+                "Prova" => Color.FromArgb("#0B8F3A"),
+                _ => Color.FromArgb("#8B2CE2")
+            };
+        }
+    }
+
 }
