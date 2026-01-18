@@ -428,3 +428,4 @@ public partial class AgendaEventDetailsPage : ContentPage
         await Navigation.PopAsync();
     }
 }
+

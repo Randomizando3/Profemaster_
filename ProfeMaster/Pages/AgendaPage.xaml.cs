@@ -38,6 +38,8 @@ public partial class AgendaPage : ContentPage
 
         FilterDatePicker.Date = DateTime.Today;
         BindingContext = this;
+
+        ApplyModeVisual();
     }
 
     protected override async void OnAppearing()
@@ -54,8 +56,23 @@ public partial class AgendaPage : ContentPage
         _uid = session.Uid;
         _token = session.IdToken;
 
+        ApplyModeVisual();
+
         await LoadInstitutionsAsync();
         await LoadCacheThenCloudAsync();
+    }
+
+    // ===== visual do segmentado (highlight + cores do texto) =====
+    private void ApplyModeVisual()
+    {
+        if (SegHighlight == null || BtnAll == null || BtnClass == null) return;
+
+        // move o highlight (fundo degradê)
+        Grid.SetColumn(SegHighlight, _modeAll ? 0 : 1);
+
+        // texto branco no selecionado, cinza no outro (igual print)
+        BtnAll.TextColor = _modeAll ? Colors.White : Color.FromArgb("#6B6B6B");
+        BtnClass.TextColor = _modeAll ? Color.FromArgb("#6B6B6B") : Colors.White;
     }
 
     private static string NormKind(string? s)
@@ -66,13 +83,11 @@ public partial class AgendaPage : ContentPage
 
     private static bool IsMultiDayKind(string kind)
     {
-        // Plano de aula e Evento se comportam como multi-dia
         return kind.Equals("Plano de aula", StringComparison.OrdinalIgnoreCase) ||
                kind.Equals("Plano", StringComparison.OrdinalIgnoreCase) ||
                kind.Equals("Evento", StringComparison.OrdinalIgnoreCase);
     }
 
-    // Expande um ScheduleEvent em ocorrências por dia quando ele cruza datas
     private static IEnumerable<(DateTime Day, ScheduleEvent Ev)> ExpandByDay(IEnumerable<ScheduleEvent> source)
     {
         foreach (var ev in source)
@@ -81,26 +96,19 @@ public partial class AgendaPage : ContentPage
             var s = ev.Start;
             var e = ev.End;
 
-            // segurança
             if (e < s) (s, e) = (e, s);
 
             var startDay = s.Date;
             var endDay = e.Date;
 
-            // Se não é multi-dia ou é no mesmo dia: retorna 1 ocorrência
             if (!IsMultiDayKind(kind) || startDay == endDay)
             {
                 yield return (startDay, ev);
                 continue;
             }
 
-            // Multi-dia: retorna uma ocorrência por dia
             for (var d = startDay; d <= endDay; d = d.AddDays(1))
-            {
-                // Reaproveita o mesmo objeto (sem clone) porque sua tela details precisa do Id original.
-                // A lista só usa o dia para agrupamento; o evento continua abrindo o mesmo Id.
                 yield return (d, ev);
-            }
         }
     }
 
@@ -227,7 +235,6 @@ public partial class AgendaPage : ContentPage
 
         var today = DateTime.Today;
 
-        // 1) aplica filtros no "range de dias"
         DateTime? filterDay = null;
 
         if (_dateFilterEnabled)
@@ -240,71 +247,28 @@ public partial class AgendaPage : ContentPage
             FilterLabel.Text = _showPast ? "Mostrando anteriores + futuros" : "A partir de hoje";
         }
 
-        // 2) expande multi-dia e filtra por dia
         var expanded = ExpandByDay(Items);
 
         if (filterDay.HasValue)
-        {
             expanded = expanded.Where(x => x.Day.Date == filterDay.Value);
-        }
         else
         {
             if (!_showPast)
                 expanded = expanded.Where(x => x.Day.Date >= today);
         }
 
-        // 3) ordena por dia e dentro do dia por Start
-        var ordered = expanded
+        var seq = expanded
             .OrderBy(x => x.Day)
             .ThenBy(x => x.Ev.Start.TimeOfDay)
-            .Select(x => x.Ev)
             .ToList();
 
-        if (ordered.Count == 0)
+        if (seq.Count == 0)
         {
             EmptyLabel.IsVisible = _dateFilterEnabled;
             return;
         }
 
         EmptyLabel.IsVisible = false;
-
-        DateTime? currentDate = null;
-        foreach (var ev in ordered)
-        {
-            // agrupa pelo DIA DA OCORRÊNCIA
-            // (para multi-dia, a ocorrência foi expandida; mas aqui ainda temos o ev original.
-            // Para header, usamos a lógica baseada no Start.Date quando single-day,
-            // e para multi-day, o header correto vem do filtro/expand. Para não complicar,
-            // calculamos "dayKey" como:
-            var kind = NormKind(ev.Kind);
-            var isMulti = IsMultiDayKind(kind) && ev.Start.Date != ev.End.Date;
-
-            // Se está filtrado por data, o header deve ser essa data.
-            // Se não está filtrado, inferimos pelo "ev.Start.Date" para single-day
-            // e deixamos multi-day agrupado pelo Start.Date. Isso pode repetir dias se houver multi-day,
-            // mas o efeito final fica correto porque a fonte expandida já foi ordenada por Day.
-            // Para garantir 100%, quando não há filtro, usamos um truque:
-            // Ao invés de tentar deduzir o dia aqui, reconstruímos novamente a sequência expandida por dia
-            // para gerar as rows com o dia certo.
-        }
-
-        // Recria Rows corretamente com o Day real do expand (sem gambiarra)
-        Rows.Clear();
-
-        var orderedExpanded = ExpandByDay(Items);
-
-        if (filterDay.HasValue)
-            orderedExpanded = orderedExpanded.Where(x => x.Day.Date == filterDay.Value);
-        else
-        {
-            if (!_showPast)
-                orderedExpanded = orderedExpanded.Where(x => x.Day.Date >= today);
-        }
-
-        var seq = orderedExpanded
-            .OrderBy(x => x.Day)
-            .ThenBy(x => x.Ev.Start.TimeOfDay)
-            .ToList();
 
         DateTime? cur = null;
         foreach (var it in seq)
@@ -331,16 +295,14 @@ public partial class AgendaPage : ContentPage
     private async void OnModeAllClicked(object sender, EventArgs e)
     {
         _modeAll = true;
-        BtnAll.Background = (Brush)Application.Current.Resources["PmGradient"];
-        BtnClass.BackgroundColor = Color.FromArgb("#243056");
+        ApplyModeVisual();
         await LoadCacheThenCloudAsync();
     }
 
     private async void OnModeClassClicked(object sender, EventArgs e)
     {
         _modeAll = false;
-        BtnAll.BackgroundColor = Color.FromArgb("#243056");
-        BtnClass.Background = (Brush)Application.Current.Resources["PmGradient"];
+        ApplyModeVisual();
 
         if (_institutions.Count > 0 && InstitutionPicker.SelectedIndex < 0)
             InstitutionPicker.SelectedIndex = 0;
@@ -385,7 +347,7 @@ public partial class AgendaPage : ContentPage
         var ev = new ScheduleEvent
         {
             Title = "",
-            Kind = "Aula", // <<<< NOVO PADRÃO
+            Kind = "Aula",
             Description = "",
             Start = DateTime.Today.AddHours(8),
             End = DateTime.Today.AddHours(9),

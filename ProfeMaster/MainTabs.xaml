@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Shell
+    x:Class="ProfeMaster.MainTabs"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:pages="clr-namespace:ProfeMaster.Pages"
+    FlyoutBehavior="Disabled">
+
+    <!-- TABBAR (inline, sem recursos globais) -->
+    <Shell.Resources>
+        <!-- Cores do print -->
+        <Color x:Key="TabPurple">#7A2D8C</Color>
+        <Color x:Key="TabTextOn">#FFFFFF</Color>
+        <Color x:Key="TabTextOff">#E9D7F0</Color>
+    </Shell.Resources>
+
+    <TabBar>
+        <!-- AGENDA -->
+        <ShellContent
+            Title="Agenda"
+            Icon="schedule.png"
+            ContentTemplate="{DataTemplate pages:AgendaPage}" />
+
+        <!-- INSTITUIÇÕES -->
+        <ShellContent
+            Title="Instituições"
+            Icon="school.png"
+            ContentTemplate="{DataTemplate pages:InstitutionsPage}" />
+
+        <!-- PLANOS -->
+        <ShellContent
+            Title="Planos de Aula"
+            Icon="user.png"
+            ContentTemplate="{DataTemplate pages:PlansPage}" />
+
+        <!-- PROVAS -->
+        <ShellContent
+            Title="Provas"
+            Icon="quiz.png"
+            ContentTemplate="{DataTemplate pages:ExamsPage}" />
+
+        <!-- AULAS -->
+        <ShellContent
+            Title="Aulas"
+            Icon="pass.png"
+            ContentTemplate="{DataTemplate pages:LessonsPage}" />
+
+        <!-- EVENTOS -->
+        <ShellContent
+            Title="Eventos"
+            Icon="class.png"
+            ContentTemplate="{DataTemplate pages:EventsPage}" />
+    </TabBar>
+
+    <!-- estilos do Shell (precisa estar no próprio Shell) -->
+    <Shell.TabBarBackgroundColor>
+        <Color>#7A2D8C</Color>
+    </Shell.TabBarBackgroundColor>
+
+    <Shell.TabBarForegroundColor>
+        <Color>#FFFFFF</Color>
+    </Shell.TabBarForegroundColor>
+
+    <Shell.TabBarTitleColor>
+        <Color>#FFFFFF</Color>
+    </Shell.TabBarTitleColor>
+
+    <Shell.TabBarUnselectedColor>
+        <Color>#E9D7F0</Color>
+    </Shell.TabBarUnselectedColor>
+
+</Shell>
