@@ -53,29 +53,69 @@
         </Border>
 
         <CollectionView Grid.Row="2"
-                ItemsSource="{Binding Items}"
-                SelectionMode="Single"
-                SelectionChanged="OnSelected">
+                        ItemsSource="{Binding Items}"
+                        SelectionMode="Single"
+                        SelectionChanged="OnSelected">
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Margin="0,0,0,10" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 18">
-                        <Grid Padding="14" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
-                            <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16"/>
-                            <Label Grid.Row="1" Text="{Binding Date, StringFormat='Data: {0:dd/MM/yyyy}'}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            <Label Grid.Row="2" Text="{Binding InstitutionName}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            <Label Grid.Row="3" Text="{Binding ClassName}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Border Margin="0,0,0,10"
+                            BackgroundColor="{StaticResource PmCard}"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 18">
+                        <Grid Padding="14"
+                              ColumnDefinitions="Auto,*,Auto"
+                              ColumnSpacing="12">
 
-                            <!-- mantém botões (opcional), mas agora não são necessários -->
-                            <VerticalStackLayout Grid.Column="1" Grid.RowSpan="4" Spacing="8" VerticalOptions="Center">
-                                <Button Text="Editar" BackgroundColor="#243056" Clicked="OnEditClicked"/>
-                                <Button Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDeleteClicked"/>
+                            <!-- Thumb -->
+                            <Border WidthRequest="56"
+                                    HeightRequest="56"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#0f172a">
+                                <Image Aspect="AspectFill"
+                                       Source="{Binding ThumbSource}" />
+                            </Border>
+
+                            <!-- Infos -->
+                            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="3">
+                                <Label Grid.Row="0"
+                                       Text="{Binding Title}"
+                                       FontAttributes="Bold"
+                                       FontSize="16"/>
+
+                                <Label Grid.Row="1"
+                                       Text="{Binding IntervalText}"
+                                       TextColor="{StaticResource PmMuted}"
+                                       FontSize="12"/>
+
+                                <Label Grid.Row="2"
+                                       Text="{Binding SlotsText}"
+                                       TextColor="{StaticResource PmMuted}"
+                                       FontSize="12"/>
+
+                                <Label Grid.Row="3"
+                                       Text="{Binding LinkedLessonsText}"
+                                       TextColor="{StaticResource PmMuted}"
+                                       FontSize="12"/>
+                            </Grid>
+
+                            <!-- Ações -->
+                            <VerticalStackLayout Grid.Column="2"
+                                                 Spacing="8"
+                                                 VerticalOptions="Center">
+                                <Button Text="Editar"
+                                        BackgroundColor="#243056"
+                                        Clicked="OnEditClicked"/>
+                                <Button Text="Excluir"
+                                        BackgroundColor="#3A2040"
+                                        Clicked="OnDeleteClicked"/>
                             </VerticalStackLayout>
+
                         </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
-
 
     </Grid>
 </ContentPage>

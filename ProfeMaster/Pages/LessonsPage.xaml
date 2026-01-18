@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.LessonsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}"
+    Title="Aulas">
+
+    <Grid Padding="16" RowDefinitions="Auto,*" RowSpacing="12">
+
+        <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+            <Grid Padding="12" ColumnDefinitions="*,Auto">
+                <Label Text="Aulas" FontSize="16" FontAttributes="Bold" />
+                <Button Grid.Column="1" Text="+ Nova" Background="{StaticResource PmGradient}" Clicked="OnAdd"/>
+            </Grid>
+        </Border>
+
+        <Label x:Name="EmptyLabel"
+               Grid.Row="1"
+               IsVisible="False"
+               Text="Nenhuma aula criada ainda."
+               TextColor="{StaticResource PmMuted}"
+               HorizontalTextAlignment="Center"
+               Margin="0,16,0,0"/>
+
+        <CollectionView x:Name="List"
+                        Grid.Row="1"
+                        SelectionMode="Single"
+                        SelectionChanged="OnSelected">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="0,0,0,10"
+                            BackgroundColor="{StaticResource PmCard}"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 18">
+                        <Grid Padding="14" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+
+                            <Border WidthRequest="56" HeightRequest="56"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#0f172a">
+                                <Image Aspect="AspectFill" Source="{Binding ThumbLocalPath}" />
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16"/>
+                                <Label Text="{Binding DurationMinutes, StringFormat='Duração: {0} min'}"
+                                       TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                                <Label Text="{Binding ClassName}"
+                                       TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                                <Label Text="{Binding MaterialsV2.Count, StringFormat='Materiais: {0}'}"
+                                       TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            </VerticalStackLayout>
+
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+    </Grid>
+</ContentPage>

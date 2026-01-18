@@ -45,6 +45,10 @@ public static class MauiProgram
         builder.Services.AddTransient<PlanEditorPage>();
         builder.Services.AddTransient<AgendaEventEditorPage>();
         builder.Services.AddTransient<AgendaEventDetailsPage>();
+        builder.Services.AddTransient<ExamsPage>();
+        builder.Services.AddTransient<EventsPage>();
+        builder.Services.AddTransient<LessonsPage>();
+
 
 
 

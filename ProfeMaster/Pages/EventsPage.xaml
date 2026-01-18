@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.EventsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}"
+    Title="Eventos">
+
+    <Grid Padding="16" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+            <Grid Padding="12" ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
+                <Label Text="Eventos" FontAttributes="Bold" FontSize="16"/>
+                <Button Grid.Column="1" Text="Atualizar" BackgroundColor="#243056" Clicked="OnRefresh"/>
+                <Button Grid.Column="2" Text="+ Novo" Background="{StaticResource PmGradient}" Clicked="OnAdd"/>
+
+                <Label Grid.Row="1" Grid.ColumnSpan="3"
+                       x:Name="SubLabel"
+                       Text="Gerencie eventos com atrações por dia"
+                       TextColor="{StaticResource PmMuted}"
+                       FontSize="12"/>
+            </Grid>
+        </Border>
+
+        <Label Grid.Row="1"
+               x:Name="EmptyLabel"
+               IsVisible="False"
+               Text="Nenhum evento criado ainda."
+               TextColor="{StaticResource PmMuted}"
+               HorizontalTextAlignment="Center"
+               Margin="0,24,0,0"/>
+
+        <CollectionView Grid.Row="1"
+                        x:Name="List"
+                        SelectionMode="Single"
+                        SelectionChanged="OnSelected"
+                        Margin="0,0,0,0">
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border Margin="0,0,0,10"
+                            BackgroundColor="{StaticResource PmCard}"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 18">
+                        <Grid Padding="14"
+                              ColumnDefinitions="Auto,*,Auto"
+                              ColumnSpacing="12">
+
+                            <Border WidthRequest="56"
+                                    HeightRequest="56"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#0f172a">
+                                <Image Aspect="AspectFill"
+                                       Source="{Binding ThumbLocalPath}" />
+                            </Border>
+
+                            <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto" RowSpacing="3">
+                                <Label Grid.Row="0" Text="{Binding Title}" FontAttributes="Bold" FontSize="16"/>
+                                <Label Grid.Row="1" Text="{Binding IntervalText}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                                <Label Grid.Row="2" Text="{Binding SlotsText}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            </Grid>
+
+                            <VerticalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
+                                <Button Text="Editar"
+                                        BackgroundColor="#243056"
+                                        Clicked="OnEditClicked"/>
+                                <Button Text="Excluir"
+                                        BackgroundColor="#3A2040"
+                                        Clicked="OnDeleteClicked"/>
+                            </VerticalStackLayout>
+
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
+</ContentPage>

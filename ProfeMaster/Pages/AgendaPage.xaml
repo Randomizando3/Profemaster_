@@ -3,8 +3,79 @@
     x:Class="ProfeMaster.Pages.AgendaPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:helpers="clr-namespace:ProfeMaster.Helpers"
+    xmlns:models="clr-namespace:ProfeMaster.Models"
     BackgroundColor="{StaticResource PmBg}"
     Title="Agenda">
+
+    <ContentPage.Resources>
+
+        <DataTemplate x:Key="AgendaHeaderTemplate">
+            <Label Text="{Binding HeaderText}"
+                   FontAttributes="Bold"
+                   FontSize="14"
+                   TextColor="{StaticResource PmMuted}"
+                   Margin="4,14,4,8"/>
+        </DataTemplate>
+
+        <DataTemplate x:Key="AgendaItemTemplate">
+            <Border Margin="0,0,0,10"
+                    BackgroundColor="{StaticResource PmCard}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 18">
+                <Grid Padding="14"
+                      ColumnDefinitions="*,Auto"
+                      RowDefinitions="Auto,Auto,Auto,Auto">
+
+                    <!-- TÍTULO -->
+                    <Label Grid.Row="0"
+                           Text="{Binding Event.Title}"
+                           FontAttributes="Bold"
+                           FontSize="16"/>
+
+                    <!-- HORÁRIO -->
+                    <HorizontalStackLayout Grid.Row="1" Spacing="6">
+                        <Label Text="{Binding Event.Start, StringFormat='{0:HH:mm}'}"
+                               TextColor="{StaticResource PmMuted}"
+                               FontSize="12"/>
+                        <Label Text="{Binding Event.End, StringFormat='— {0:HH:mm}'}"
+                               TextColor="{StaticResource PmMuted}"
+                               FontSize="12"/>
+                    </HorizontalStackLayout>
+
+                    <!-- KIND (chip) -->
+                    <Border Grid.Row="2"
+                            BackgroundColor="#0f172a"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 12"
+                            Padding="10,6"
+                            HorizontalOptions="Start">
+                        <Label Text="{Binding Event.Kind}"
+                               TextColor="#cbd5e1"
+                               FontSize="12"/>
+                    </Border>
+
+                    <!-- TURMA/INST (opcional) -->
+                    <Label Grid.Row="3"
+                           Text="{Binding Event.ClassName}"
+                           TextColor="{StaticResource PmMuted}"
+                           FontSize="12"
+                           IsVisible="{Binding Event.ClassName, Converter={StaticResource StringNotEmptyConverter}}"/>
+
+                    <!-- DOT -->
+                    <Label Grid.Column="1" Grid.RowSpan="4"
+                           Text="•"
+                           FontSize="26"
+                           VerticalOptions="Center"
+                           TextColor="{Binding Event, Converter={StaticResource PastDotConverter}}"/>
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <helpers:AgendaRowTemplateSelector x:Key="AgendaRowSelector"
+                                          HeaderTemplate="{StaticResource AgendaHeaderTemplate}"
+                                          ItemTemplate="{StaticResource AgendaItemTemplate}" />
+    </ContentPage.Resources>
 
     <Grid Padding="16" RowSpacing="12">
         <Grid.RowDefinitions>
@@ -14,18 +85,28 @@
         </Grid.RowDefinitions>
 
         <!-- HEADER -->
-        <Border Grid.Row="0" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+        <Border Grid.Row="0"
+                BackgroundColor="{StaticResource PmCard}"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 20">
             <Grid Padding="12" ColumnDefinitions="*,Auto,Auto" RowDefinitions="Auto,Auto">
                 <Label Text="Agenda" FontAttributes="Bold" FontSize="16"/>
                 <Button Grid.Column="1" Text="Atualizar" BackgroundColor="#243056" Clicked="OnRefreshClicked"/>
                 <Button Grid.Column="2" Text="+ Novo" Background="{StaticResource PmGradient}" Clicked="OnAddClicked"/>
 
-                <Label Grid.Row="1" Grid.ColumnSpan="3" x:Name="SubLabel" Text="Geral (todas as turmas)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                <Label Grid.Row="1" Grid.ColumnSpan="3"
+                       x:Name="ModeLabel"
+                       Text="Geral (todas as turmas)"
+                       TextColor="{StaticResource PmMuted}"
+                       FontSize="12"/>
             </Grid>
         </Border>
 
         <!-- MODOS + PICKERS -->
-        <Border Grid.Row="1" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+        <Border Grid.Row="1"
+                BackgroundColor="{StaticResource PmCard}"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 20">
             <VerticalStackLayout Padding="12" Spacing="10">
 
                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
@@ -41,7 +122,10 @@
                             Clicked="OnModeClassClicked"/>
                 </Grid>
 
-                <Grid x:Name="PickersBox" IsVisible="False" ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Grid x:Name="PickersBox"
+                      IsVisible="False"
+                      ColumnDefinitions="*,*"
+                      ColumnSpacing="10">
                     <Picker x:Name="InstitutionPicker"
                             Title="Instituição"
                             SelectedIndexChanged="OnInstitutionChanged"/>
@@ -54,31 +138,61 @@
             </VerticalStackLayout>
         </Border>
 
-        <!-- LISTA -->
-        <CollectionView Grid.Row="2"
-                ItemsSource="{Binding Items}"
-                SelectionMode="Single"
-                SelectionChanged="OnSelected">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Border Margin="0,0,0,10" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 18">
-                        <Grid Padding="14" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
-                            <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16"/>
-                            <Label Grid.Row="1" Text="{Binding Type}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            <Label Grid.Row="2" Text="{Binding InstitutionName}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            <Label Grid.Row="3" Text="{Binding ClassName}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+        <!-- LISTA AGRUPADA + FILTRO -->
+        <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto,*" RowSpacing="12">
 
-                            <!-- mantém botões (opcional) -->
-                            <VerticalStackLayout Grid.Column="1" Grid.RowSpan="4" Spacing="8" VerticalOptions="Center">
-                                <Button Text="Editar" BackgroundColor="#243056" Clicked="OnEditClicked"/>
-                                <Button Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDeleteClicked"/>
-                            </VerticalStackLayout>
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                <Label x:Name="FilterLabel"
+                       Text="A partir de hoje"
+                       TextColor="{StaticResource PmMuted}"
+                       VerticalOptions="Center"/>
+                <Button Grid.Column="1"
+                        Text="Filtro"
+                        BackgroundColor="#243056"
+                        Clicked="OnToggleFilter"/>
+            </Grid>
 
+            <Border Grid.Row="1"
+                    x:Name="FilterPanel"
+                    IsVisible="False"
+                    BackgroundColor="{StaticResource PmCard}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 18">
+                <VerticalStackLayout Padding="12" Spacing="10">
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Mostrar anteriores" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <Switch x:Name="ShowPastSwitch" Toggled="OnShowPastToggled"/>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label Text="Filtrar por data" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <DatePicker x:Name="FilterDatePicker" DateSelected="OnFilterDateSelected"/>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Button Text="Limpar filtro de data"
+                            BackgroundColor="#3A2040"
+                            Clicked="OnClearDateFilter"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Grid.Row="2"
+                   x:Name="EmptyLabel"
+                   IsVisible="False"
+                   Text="Nenhum cronograma criado para esta data."
+                   TextColor="{StaticResource PmMuted}"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,8,0,0"/>
+
+            <CollectionView Grid.Row="3"
+                            x:Name="AgendaList"
+                            ItemsSource="{Binding Rows}"
+                            SelectionMode="Single"
+                            SelectionChanged="OnRowSelected"
+                            ItemTemplate="{StaticResource AgendaRowSelector}" />
+        </Grid>
 
     </Grid>
 </ContentPage>

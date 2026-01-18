@@ -12,4 +12,6 @@
         Route="login"
         ContentTemplate="{DataTemplate pages:LoginPage}" />
 
+    <ShellContent Title="Aulas" Route="lessons" ContentTemplate="{DataTemplate pages:LessonsPage}" />
+
 </Shell>

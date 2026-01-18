@@ -1,5 +1,4 @@
-using ProfeMaster.Config;
-using ProfeMaster.Models;
+﻿using ProfeMaster.Models;
 using ProfeMaster.Services;
 
 namespace ProfeMaster.Pages;
@@ -11,11 +10,15 @@ public partial class PlanDetailsPage : ContentPage
     private readonly FirebaseStorageService _storage;
 
     private LessonPlan _plan;
+
     private string _uid = "";
     private string _token = "";
 
-    private List<ScheduleEvent> _agendaEvents = new();
-    private const string NoneAgendaLabel = "(Sem v�nculo)";
+    // para abrir aula
+    private List<Lesson> _lessons = new();
+
+    // VMs
+    private readonly List<SlotDayVm> _days = new();
 
     public PlanDetailsPage(LocalStore store, FirebaseDbService db, FirebaseStorageService storage, LessonPlan plan)
     {
@@ -25,9 +28,7 @@ public partial class PlanDetailsPage : ContentPage
         _storage = storage;
         _plan = plan;
 
-        UploadBtn.IsVisible = AppFlags.EnableStorageUploads;
-
-        Render();
+        RenderHeader();
     }
 
     protected override async void OnAppearing()
@@ -40,89 +41,67 @@ public partial class PlanDetailsPage : ContentPage
             await Shell.Current.GoToAsync("//login");
             return;
         }
+
         _uid = session.Uid;
         _token = session.IdToken;
 
-        await LoadAgendaPickerAsync();
         await ReloadFromCloud();
+        await LoadLessonsAsync();
+
+        EnsureSlotMigration();
+        RebuildPreviewUi();
     }
 
-    private async Task LoadAgendaPickerAsync()
+    // =========================
+    // HEADER
+    // =========================
+    private void RenderHeader()
     {
+        TitleLabel.Text = string.IsNullOrWhiteSpace(_plan.Title) ? "(Sem título)" : _plan.Title.Trim();
+
+        var start = _plan.StartDate == default ? (_plan.Date == default ? DateTime.Today : _plan.Date.Date) : _plan.StartDate.Date;
+        var end = _plan.EndDate == default ? start : _plan.EndDate.Date;
+        if (end < start) (start, end) = (end, start);
+
+        var classInfo = $"{_plan.InstitutionName} • {_plan.ClassName}".Trim();
+        classInfo = classInfo.Trim(' ', '•');
+
+        MetaLabel.Text = $"{start:dd/MM/yyyy} → {end:dd/MM/yyyy}" + (string.IsNullOrWhiteSpace(classInfo) ? "" : $" • {classInfo}");
+
+        ObsLabel.Text = string.IsNullOrWhiteSpace(_plan.Observations)
+            ? "Observações: -"
+            : $"Observações: {_plan.Observations.Trim()}";
+
+        // Agenda (preview apenas)
+        if (string.IsNullOrWhiteSpace(_plan.LinkedEventId))
+            AgendaLinkLabel.Text = "Nenhum vínculo.";
+        else
+            AgendaLinkLabel.Text = $"Vinculado: {_plan.LinkedEventTitle}";
+
+        // Thumb offline-first
         try
         {
-            // eventos recentes para n�o pesar
-            _agendaEvents = await _db.GetAgendaAllRecentAsync(_uid, _token, daysBack: 180, daysForward: 365);
+            var localPath = _plan.ThumbLocalPath ?? "";
+            var url = _plan.ThumbUrl ?? "";
 
-            var labels = new List<string> { NoneAgendaLabel };
-            labels.AddRange(_agendaEvents.Select(e => $"{e.Start:dd/MM/yyyy HH:mm} � {e.Title}"));
-
-            AgendaPicker.ItemsSource = labels;
-
-            // sele��o atual
-            if (!string.IsNullOrWhiteSpace(_plan.LinkedEventId))
-            {
-                var idx = _agendaEvents.FindIndex(x => x.Id == _plan.LinkedEventId);
-                AgendaPicker.SelectedIndex = idx >= 0 ? idx + 1 : 0;
-            }
+            if (!string.IsNullOrWhiteSpace(localPath) && File.Exists(localPath))
+                ThumbImage.Source = ImageSource.FromFile(localPath);
+            else if (!string.IsNullOrWhiteSpace(url))
+                ThumbImage.Source = new UriImageSource { Uri = new Uri(url), CachingEnabled = true };
             else
-            {
-                AgendaPicker.SelectedIndex = 0;
-            }
-
-            AgendaLinkLabel.Text = string.IsNullOrWhiteSpace(_plan.LinkedEventId)
-                ? "Nenhum evento vinculado."
-                : $"Vinculado: {_plan.LinkedEventTitle}";
+                ThumbImage.Source = null;
         }
         catch
         {
-            AgendaPicker.ItemsSource = new List<string> { NoneAgendaLabel };
-            AgendaPicker.SelectedIndex = 0;
-            AgendaLinkLabel.Text = "Nenhum evento vinculado.";
+            ThumbImage.Source = null;
         }
     }
 
-
-    private async void OnSaveAgendaLink(object sender, EventArgs e)
-    {
-        if (AgendaPicker.SelectedIndex <= 0)
-        {
-            // desvincular
-            _plan.LinkedEventId = "";
-            _plan.LinkedEventTitle = "";
-            await PersistPlanAsync();
-            AgendaLinkLabel.Text = "Nenhum evento vinculado.";
-            return;
-        }
-
-        var ev = _agendaEvents[AgendaPicker.SelectedIndex - 1];
-        _plan.LinkedEventId = ev.Id;
-        _plan.LinkedEventTitle = ev.Title;
-
-        await PersistPlanAsync();
-        AgendaLinkLabel.Text = $"Vinculado: {ev.Title}";
-    }
-
-
-
-    private void Render()
-    {
-        TitleLabel.Text = _plan.Title;
-        MetaLabel.Text = $"{_plan.Date:dd/MM/yyyy} � {_plan.InstitutionName} � {_plan.ClassName}";
-
-        ObjLabel.Text = string.IsNullOrWhiteSpace(_plan.Objectives) ? "-" : _plan.Objectives;
-        ContentLabel.Text = string.IsNullOrWhiteSpace(_plan.Content) ? "-" : _plan.Content;
-        StepsLabel.Text = string.IsNullOrWhiteSpace(_plan.Steps) ? "-" : _plan.Steps;
-        EvalLabel.Text = string.IsNullOrWhiteSpace(_plan.Evaluation) ? "-" : _plan.Evaluation;
-
-        _plan.MaterialsV2 ??= new();
-        MatList.ItemsSource = null;
-        MatList.ItemsSource = _plan.MaterialsV2.OrderByDescending(x => x.CreatedAt).ToList();
-    }
-
+    // =========================
+    // CLOUD
+    // =========================
     private async Task ReloadFromCloud()
     {
-        // busca pelo modo apropriado: se tem turma, tenta byClass; se n�o, all.
         try
         {
             LessonPlan? updated = null;
@@ -142,152 +121,197 @@ public partial class PlanDetailsPage : ContentPage
             if (updated != null)
             {
                 _plan = updated;
-                Render();
+                RenderHeader();
             }
         }
-        catch { }
+        catch
+        {
+            // não quebra a tela
+        }
     }
 
-    private async Task PersistPlanAsync()
+    private async Task LoadLessonsAsync()
     {
-        // grava all sempre
-        await _db.UpsertPlanAllAsync(_uid, _token, _plan);
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(_plan.InstitutionId) && !string.IsNullOrWhiteSpace(_plan.ClassId))
+                _lessons = await _db.GetLessonsByClassAsync(_uid, _plan.InstitutionId, _plan.ClassId, _token);
+            else
+                _lessons = await _db.GetLessonsAllAsync(_uid, _token);
 
-        // se tiver turma, grava byClass
-        if (!string.IsNullOrWhiteSpace(_plan.InstitutionId) && !string.IsNullOrWhiteSpace(_plan.ClassId))
-            await _db.UpsertPlanByClassAsync(_uid, _plan.InstitutionId, _plan.ClassId, _token, _plan);
+            // mantém seu padrão (Lesson tem UpdatedAt no seu projeto)
+            _lessons = _lessons
+                .OrderByDescending(x => x.UpdatedAt)
+                .ThenByDescending(x => x.CreatedAt)
+                .ToList();
+        }
+        catch
+        {
+            _lessons = new();
+        }
+    }
+
+    // =========================
+    // PREVIEW SLOTS
+    // =========================
+    private void EnsureSlotMigration()
+    {
+        _plan.Slots ??= new();
+        foreach (var s in _plan.Slots)
+        {
+            s.EnsureMigrated();
+            s.Items ??= new();
+        }
+    }
+
+    private void RebuildPreviewUi()
+    {
+        _plan.Slots ??= new();
+        EnsureSlotMigration();
+
+        if (_plan.Slots.Count == 0)
+        {
+            EmptySlotsLabel.IsVisible = true;
+            SlotsList.ItemsSource = null;
+            return;
+        }
+
+        EmptySlotsLabel.IsVisible = false;
+
+        _days.Clear();
+
+        foreach (var day in _plan.Slots.OrderBy(s => s.Date))
+        {
+            var vm = new SlotDayVm(day);
+
+            day.Items ??= new();
+
+            if (day.Items.Count == 0)
+            {
+                // preview: mostra um item “vazio”
+                vm.Items.Add(new SlotItemPreviewVm(day, new LessonSlotItem
+                {
+                    StartTime = new TimeSpan(8, 0, 0),
+                    EndTime = new TimeSpan(9, 0, 0),
+                    LessonId = "",
+                    LessonTitle = ""
+                })
+                {
+                    IsPlaceholder = true
+                });
+            }
+            else
+            {
+                foreach (var it in day.Items.OrderBy(i => i.StartTime))
+                    vm.Items.Add(new SlotItemPreviewVm(day, it));
+            }
+
+            _days.Add(vm);
+        }
+
+        SlotsList.ItemsSource = null;
+        SlotsList.ItemsSource = _days;
+    }
+
+    // =========================
+    // UI ACTIONS
+    // =========================
+    private async void OnReload(object sender, EventArgs e)
+    {
+        await ReloadFromCloud();
+        await LoadLessonsAsync();
+        EnsureSlotMigration();
+        RebuildPreviewUi();
     }
 
     private async void OnEdit(object sender, EventArgs e)
     {
-        // abre o editor com DatePicker
+        // Edição centralizada no Editor (sem duplicar no details)
         await Navigation.PushModalAsync(new PlanEditorPage(_db, _store, _plan));
-        // quando voltar, recarrega do cloud
+
+        // ao voltar, recarrega preview
         await ReloadFromCloud();
+        await LoadLessonsAsync();
+        EnsureSlotMigration();
+        RebuildPreviewUi();
     }
 
-    private async void OnLinkAgenda(object sender, EventArgs e)
+    private async void OnBack(object sender, EventArgs e)
     {
-        var ev = new ScheduleEvent
-        {
-            Title = $"Plano: {_plan.Title}",
-            Type = "Aula",
-            Description = "Vinculado a Plano de Aula",
-            Start = _plan.Date.AddHours(8),
-            End = _plan.Date.AddHours(9),
-            InstitutionId = _plan.InstitutionId,
-            InstitutionName = _plan.InstitutionName,
-            ClassId = _plan.ClassId,
-            ClassName = _plan.ClassName,
-            LinkedPlanId = _plan.Id,
-            LinkedPlanTitle = _plan.Title
-        };
-
-        await Navigation.PushModalAsync(new AgendaEventEditorPage(_db, _store, ev));
+        await Navigation.PopAsync();
     }
 
-    // ===== Materiais =====
-
-    private async void OnAddLink(object sender, EventArgs e)
+    private async void OnOpenSlotItemLesson(object sender, EventArgs e)
     {
-        var title = await DisplayPromptAsync("Novo link", "T�tulo:", "Salvar", "Cancelar", "Ex: V�deo aula");
-        if (string.IsNullOrWhiteSpace(title)) return;
+        if (sender is not Button b) return;
+        if (b.CommandParameter is not SlotItemPreviewVm vm) return;
 
-        var url = await DisplayPromptAsync("Novo link", "URL:", "Salvar", "Cancelar", "https://");
-        if (string.IsNullOrWhiteSpace(url)) return;
-
-        _plan.MaterialsV2 ??= new();
-        _plan.MaterialsV2.Add(new LessonMaterial
+        if (vm.IsPlaceholder || string.IsNullOrWhiteSpace(vm.Item.LessonId))
         {
-            Kind = MaterialKind.Link,
-            Title = title.Trim(),
-            Url = url.Trim()
-        });
-
-        await PersistPlanAsync();
-        Render();
-    }
-
-    private async void OnUpload(object sender, EventArgs e)
-    {
-        if (!AppFlags.EnableStorageUploads)
-        {
-            await DisplayAlert("Info", "Uploads desabilitados por flag. Use links.", "OK");
+            await DisplayAlert("Info", "Nenhuma aula vinculada neste horário.", "OK");
             return;
         }
 
-        try
+        var lesson = _lessons.FirstOrDefault(x => x.Id == vm.Item.LessonId);
+        if (lesson == null)
         {
-            var file = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Selecione um arquivo" });
-            if (file == null) return;
+            await DisplayAlert("Info", "Aula não encontrada. Clique em “Atualizar”.", "OK");
+            return;
+        }
 
-            await using var stream = await file.OpenReadAsync();
+        // construtor correto (CS7036): (db, store, storage, lesson)
+        await Navigation.PushModalAsync(new LessonEditorPage(_db, _store, _storage, lesson));
 
-            var storagePath = $"users/{_uid}/plans/{_plan.Id}/{file.FileName}";
-            var contentType = file.ContentType ?? "application/octet-stream";
+        // volta e atualiza preview (caso tenha mudado thumb/título da aula, etc.)
+        await LoadLessonsAsync();
+        await ReloadFromCloud();
+        EnsureSlotMigration();
+        RebuildPreviewUi();
+    }
 
-            var (ok, dl, path, err) = await _storage.UploadAsync(_token, storagePath, file.FileName, contentType, stream);
-            if (!ok)
+    // =========================
+    // VMs
+    // =========================
+    private sealed class SlotDayVm
+    {
+        public LessonSlot Slot { get; }
+        public string DateLabel { get; }
+        public List<SlotItemPreviewVm> Items { get; } = new();
+
+        public SlotDayVm(LessonSlot slot)
+        {
+            Slot = slot;
+            var d = slot.Date.Date;
+            DateLabel = $"{d:dd/MM/yyyy} • {d:dddd}";
+        }
+    }
+
+    private sealed class SlotItemPreviewVm
+    {
+        public LessonSlot Slot { get; }
+        public LessonSlotItem Item { get; }
+
+        public bool IsPlaceholder { get; set; }
+
+        public string TimeText => $"{Item.StartTime:hh\\:mm} → {Item.EndTime:hh\\:mm}";
+
+        public string LessonTitleText
+            => string.IsNullOrWhiteSpace(Item.LessonTitle) ? "(Sem aula)" : Item.LessonTitle.Trim();
+
+        public string StatusText
+        {
+            get
             {
-                await DisplayAlert("Erro", err, "OK");
-                return;
+                if (IsPlaceholder) return "Nenhuma aula cadastrada neste dia.";
+                if (string.IsNullOrWhiteSpace(Item.LessonId)) return "Vazio (sem vínculo).";
+                return "Vinculada ao plano.";
             }
-
-            _plan.MaterialsV2 ??= new();
-            _plan.MaterialsV2.Add(new LessonMaterial
-            {
-                Kind = MaterialKind.StorageFile,
-                Title = file.FileName,
-                Url = dl,
-                StoragePath = path,
-                ContentType = contentType
-            });
-
-            await PersistPlanAsync();
-            Render();
         }
-        catch (Exception ex)
+
+        public SlotItemPreviewVm(LessonSlot slot, LessonSlotItem item)
         {
-            await DisplayAlert("Erro", ex.Message, "OK");
+            Slot = slot;
+            Item = item;
         }
     }
-
-    private async void OnOpenMaterial(object sender, EventArgs e)
-    {
-        if (sender is not Button btn) return;
-        if (btn.BindingContext is not LessonMaterial m) return;
-
-        if (string.IsNullOrWhiteSpace(m.Url))
-        {
-            await DisplayAlert("Erro", "URL vazia.", "OK");
-            return;
-        }
-
-        try
-        {
-            await Launcher.Default.OpenAsync(m.Url);
-        }
-        catch
-        {
-            await DisplayAlert("Erro", "N�o foi poss�vel abrir o link.", "OK");
-        }
-    }
-
-    private async void OnDeleteMaterial(object sender, EventArgs e)
-    {
-        if (sender is not Button btn) return;
-        if (btn.BindingContext is not LessonMaterial m) return;
-
-        var confirm = await DisplayAlert("Excluir", $"Remover \"{m.Title}\"?", "Sim", "N�o");
-        if (!confirm) return;
-
-        _plan.MaterialsV2 ??= new();
-        _plan.MaterialsV2.Remove(m);
-
-        await PersistPlanAsync();
-        Render();
-    }
-
-   
-
 }

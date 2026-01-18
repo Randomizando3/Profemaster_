@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.EventEditorPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}"
+    Title="Evento">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+                    <Label Text="Dados do Evento" FontAttributes="Bold" />
+
+                    <Entry x:Name="TitleEntry" Placeholder="Nome do evento" />
+
+                    <Label Text="Período" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Início" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <DatePicker x:Name="StartDatePick" DateSelected="OnDatesChanged"/>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="Fim" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <DatePicker x:Name="EndDatePick" DateSelected="OnDatesChanged"/>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Label x:Name="SlotsInfoLabel" Text="Dias: 0" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+
+                    <Label Text="Descrição / Observações" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Editor x:Name="DescEditor" AutoSize="TextChanges" Placeholder="Detalhes gerais do evento..." />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+
+                    <Label Text="Atrações por dia" FontAttributes="Bold"/>
+                    <Label Text="Você pode adicionar múltiplas atrações por dia e definir horários."
+                           TextColor="{StaticResource PmMuted}" FontSize="12"/>
+
+                    <Label x:Name="EmptySlotsLabel"
+                           IsVisible="False"
+                           Text="Defina o período para gerar os dias do evento."
+                           TextColor="{StaticResource PmMuted}"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,8,0,0"/>
+
+                    <CollectionView x:Name="SlotsList" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,10"
+                                        BackgroundColor="#0f172a"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 14">
+                                    <VerticalStackLayout Padding="12" Spacing="10">
+
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                            <Label Text="{Binding DateLabel}" FontAttributes="Bold" TextColor="White"/>
+                                            <Button Grid.Column="1"
+                                                    Text="+ Atração"
+                                                    BackgroundColor="#243056"
+                                                    Clicked="OnAddAttraction"
+                                                    CommandParameter="{Binding .}"/>
+                                        </Grid>
+
+                                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="10">
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BackgroundColor="#111827"
+                                                            StrokeThickness="0"
+                                                            StrokeShape="RoundRectangle 12">
+                                                        <VerticalStackLayout Padding="10" Spacing="8">
+
+                                                            <Entry Placeholder="Nome da atração"
+                                                                   Text="{Binding Title, Mode=TwoWay}"
+                                                                   TextChanged="OnAttractionTextChanged"/>
+
+                                                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                                                <VerticalStackLayout Spacing="4">
+                                                                    <Label Text="Início" TextColor="#cbd5e1" FontSize="12"/>
+                                                                    <TimePicker Time="{Binding StartTime, Mode=TwoWay}"
+                                                                                PropertyChanged="OnAttractionTimeChanged"/>
+                                                                </VerticalStackLayout>
+
+                                                                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                                                    <Label Text="Fim" TextColor="#cbd5e1" FontSize="12"/>
+                                                                    <TimePicker Time="{Binding EndTime, Mode=TwoWay}"
+                                                                                PropertyChanged="OnAttractionTimeChanged"/>
+                                                                </VerticalStackLayout>
+                                                            </Grid>
+
+                                                            <Editor Placeholder="Notas (opcional)"
+                                                                    AutoSize="TextChanges"
+                                                                    Text="{Binding Notes, Mode=TwoWay}"
+                                                                    TextChanged="OnAttractionTextChanged"/>
+
+                                                            <Button Text="Remover"
+                                                                    BackgroundColor="#3A2040"
+                                                                    Clicked="OnRemoveAttraction"
+                                                                    CommandParameter="{Binding .}"/>
+                                                        </VerticalStackLayout>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </VerticalStackLayout>
+
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Text="Cancelar" BackgroundColor="#3A2040" Clicked="OnCancel"/>
+                <Button Grid.Column="1" Text="Fechar" Background="{StaticResource PmGradient}" Clicked="OnClose"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

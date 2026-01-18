@@ -35,14 +35,16 @@ public partial class HomePage : ContentPage
         await Shell.Current.GoToAsync("//login");
     }
 
-    private async void OnGoAgenda(object sender, EventArgs e)
+    private async void OnGoAgenda(object sender, EventArgs e) => await Shell.Current.GoToAsync("agenda");
+    private async void OnGoPlans(object sender, EventArgs e) => await Shell.Current.GoToAsync("plans");
+    private async void OnGoExams(object sender, EventArgs e) => await Shell.Current.GoToAsync("exams");
+    private async void OnGoEvents(object sender, EventArgs e) => await Shell.Current.GoToAsync("events");
+
+    private async void OnLessons(object sender, EventArgs e)
     {
-        await Shell.Current.GoToAsync("agenda");
+        await Shell.Current.GoToAsync("lessons");
     }
 
-    private async void OnGoPlans(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync("plans");
-    }
+
 
 }

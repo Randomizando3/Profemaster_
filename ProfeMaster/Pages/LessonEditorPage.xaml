@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.LessonEditorPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}"
+    Title="Aula">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+
+                    <Label Text="Aula (avulsa)" FontAttributes="Bold"/>
+
+                    <Label Text="Instituição e Turma" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                        <Picker x:Name="InstitutionPicker" Title="Instituição" SelectedIndexChanged="OnInstitutionChanged"/>
+                        <Picker x:Name="ClassPicker" Grid.Column="1" Title="Turma" SelectedIndexChanged="OnClassChanged"/>
+                    </Grid>
+
+                    <Entry x:Name="TitleEntry" Placeholder="Título da aula" />
+
+                    <Label Text="Duração (min)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Entry x:Name="DurationEntry" Keyboard="Numeric" Placeholder="Ex: 50"/>
+
+                    <Label Text="Capa (Thumb)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <!-- Thumb na coluna 0 -->
+                        <Border Grid.Column="0"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 14"
+                            BackgroundColor="#0f172a"
+                            WidthRequest="80"
+                            HeightRequest="80">
+                            <Image x:Name="ThumbPreview" Aspect="AspectFill"/>
+                        </Border>
+
+                        <!-- Botões na coluna 1 -->
+                        <VerticalStackLayout Grid.Column="1"
+                         Spacing="8"
+                         VerticalOptions="Center">
+                            <Button Text="Selecionar capa"
+                                BackgroundColor="#243056"
+                                Clicked="OnPickThumb"/>
+                                            <Button Text="Remover capa"
+                                BackgroundColor="#3A2040"
+                                Clicked="OnRemoveThumb"/>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Label Text="Descrição" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Editor x:Name="DescEditor" AutoSize="TextChanges" Placeholder="Conteúdo / observações..." />
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ===== Materiais ===== -->
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+
+                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                        <Label Text="Materiais" FontAttributes="Bold"/>
+                        <Button Grid.Column="1" Text="+ Link" BackgroundColor="#243056" Clicked="OnAddLink"/>
+                        <Button Grid.Column="2" x:Name="UploadBtn" Text="Upload" Background="{StaticResource PmGradient}" Clicked="OnUpload"/>
+                    </Grid>
+
+                    <CollectionView x:Name="MatList">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,10" BackgroundColor="#0f172a" StrokeThickness="0" StrokeShape="RoundRectangle 14">
+                                    <Grid Padding="12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                        <Label Text="{Binding Title}" FontAttributes="Bold" TextColor="White"/>
+                                        <Label Grid.Row="1" Text="{Binding Url}" TextColor="#cbd5e1" FontSize="12" LineBreakMode="TailTruncation"/>
+
+                                        <HorizontalStackLayout Grid.Column="1" Grid.RowSpan="2" Spacing="8" VerticalOptions="Center">
+                                            <Button Text="Abrir" BackgroundColor="#243056" Clicked="OnOpenMaterial"/>
+                                            <Button Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDeleteMaterial"/>
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Text="Cancelar" BackgroundColor="#3A2040" Clicked="OnCancel"/>
+                <Button Grid.Column="1" Text="Salvar" Background="{StaticResource PmGradient}" Clicked="OnSave"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -4,11 +4,12 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     BackgroundColor="{StaticResource PmBg}"
-    Title="Detalhes do Evento">
+    Title="Detalhes">
 
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="12">
 
+            <!-- CARD PRINCIPAL -->
             <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
                 <VerticalStackLayout Padding="14" Spacing="10">
                     <Label x:Name="TitleLabel" FontAttributes="Bold" FontSize="18"/>
@@ -23,26 +24,60 @@
                     <Label Text="Descrição" FontAttributes="Bold"/>
                     <Label x:Name="DescLabel" />
 
-                    <Label x:Name="LinkLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <!-- VÍNCULO (APENAS ATALHO) -->
+                    <Border x:Name="LinkCard"
+                            BackgroundColor="#0f172a"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 16"
+                            IsVisible="False">
+                        <VerticalStackLayout Padding="12" Spacing="10">
+                            <Label x:Name="LinkTitleLabel"
+                                   Text="Vínculo"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+
+                            <Label x:Name="LinkInfoLabel"
+                                   Text=""
+                                   TextColor="#cbd5e1"
+                                   FontSize="12"/>
+
+                            <Button x:Name="BtnOpenLinked"
+                                    Text="Ver detalhes"
+                                    Background="{StaticResource PmGradient}"
+                                    Clicked="OnOpenLinked"/>
+                        </VerticalStackLayout>
+                    </Border>
+
                 </VerticalStackLayout>
             </Border>
 
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+            <!-- PLANOS VINCULADOS (LEGADO / SOMENTE PARA EVENTO) -->
+            <Border x:Name="LinkedPlansCard"
+                    BackgroundColor="{StaticResource PmCard}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 20"
+                    IsVisible="False">
                 <VerticalStackLayout Padding="14" Spacing="10">
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                        <Label Text="Planos vinculados" FontAttributes="Bold"/>
-                        <Button Grid.Column="1" Text="Vincular" Background="{StaticResource PmGradient}" Clicked="OnLinkPlan"/>
-                    </Grid>
+                    <Label Text="Planos vinculados a este evento" FontAttributes="Bold"/>
 
                     <CollectionView x:Name="LinkedPlansList" SelectionMode="None">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Border Margin="0,0,0,10" BackgroundColor="#0f172a" StrokeThickness="0" StrokeShape="RoundRectangle 14">
+                                <Border Margin="0,0,0,10"
+                                        BackgroundColor="#0f172a"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 14">
                                     <Grid Padding="12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
                                         <Label Text="{Binding Title}" FontAttributes="Bold" TextColor="White"/>
-                                        <Label Grid.Row="1" Text="{Binding Date, StringFormat='Data: {0:dd/MM/yyyy}'}" TextColor="#cbd5e1" FontSize="12"/>
+                                        <Label Grid.Row="1"
+                                               Text="{Binding Date, StringFormat='Data: {0:dd/MM/yyyy}'}"
+                                               TextColor="#cbd5e1"
+                                               FontSize="12"/>
 
-                                        <HorizontalStackLayout Grid.Column="1" Grid.RowSpan="2" Spacing="8" VerticalOptions="Center">
+                                        <HorizontalStackLayout Grid.Column="1"
+                                                               Grid.RowSpan="2"
+                                                               Spacing="8"
+                                                               VerticalOptions="Center">
                                             <Button Text="Abrir" BackgroundColor="#243056" Clicked="OnOpenPlan"/>
                                             <Button Text="Desvincular" BackgroundColor="#3A2040" Clicked="OnUnlinkPlan"/>
                                         </HorizontalStackLayout>
@@ -55,7 +90,7 @@
                 </VerticalStackLayout>
             </Border>
 
-
+            <!-- AÇÕES -->
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                 <Button Text="Editar" BackgroundColor="#243056" Clicked="OnEdit"/>
                 <Button Grid.Column="1" Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDelete"/>

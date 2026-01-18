@@ -2,7 +2,6 @@
 using ProfeMaster.Config;
 using ProfeMaster.Models;
 
-
 namespace ProfeMaster.Services;
 
 public sealed class FirebaseDbService
@@ -16,8 +15,6 @@ public sealed class FirebaseDbService
 
     private static string BaseUrl => FirebaseConfig.RealtimeDbUrl;
 
-    // No MVP com rules abertas, não é obrigatório auth param.
-    // Quando você fechar as rules, usaremos ?auth={idToken}
     private static string AuthParam(string? idToken) =>
         string.IsNullOrWhiteSpace(idToken) ? "" : $"?auth={Uri.EscapeDataString(idToken)}";
 
@@ -27,11 +24,9 @@ public sealed class FirebaseDbService
         var dict = await _http.GetFromJsonAsync<Dictionary<string, Institution>>(url);
         if (dict == null) return new List<Institution>();
 
-        // o "Id" pode vir vazio, então garantimos
         foreach (var kv in dict)
-        {
             kv.Value.Id = string.IsNullOrWhiteSpace(kv.Value.Id) ? kv.Key : kv.Value.Id;
-        }
+
         return dict.Values.OrderByDescending(x => x.CreatedAt).ToList();
     }
 
@@ -49,7 +44,6 @@ public sealed class FirebaseDbService
         var resp = await _http.DeleteAsync(url);
         return resp.IsSuccessStatusCode;
     }
-
 
     public async Task<List<Classroom>> GetClassesAsync(string uid, string institutionId, string? idToken)
     {
@@ -128,9 +122,7 @@ public sealed class FirebaseDbService
         foreach (var kv in dict)
             kv.Value.Id = string.IsNullOrWhiteSpace(kv.Value.Id) ? kv.Key : kv.Value.Id;
 
-        return dict.Values
-            .OrderBy(x => x.Start)
-            .ToList();
+        return dict.Values.OrderBy(x => x.Start).ToList();
     }
 
     public async Task<bool> UpsertAgendaAllAsync(string uid, string? idToken, ScheduleEvent ev)
@@ -159,9 +151,7 @@ public sealed class FirebaseDbService
         foreach (var kv in dict)
             kv.Value.Id = string.IsNullOrWhiteSpace(kv.Value.Id) ? kv.Key : kv.Value.Id;
 
-        return dict.Values
-            .OrderBy(x => x.Start)
-            .ToList();
+        return dict.Values.OrderBy(x => x.Start).ToList();
     }
 
     public async Task<bool> UpsertAgendaByClassAsync(string uid, string institutionId, string classId, string? idToken, ScheduleEvent ev)
@@ -179,9 +169,6 @@ public sealed class FirebaseDbService
         var resp = await _http.DeleteAsync(url);
         return resp.IsSuccessStatusCode;
     }
-
-
-
 
     // ===== PLANOS (GERAL) =====
     public async Task<List<LessonPlan>> GetPlansAllAsync(string uid, string? idToken)
@@ -241,7 +228,6 @@ public sealed class FirebaseDbService
         return resp.IsSuccessStatusCode;
     }
 
-
     public async Task<List<ScheduleEvent>> GetAgendaAllRecentAsync(string uid, string? idToken, int daysBack = 90, int daysForward = 365)
     {
         var all = await GetAgendaAllAsync(uid, idToken);
@@ -252,7 +238,6 @@ public sealed class FirebaseDbService
                   .ToList();
     }
 
-
     public async Task<List<LessonPlan>> GetPlansLinkedToEventAsync(string uid, string eventId, string? idToken)
     {
         var all = await GetPlansAllAsync(uid, idToken);
@@ -261,5 +246,125 @@ public sealed class FirebaseDbService
                   .ToList();
     }
 
+    // ===== PROVAS =====
+    public async Task<List<ExamItem>> GetExamsAllAsync(string uid, string? idToken)
+    {
+        var url = $"{BaseUrl}/users/{uid}/exams/all.json{AuthParam(idToken)}";
+        var dict = await _http.GetFromJsonAsync<Dictionary<string, ExamItem>>(url);
+        if (dict == null) return new();
 
+        foreach (var kv in dict)
+            kv.Value.Id = string.IsNullOrWhiteSpace(kv.Value.Id) ? kv.Key : kv.Value.Id;
+
+        return dict.Values.ToList();
+    }
+
+    public async Task<bool> UpsertExamAsync(string uid, string? idToken, ExamItem item)
+    {
+        item.Id = string.IsNullOrWhiteSpace(item.Id) ? Guid.NewGuid().ToString("N") : item.Id;
+
+        var url = $"{BaseUrl}/users/{uid}/exams/all/{item.Id}.json{AuthParam(idToken)}";
+        var resp = await _http.PutAsJsonAsync(url, item);
+        return resp.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteExamAsync(string uid, string? idToken, string examId)
+    {
+        var url = $"{BaseUrl}/users/{uid}/exams/all/{examId}.json{AuthParam(idToken)}";
+        var resp = await _http.DeleteAsync(url);
+        return resp.IsSuccessStatusCode;
+    }
+
+    // ===== EVENTOS =====
+    public async Task<List<EventItem>> GetEventsAllAsync(string uid, string? idToken)
+    {
+        var url = $"{BaseUrl}/users/{uid}/events/all.json{AuthParam(idToken)}";
+        var dict = await _http.GetFromJsonAsync<Dictionary<string, EventItem>>(url);
+        if (dict == null) return new();
+
+        foreach (var kv in dict)
+            kv.Value.Id = string.IsNullOrWhiteSpace(kv.Value.Id) ? kv.Key : kv.Value.Id;
+
+        return dict.Values.ToList();
+    }
+
+    public async Task<bool> UpsertEventAsync(string uid, string? idToken, EventItem item)
+    {
+        item.Id = string.IsNullOrWhiteSpace(item.Id) ? Guid.NewGuid().ToString("N") : item.Id;
+
+        var url = $"{BaseUrl}/users/{uid}/events/all/{item.Id}.json{AuthParam(idToken)}";
+        var resp = await _http.PutAsJsonAsync(url, item);
+        return resp.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> DeleteEventAsync(string uid, string? idToken, string eventId)
+    {
+        var url = $"{BaseUrl}/users/{uid}/events/all/{eventId}.json{AuthParam(idToken)}";
+        var resp = await _http.DeleteAsync(url);
+        return resp.IsSuccessStatusCode;
+    }
+
+    // ==========================================================
+    // Helpers genéricos (corrige GetListAsync/PutAsync/DeleteAsync)
+    // ==========================================================
+    private async Task<List<T>> GetListAsync<T>(string relativePath, string? idToken)
+    {
+        // relativePath SEM ".json"
+        var url = $"{BaseUrl}/{relativePath}.json{AuthParam(idToken)}";
+
+        // Firebase RTDB retorna objeto {id: value}
+        var dict = await _http.GetFromJsonAsync<Dictionary<string, T>>(url);
+        if (dict == null) return new List<T>();
+
+        // Se o model tiver "Id" (string), tentamos preencher automaticamente
+        foreach (var kv in dict)
+        {
+            var obj = kv.Value;
+            if (obj == null) continue;
+
+            var prop = obj.GetType().GetProperty("Id");
+            if (prop != null && prop.PropertyType == typeof(string))
+            {
+                var cur = prop.GetValue(obj) as string;
+                if (string.IsNullOrWhiteSpace(cur))
+                    prop.SetValue(obj, kv.Key);
+            }
+        }
+
+        return dict.Values.Where(v => v != null).ToList()!;
+    }
+
+    private async Task<bool> PutAsync<T>(string relativePath, string? idToken, T payload)
+    {
+        var url = $"{BaseUrl}/{relativePath}.json{AuthParam(idToken)}";
+        var resp = await _http.PutAsJsonAsync(url, payload);
+        return resp.IsSuccessStatusCode;
+    }
+
+    private async Task<bool> DeleteAsync(string relativePath, string? idToken)
+    {
+        var url = $"{BaseUrl}/{relativePath}.json{AuthParam(idToken)}";
+        var resp = await _http.DeleteAsync(url);
+        return resp.IsSuccessStatusCode;
+    }
+
+    // ===== AULAS (AVULSAS) =====
+    // Obs: aqui o token está como string (não-null). Se preferir, altere para string?
+    public Task<List<Lesson>> GetLessonsAllAsync(string uid, string token)
+        => GetListAsync<Lesson>($"users/{uid}/lessons/all", token);
+
+    public Task<List<Lesson>> GetLessonsByClassAsync(string uid, string institutionId, string classId, string token)
+        => GetListAsync<Lesson>($"users/{uid}/lessons/byClass/{institutionId}/{classId}", token);
+
+    public Task<bool> UpsertLessonAllAsync(string uid, string token, Lesson lesson)
+        => PutAsync($"users/{uid}/lessons/all/{lesson.Id}", token, lesson);
+
+    public Task<bool> UpsertLessonByClassAsync(string uid, string institutionId, string classId, string token, Lesson lesson)
+        => PutAsync($"users/{uid}/lessons/byClass/{institutionId}/{classId}/{lesson.Id}", token, lesson);
+
+    public Task<bool> DeleteLessonAllAsync(string uid, string token, string lessonId)
+        => DeleteAsync($"users/{uid}/lessons/all/{lessonId}", token);
+
+    public Task<bool> DeleteLessonByClassAsync(string uid, string institutionId, string classId, string token, string lessonId)
+        => DeleteAsync($"users/{uid}/lessons/byClass/{institutionId}/{classId}/{lessonId}", token);
 }

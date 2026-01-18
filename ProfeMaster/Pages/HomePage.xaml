@@ -47,6 +47,10 @@
         Background="{StaticResource PmGradient}"
         Clicked="OnGoPlans"/>
 
+            <Button Grid.Row="1" Text="Provas" BackgroundColor="#243056" Clicked="OnGoExams"/>
+            <Button Grid.Row="1" Grid.Column="1" Text="Aulas" BackgroundColor="#243056" Clicked="OnLessons"/>
+            <Button Grid.Row="1" Grid.Column="1" Text="Eventos" BackgroundColor="#243056" Clicked="OnGoEvents"/>
+            
 
         </VerticalStackLayout>
     </Grid>

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.EventDetailsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{StaticResource PmBg}"
+    Title="Detalhes do Evento">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border WidthRequest="72" HeightRequest="72"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#0f172a">
+                            <Image x:Name="ThumbImage" Aspect="AspectFill" />
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="4">
+                            <Label x:Name="TitleLabel" FontAttributes="Bold" FontSize="18" />
+                            <Label x:Name="MetaLabel" TextColor="{StaticResource PmMuted}" FontSize="12" />
+                            <Label x:Name="DescLabel" TextColor="{StaticResource PmMuted}" FontSize="12" LineBreakMode="WordWrap" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+                    <Label Text="Programação (atrações)" FontAttributes="Bold"/>
+
+                    <Label x:Name="EmptyLabel"
+                           IsVisible="False"
+                           Text="Sem dias/atrações. Abra o editor e defina o período."
+                           TextColor="{StaticResource PmMuted}"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,8,0,0"/>
+
+                    <CollectionView x:Name="DaysList" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,10"
+                                        BackgroundColor="#0f172a"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 14">
+                                    <VerticalStackLayout Padding="12" Spacing="8">
+                                        <Label Text="{Binding DateLabel}" FontAttributes="Bold" TextColor="White"/>
+
+                                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="6">
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BackgroundColor="#111827"
+                                                            StrokeThickness="0"
+                                                            StrokeShape="RoundRectangle 12">
+                                                        <Grid Padding="10" ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                                            <Label Text="{Binding TimeText}" TextColor="#cbd5e1" FontSize="12"/>
+                                                            <Label Grid.Column="1" Text="{Binding Title}" TextColor="White" FontSize="14"/>
+                                                        </Grid>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </VerticalStackLayout>
+
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Text="Editar Evento" BackgroundColor="#243056" Clicked="OnEdit"/>
+                <Button Grid.Column="1" Text="Recarregar" Background="{StaticResource PmGradient}" Clicked="OnReload"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

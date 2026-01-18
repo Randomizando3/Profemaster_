@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
 
@@ -5,37 +6,50 @@ namespace ProfeMaster.Pages;
 
 public partial class AgendaEventEditorPage : ContentPage
 {
-    private readonly FirebaseDbService _db;
     private readonly LocalStore _store;
+    private readonly FirebaseDbService _db;
 
     private ScheduleEvent _ev;
+    private readonly string _modeLabel;
+
     private string _uid = "";
     private string _token = "";
 
-    private readonly List<Institution> _institutions = new();
-    private readonly List<Classroom> _classes = new();
+    // caches p/ vínculo
+    private List<Lesson> _lessons = new();
+    private List<LessonPlan> _plans = new();
+    private List<EventItem> _events = new();
+    private List<ExamItem> _exams = new();
 
-    private const string CreateNewClassLabel = "+ Criar nova turma...";
+    private const string NoneLabel = "(Sem vínculo)";
 
-    public AgendaEventEditorPage(FirebaseDbService db, LocalStore store, ScheduleEvent ev)
+    private readonly List<string> _kinds = new()
+    {
+        "Aula",
+        "Plano de aula",
+        "Evento",
+        "Prova"
+    };
+
+    private bool _isLoadingUi = true;
+
+    public AgendaEventEditorPage(LocalStore store, FirebaseDbService db, ScheduleEvent ev, string modeLabel)
     {
         InitializeComponent();
-        _db = db;
+
         _store = store;
+        _db = db;
         _ev = ev;
+        _modeLabel = modeLabel;
 
-        TitleEntry.Text = _ev.Title ?? "";
-        TypeEntry.Text = string.IsNullOrWhiteSpace(_ev.Type) ? "Aula" : _ev.Type;
+        Title = string.IsNullOrWhiteSpace(ev?.Id) ? "Novo item da Agenda" : "Editar item da Agenda";
 
-        DatePick.Date = _ev.Start == default ? DateTime.Today : _ev.Start.Date;
-        StartPick.Time = (_ev.Start == default ? DateTime.Today.AddHours(8) : _ev.Start).TimeOfDay;
-        EndPick.Time = (_ev.End == default ? DateTime.Today.AddHours(9) : _ev.End).TimeOfDay;
+        KindPicker.ItemsSource = _kinds;
 
-        DescEditor.Text = _ev.Description ?? "";
+        RenderBaseFields();
+        ApplyKindToUi();
 
-        LinkLabel.Text = string.IsNullOrWhiteSpace(_ev.LinkedPlanId)
-            ? ""
-            : $"Vinculado ao plano: {_ev.LinkedPlanTitle}";
+        _isLoadingUi = false;
     }
 
     protected override async void OnAppearing()
@@ -48,173 +62,586 @@ public partial class AgendaEventEditorPage : ContentPage
             await Shell.Current.GoToAsync("//login");
             return;
         }
+
         _uid = session.Uid;
         _token = session.IdToken;
 
-        await LoadInstitutionsAsync(selectExisting: true);
+        await LoadLinkSourcesAsync();
+        BuildLinkPickers();
+
+        RenderBaseFields();
+        ApplyKindToUi();
     }
 
-    private async Task LoadInstitutionsAsync(bool selectExisting)
+    // =========================
+    // Load data for link pickers
+    // =========================
+    private async Task LoadLinkSourcesAsync()
     {
         try
         {
-            var list = await _db.GetInstitutionsAsync(_uid, _token);
-            _institutions.Clear();
-            _institutions.AddRange(list);
-
-            InstitutionPicker.ItemsSource = _institutions.Select(x => x.Name).ToList();
-
-            if (_institutions.Count == 0)
-            {
-                InstitutionPicker.SelectedIndex = -1;
-                ClassPicker.ItemsSource = new List<string>();
-                ClassPicker.SelectedIndex = -1;
-                return;
-            }
-
-            if (selectExisting && !string.IsNullOrWhiteSpace(_ev.InstitutionId))
-            {
-                var idx = _institutions.FindIndex(x => x.Id == _ev.InstitutionId);
-                InstitutionPicker.SelectedIndex = idx >= 0 ? idx : 0;
-            }
-            else if (InstitutionPicker.SelectedIndex < 0)
-            {
-                InstitutionPicker.SelectedIndex = 0;
-            }
-
-            await LoadClassesAsync(selectExisting: selectExisting);
-        }
-        catch
-        {
-            InstitutionPicker.ItemsSource = new List<string>();
-            ClassPicker.ItemsSource = new List<string>();
-            InstitutionPicker.SelectedIndex = -1;
-            ClassPicker.SelectedIndex = -1;
-        }
-    }
-
-    private async Task LoadClassesAsync(bool selectExisting)
-    {
-        _classes.Clear();
-        ClassPicker.ItemsSource = new List<string>();
-        ClassPicker.SelectedIndex = -1;
-
-        if (InstitutionPicker.SelectedIndex < 0 || InstitutionPicker.SelectedIndex >= _institutions.Count)
-            return;
-
-        var inst = _institutions[InstitutionPicker.SelectedIndex];
-
-        try
-        {
-            var list = await _db.GetClassesAsync(_uid, inst.Id, _token);
-            _classes.AddRange(list);
-
-            var items = _classes.Select(x => x.Name).ToList();
-            items.Add(CreateNewClassLabel);
-            ClassPicker.ItemsSource = items;
-
-            if (selectExisting && !string.IsNullOrWhiteSpace(_ev.ClassId))
-            {
-                var idx = _classes.FindIndex(x => x.Id == _ev.ClassId);
-                ClassPicker.SelectedIndex = idx >= 0 ? idx : (items.Count > 1 ? 0 : -1);
-            }
+            if (!string.IsNullOrWhiteSpace(_ev.InstitutionId) && !string.IsNullOrWhiteSpace(_ev.ClassId))
+                _lessons = await _db.GetLessonsByClassAsync(_uid, _ev.InstitutionId, _ev.ClassId, _token);
             else
+                _lessons = await _db.GetLessonsAllAsync(_uid, _token);
+
+            _lessons = _lessons
+                .OrderByDescending(x => x.UpdatedAt)
+                .ThenByDescending(x => x.CreatedAt)
+                .ToList();
+        }
+        catch { _lessons = new(); }
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(_ev.InstitutionId) && !string.IsNullOrWhiteSpace(_ev.ClassId))
+                _plans = await _db.GetPlansByClassAsync(_uid, _ev.InstitutionId, _ev.ClassId, _token);
+            else
+                _plans = await _db.GetPlansAllAsync(_uid, _token);
+
+            _plans = _plans
+                .OrderByDescending(x => x.CreatedAt)
+                .ThenByDescending(x => x.Date)
+                .ToList();
+        }
+        catch { _plans = new(); }
+
+        try
+        {
+            _events = await _db.GetEventsAllAsync(_uid, _token);
+            _events = _events
+                .OrderByDescending(x => x.CreatedAt)
+                .ToList();
+        }
+        catch { _events = new(); }
+
+        try
+        {
+            _exams = await _db.GetExamsAllAsync(_uid, _token);
+            _exams = _exams
+                .OrderByDescending(x => TryGetExamDate(x) ?? DateTime.MinValue)
+                .ThenByDescending(x => x.CreatedAt)
+                .ToList();
+        }
+        catch { _exams = new(); }
+    }
+
+    private void BuildLinkPickers()
+    {
+        _isLoadingUi = true;
+        try
+        {
+            LessonPicker.ItemsSource = new List<string> { NoneLabel }
+                .Concat(_lessons.Select(l => string.IsNullOrWhiteSpace(l.Title) ? "(Sem título)" : l.Title.Trim()))
+                .ToList();
+
+            PlanPicker.ItemsSource = new List<string> { NoneLabel }
+                .Concat(_plans.Select(p => string.IsNullOrWhiteSpace(p.Title) ? "(Sem título)" : p.Title.Trim()))
+                .ToList();
+
+            EventPicker.ItemsSource = new List<string> { NoneLabel }
+                .Concat(_events.Select(e => string.IsNullOrWhiteSpace(e.Title) ? "(Sem título)" : e.Title.Trim()))
+                .ToList();
+
+            ExamPicker.ItemsSource = new List<string> { NoneLabel }
+                .Concat(_exams.Select(e => string.IsNullOrWhiteSpace(e.Title) ? "(Sem título)" : e.Title.Trim()))
+                .ToList();
+
+            SelectLinkedOnPickers();
+        }
+        finally
+        {
+            _isLoadingUi = false;
+        }
+    }
+
+    private void SelectLinkedOnPickers()
+    {
+        LessonPicker.SelectedIndex = 0;
+        PlanPicker.SelectedIndex = 0;
+        EventPicker.SelectedIndex = 0;
+        ExamPicker.SelectedIndex = 0;
+
+        if (string.IsNullOrWhiteSpace(_ev.LinkedKind) || string.IsNullOrWhiteSpace(_ev.LinkedId))
+            return;
+
+        if (_ev.LinkedKind == "Aula")
+        {
+            var idx = _lessons.FindIndex(x => x.Id == _ev.LinkedId);
+            LessonPicker.SelectedIndex = idx >= 0 ? idx + 1 : 0;
+        }
+        else if (_ev.LinkedKind == "Plano")
+        {
+            var idx = _plans.FindIndex(x => x.Id == _ev.LinkedId);
+            PlanPicker.SelectedIndex = idx >= 0 ? idx + 1 : 0;
+        }
+        else if (_ev.LinkedKind == "Evento")
+        {
+            var idx = _events.FindIndex(x => x.Id == _ev.LinkedId);
+            EventPicker.SelectedIndex = idx >= 0 ? idx + 1 : 0;
+        }
+        else if (_ev.LinkedKind == "Prova")
+        {
+            var idx = _exams.FindIndex(x => x.Id == _ev.LinkedId);
+            ExamPicker.SelectedIndex = idx >= 0 ? idx + 1 : 0;
+        }
+    }
+
+    // =========================
+    // Render base fields
+    // =========================
+    private void RenderBaseFields()
+    {
+        if (string.IsNullOrWhiteSpace(_ev.Kind))
+            _ev.Kind = string.IsNullOrWhiteSpace(_ev.Type) ? "Aula" : _ev.Type.Trim();
+
+        KindPicker.SelectedIndex = KindToIndex(_ev.Kind);
+
+        TitleEntry.Text = _ev.Title ?? "";
+        DescEditor.Text = _ev.Description ?? "";
+
+        var start = _ev.Start == default ? DateTime.Now : _ev.Start;
+        var end = _ev.End == default ? start.AddMinutes(50) : _ev.End;
+        if (end < start) end = start.AddMinutes(50);
+
+        StartDatePicker.Date = start.Date;
+        EndDatePicker.Date = end.Date;
+        StartTimePicker.Time = start.TimeOfDay;
+        EndTimePicker.Time = end.TimeOfDay;
+
+        NormalizeRangeByKind(CurrentKindNormalized());
+
+        BtnClearLink.IsVisible = !string.IsNullOrWhiteSpace(_ev.LinkedId);
+    }
+
+    private static int KindToIndex(string kind)
+        => kind switch
+        {
+            "Aula" => 0,
+            "Plano" => 1,
+            "Plano de aula" => 1,
+            "Evento" => 2,
+            "Prova" => 3,
+            _ => 0
+        };
+
+    private void ApplyKindToUi()
+    {
+        var kind = CurrentKindNormalized();
+
+        LinkLessonBox.IsVisible = kind == "Aula";
+        LinkPlanBox.IsVisible = kind == "Plano";
+        LinkEventBox.IsVisible = kind == "Evento";
+        LinkExamBox.IsVisible = kind == "Prova";
+
+        BtnClearLink.IsVisible = !string.IsNullOrWhiteSpace(_ev.LinkedId);
+
+        RangeHintLabel.Text = kind switch
+        {
+            "Plano" => "Plano de aula: o intervalo pode ocupar vários dias. Selecione um plano para preencher automaticamente.",
+            "Evento" => "Evento: defina início e fim (pode ser vários dias). Ao vincular um evento existente, o intervalo é preenchido automaticamente.",
+            "Prova" => "Prova: normalmente é um único dia. Ajuste o horário se quiser.",
+            _ => "Aula: normalmente é um único dia. Ajuste o horário e descrição se quiser."
+        };
+    }
+
+    private string CurrentKindNormalized()
+    {
+        var idx = KindPicker.SelectedIndex;
+        var label = (idx >= 0 && idx < _kinds.Count) ? _kinds[idx] : "Aula";
+        return label switch
+        {
+            "Plano de aula" => "Plano",
+            _ => label
+        };
+    }
+
+    // =========================
+    // Kind changed
+    // =========================
+    private void OnKindChanged(object sender, EventArgs e)
+    {
+        if (_isLoadingUi) return;
+
+        var kind = CurrentKindNormalized();
+        _ev.Kind = kind;
+
+        _ev.LinkedKind = "";
+        _ev.LinkedId = "";
+        _ev.LinkedTitle = "";
+
+        BtnClearLink.IsVisible = false;
+
+        NormalizeRangeByKind(kind);
+        ApplyKindToUi();
+    }
+
+    private void NormalizeRangeByKind(string kind)
+    {
+        // força coerência de datas/horas baseado no tipo
+        var start = ComposeStart();
+        var end = ComposeEnd();
+
+        if (end < start)
+            end = start.AddMinutes(50);
+
+        if (kind is "Aula" or "Prova")
+        {
+            // força 1 dia
+            EndDatePicker.Date = StartDatePicker.Date;
+            if (end.Date != start.Date)
+                end = start.Date.Add(end.TimeOfDay);
+
+            if (end < start)
+                end = start.AddMinutes(50);
+
+            EndTimePicker.Time = end.TimeOfDay;
+        }
+        else
+        {
+            // multi-dia permitido, apenas garante end >= start
+            if (ComposeEnd() < ComposeStart())
             {
-                // se o evento não tem turma, deixa sem seleção (ou seleciona 1ª se existir)
-                ClassPicker.SelectedIndex = _classes.Count > 0 ? 0 : -1;
+                EndDatePicker.Date = StartDatePicker.Date;
+                EndTimePicker.Time = StartTimePicker.Time.Add(TimeSpan.FromMinutes(50));
             }
         }
-        catch
-        {
-            ClassPicker.ItemsSource = new List<string> { CreateNewClassLabel };
-            ClassPicker.SelectedIndex = -1;
-        }
     }
 
-    private async void OnInstitutionChanged(object sender, EventArgs e)
+    // =========================
+    // Link changed handlers
+    // =========================
+    private void OnLessonLinkedChanged(object sender, EventArgs e)
     {
-        // ao trocar instituição, recarrega turmas
-        await LoadClassesAsync(selectExisting: false);
-    }
+        if (_isLoadingUi) return;
 
-    private async void OnClassChanged(object sender, EventArgs e)
-    {
-        if (ClassPicker.SelectedIndex < 0) return;
-
-        var items = ClassPicker.ItemsSource as IList<string>;
-        if (items == null || items.Count == 0) return;
-
-        if (items[ClassPicker.SelectedIndex] == CreateNewClassLabel)
+        if (LessonPicker.SelectedIndex <= 0)
         {
-            // volta a seleção anterior “segura”
-            ClassPicker.SelectedIndex = _classes.Count > 0 ? 0 : -1;
-
-            // abre turmas para criar
-            // a tela ClassesPage já existe; ela deve criar turma dentro da instituição atual.
-            await Shell.Current.GoToAsync("classes");
-
-            // quando voltar, o OnAppearing recarrega e você seleciona a turma recém criada.
+            ClearLinked();
             return;
         }
+
+        var lesson = _lessons[LessonPicker.SelectedIndex - 1];
+        _ev.LinkedKind = "Aula";
+        _ev.LinkedId = lesson.Id;
+        _ev.LinkedTitle = lesson.Title ?? "";
+
+        if (string.IsNullOrWhiteSpace(TitleEntry.Text))
+            TitleEntry.Text = string.IsNullOrWhiteSpace(lesson.Title) ? "Aula" : lesson.Title.Trim();
+
+        BtnClearLink.IsVisible = true;
     }
 
+    private void OnPlanLinkedChanged(object sender, EventArgs e)
+    {
+        if (_isLoadingUi) return;
+
+        if (PlanPicker.SelectedIndex <= 0)
+        {
+            ClearLinked();
+            return;
+        }
+
+        var plan = _plans[PlanPicker.SelectedIndex - 1];
+
+        _ev.LinkedKind = "Plano";
+        _ev.LinkedId = plan.Id;
+        _ev.LinkedTitle = plan.Title ?? "";
+
+        if (string.IsNullOrWhiteSpace(TitleEntry.Text))
+            TitleEntry.Text = string.IsNullOrWhiteSpace(plan.Title) ? "Plano de aula" : plan.Title.Trim();
+
+        var start = (plan.StartDate != default ? plan.StartDate.Date : plan.Date.Date);
+        var end = (plan.EndDate != default ? plan.EndDate.Date : plan.Date.Date);
+        if (end < start) end = start;
+
+        var startTime = StartTimePicker.Time == default ? new TimeSpan(8, 0, 0) : StartTimePicker.Time;
+        var endTime = EndTimePicker.Time == default ? new TimeSpan(18, 0, 0) : EndTimePicker.Time;
+
+        StartDatePicker.Date = start;
+        EndDatePicker.Date = end;
+        StartTimePicker.Time = startTime;
+        EndTimePicker.Time = endTime;
+
+        // garante multi-dia permitido
+        if (CurrentKindNormalized() != "Plano")
+        {
+            KindPicker.SelectedIndex = KindToIndex("Plano");
+            _ev.Kind = "Plano";
+            ApplyKindToUi();
+        }
+
+        BtnClearLink.IsVisible = true;
+    }
+
+    private void OnEventLinkedChanged(object sender, EventArgs e)
+    {
+        if (_isLoadingUi) return;
+
+        if (EventPicker.SelectedIndex <= 0)
+        {
+            ClearLinked();
+            return;
+        }
+
+        var item = _events[EventPicker.SelectedIndex - 1];
+
+        _ev.LinkedKind = "Evento";
+        _ev.LinkedId = item.Id;
+        _ev.LinkedTitle = item.Title ?? "";
+
+        if (string.IsNullOrWhiteSpace(TitleEntry.Text))
+            TitleEntry.Text = string.IsNullOrWhiteSpace(item.Title) ? "Evento" : item.Title.Trim();
+
+        if (string.IsNullOrWhiteSpace(DescEditor.Text))
+            DescEditor.Text = item.Description ?? "";
+
+        // ===== NOVO: preenche intervalo (multi-dia) se existir no EventItem =====
+        var (s, en) = TryGetEventRange(item);
+
+        if (s.HasValue)
+        {
+            var startDate = s.Value.Date;
+            var endDate = en?.Date ?? startDate;
+            if (endDate < startDate) endDate = startDate;
+
+            var startTime = StartTimePicker.Time == default ? new TimeSpan(8, 0, 0) : StartTimePicker.Time;
+            var endTime = EndTimePicker.Time == default ? new TimeSpan(18, 0, 0) : EndTimePicker.Time;
+
+            StartDatePicker.Date = startDate;
+            EndDatePicker.Date = endDate;
+            StartTimePicker.Time = startTime;
+            EndTimePicker.Time = endTime;
+        }
+
+        // garante que está em "Evento"
+        if (CurrentKindNormalized() != "Evento")
+        {
+            KindPicker.SelectedIndex = KindToIndex("Evento");
+            _ev.Kind = "Evento";
+            ApplyKindToUi();
+        }
+
+        NormalizeRangeByKind("Evento");
+
+        BtnClearLink.IsVisible = true;
+    }
+
+    private void OnExamLinkedChanged(object sender, EventArgs e)
+    {
+        if (_isLoadingUi) return;
+
+        if (ExamPicker.SelectedIndex <= 0)
+        {
+            ClearLinked();
+            return;
+        }
+
+        var exam = _exams[ExamPicker.SelectedIndex - 1];
+
+        _ev.LinkedKind = "Prova";
+        _ev.LinkedId = exam.Id;
+        _ev.LinkedTitle = exam.Title ?? "";
+
+        if (string.IsNullOrWhiteSpace(TitleEntry.Text))
+            TitleEntry.Text = string.IsNullOrWhiteSpace(exam.Title) ? "Prova" : exam.Title.Trim();
+
+        var d = TryGetExamDate(exam);
+        if (d.HasValue)
+        {
+            StartDatePicker.Date = d.Value.Date;
+            EndDatePicker.Date = d.Value.Date;
+
+            if (StartTimePicker.Time == default) StartTimePicker.Time = new TimeSpan(8, 0, 0);
+            if (EndTimePicker.Time == default) EndTimePicker.Time = new TimeSpan(9, 0, 0);
+        }
+
+        // garante 1 dia
+        if (CurrentKindNormalized() != "Prova")
+        {
+            KindPicker.SelectedIndex = KindToIndex("Prova");
+            _ev.Kind = "Prova";
+            ApplyKindToUi();
+        }
+
+        NormalizeRangeByKind("Prova");
+
+        BtnClearLink.IsVisible = true;
+    }
+
+    private void OnClearLinked(object sender, EventArgs e)
+    {
+        ClearLinked();
+        SelectLinkedOnPickers();
+        BtnClearLink.IsVisible = false;
+    }
+
+    private void ClearLinked()
+    {
+        _ev.LinkedKind = "";
+        _ev.LinkedId = "";
+        _ev.LinkedTitle = "";
+        BtnClearLink.IsVisible = false;
+    }
+
+    // =========================
+    // date/time consistency
+    // =========================
+    private void OnAnyDateChanged(object sender, DateChangedEventArgs e)
+    {
+        if (_isLoadingUi) return;
+        NormalizeRangeByKind(CurrentKindNormalized());
+    }
+
+    private void OnAnyTimeChanged(object sender, PropertyChangedEventArgs e)
+    {
+        if (_isLoadingUi) return;
+        if (e.PropertyName != nameof(TimePicker.Time)) return;
+        NormalizeRangeByKind(CurrentKindNormalized());
+    }
+
+    private DateTime ComposeStart()
+        => StartDatePicker.Date.Date.Add(StartTimePicker.Time);
+
+    private DateTime ComposeEnd()
+        => EndDatePicker.Date.Date.Add(EndTimePicker.Time);
+
+    // =========================
+    // Save/Cancel
+    // =========================
     private async void OnCancel(object sender, EventArgs e)
         => await Navigation.PopModalAsync();
 
     private async void OnSave(object sender, EventArgs e)
     {
-        // valida
         var title = (TitleEntry.Text ?? "").Trim();
         if (string.IsNullOrWhiteSpace(title))
         {
-            await DisplayAlert("Erro", "Informe o título.", "OK");
+            await DisplayAlert("Erro", "Informe o nome do item.", "OK");
             return;
         }
 
-        if (InstitutionPicker.SelectedIndex < 0 || InstitutionPicker.SelectedIndex >= _institutions.Count)
-        {
-            await DisplayAlert("Erro", "Selecione uma instituição.", "OK");
-            return;
-        }
+        var kind = CurrentKindNormalized();
+        _ev.Kind = kind;
 
-        var inst = _institutions[InstitutionPicker.SelectedIndex];
-
-        Classroom? cls = null;
-        if (ClassPicker.SelectedIndex >= 0 && ClassPicker.SelectedIndex < _classes.Count)
+        // se você ainda usa Type em algum lugar, mantém coerente
+        _ev.Type = kind switch
         {
-            cls = _classes[ClassPicker.SelectedIndex];
-        }
-        else
-        {
-            await DisplayAlert("Erro", "Selecione uma turma.", "OK");
-            return;
-        }
+            "Plano" => "Plano",
+            _ => kind
+        };
 
         _ev.Title = title;
-        _ev.Type = (TypeEntry.Text ?? "Aula").Trim();
         _ev.Description = (DescEditor.Text ?? "").Trim();
 
-        var date = DatePick.Date;
-        _ev.Start = date.Add(StartPick.Time);
-        _ev.End = date.Add(EndPick.Time);
-        if (_ev.End <= _ev.Start) _ev.End = _ev.Start.AddHours(1);
+        NormalizeRangeByKind(kind);
 
-        // aplica vínculo
-        _ev.InstitutionId = inst.Id;
-        _ev.InstitutionName = inst.Name;
-        _ev.ClassId = cls.Id;
-        _ev.ClassName = cls.Name;
+        var start = ComposeStart();
+        var end = ComposeEnd();
+        if (end < start) end = start.AddMinutes(50);
 
-        // salva
-        var okAll = await _db.UpsertAgendaAllAsync(_uid, _token, _ev);
-        if (!okAll)
+        // Aula/Prova sempre 1 dia (Normalize já faz, mas reforço)
+        if (kind is "Aula" or "Prova")
+            end = start.Date.Add(end.TimeOfDay);
+
+        if (end < start) end = start.AddMinutes(50);
+
+        _ev.Start = start;
+        _ev.End = end;
+
+        _ev.Id = string.IsNullOrWhiteSpace(_ev.Id) ? Guid.NewGuid().ToString("N") : _ev.Id;
+
+        try
         {
-            await DisplayAlert("Erro", "Falha ao salvar na agenda geral.", "OK");
-            return;
+            await _db.UpsertAgendaAllAsync(_uid, _token, _ev);
+
+            if (!string.IsNullOrWhiteSpace(_ev.InstitutionId) && !string.IsNullOrWhiteSpace(_ev.ClassId))
+                await _db.UpsertAgendaByClassAsync(_uid, _ev.InstitutionId, _ev.ClassId, _token, _ev);
+
+            await Navigation.PopModalAsync();
         }
+        catch
+        {
+            await DisplayAlert("Erro", "Não foi possível salvar o item da agenda.", "OK");
+        }
+    }
 
-        await _db.UpsertAgendaByClassAsync(_uid, _ev.InstitutionId, _ev.ClassId, _token, _ev);
+    // =========================
+    // Helpers: dates from ExamItem/EventItem (reflection-safe)
+    // =========================
+    private static DateTime? TryGetExamDate(ExamItem exam)
+    {
+        try
+        {
+            var t = exam.GetType();
 
-        await Navigation.PopModalAsync();
+            var pDate = t.GetProperty("Date");
+            if (pDate != null && pDate.PropertyType == typeof(DateTime))
+                return (DateTime)pDate.GetValue(exam)!;
+
+            var pStart = t.GetProperty("Start");
+            if (pStart != null && pStart.PropertyType == typeof(DateTime))
+                return (DateTime)pStart.GetValue(exam)!;
+
+            var pStartDate = t.GetProperty("StartDate");
+            if (pStartDate != null && pStartDate.PropertyType == typeof(DateTime))
+                return (DateTime)pStartDate.GetValue(exam)!;
+        }
+        catch { }
+
+        return null;
+    }
+
+    private static (DateTime? Start, DateTime? End) TryGetEventRange(EventItem item)
+    {
+        try
+        {
+            var t = item.GetType();
+
+            DateTime? start = null;
+            DateTime? end = null;
+
+            // Start / End
+            var pStart = t.GetProperty("Start");
+            if (pStart != null && pStart.PropertyType == typeof(DateTime))
+                start = (DateTime)pStart.GetValue(item)!;
+
+            var pEnd = t.GetProperty("End");
+            if (pEnd != null && pEnd.PropertyType == typeof(DateTime))
+                end = (DateTime)pEnd.GetValue(item)!;
+
+            // StartDate / EndDate
+            if (!start.HasValue)
+            {
+                var pStartDate = t.GetProperty("StartDate");
+                if (pStartDate != null && pStartDate.PropertyType == typeof(DateTime))
+                    start = (DateTime)pStartDate.GetValue(item)!;
+            }
+
+            if (!end.HasValue)
+            {
+                var pEndDate = t.GetProperty("EndDate");
+                if (pEndDate != null && pEndDate.PropertyType == typeof(DateTime))
+                    end = (DateTime)pEndDate.GetValue(item)!;
+            }
+
+            // Date (single)
+            if (!start.HasValue)
+            {
+                var pDate = t.GetProperty("Date");
+                if (pDate != null && pDate.PropertyType == typeof(DateTime))
+                    start = (DateTime)pDate.GetValue(item)!;
+            }
+
+            // fallback end = start
+            if (start.HasValue && !end.HasValue)
+                end = start.Value;
+
+            return (start, end);
+        }
+        catch
+        {
+            return (null, null);
+        }
     }
 }

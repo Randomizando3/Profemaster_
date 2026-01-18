@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="ProfeMaster.Pages.ExamEditorPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             BackgroundColor="{StaticResource PmBg}"
+             Title="Prova">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+
+                    <Entry x:Name="TitleEntry" Placeholder="Título da prova" />
+
+                    <Label Text="Capa (thumb)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                        <Border WidthRequest="80" HeightRequest="80" StrokeThickness="0" StrokeShape="RoundRectangle 14" BackgroundColor="#0f172a">
+                            <Image x:Name="ThumbPreview" Aspect="AspectFill"/>
+                        </Border>
+                        <VerticalStackLayout Spacing="8" VerticalOptions="Center">
+                            <Button Text="Selecionar capa" BackgroundColor="#243056" Clicked="OnPickThumb"/>
+                            <Button Text="Remover capa" BackgroundColor="#3A2040" Clicked="OnRemoveThumb"/>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <Label Text="Descrição" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Editor x:Name="DescEditor" AutoSize="TextChanges" Placeholder="Contexto da prova, conteúdos, observações..." />
+
+                    <!-- Placeholder para gerar prova -->
+                    <Button Text="Criar prova (em breve)"
+                            Background="{StaticResource PmGradient}"
+                            Clicked="OnGeneratePlaceholder"/>
+
+                    <Label Text="Este botão será ligado à IA ou banco local depois."
+                           TextColor="{StaticResource PmMuted}" FontSize="12"/>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <Button Text="Cancelar" BackgroundColor="#3A2040" Clicked="OnCancel"/>
+                <Button Grid.Column="1" Text="Salvar" Background="{StaticResource PmGradient}" Clicked="OnSave"/>
+            </Grid>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

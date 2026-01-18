@@ -4,39 +4,179 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     BackgroundColor="{StaticResource PmBg}"
-    Title="Plano de Aula">
+    Title="Plano de Aulas">
 
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="12">
 
+            <!-- THUMB / CAPA -->
             <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
                 <VerticalStackLayout Padding="14" Spacing="10">
+
+                    <Label Text="Capa do Plano" FontAttributes="Bold" />
+
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+
+                        <Border WidthRequest="72"
+                                HeightRequest="72"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#0f172a">
+                            <Image x:Name="ThumbImage" Aspect="AspectFill" />
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                            <Label x:Name="ThumbInfoLabel"
+                                   Text="Nenhuma capa selecionada."
+                                   TextColor="{StaticResource PmMuted}"
+                                   FontSize="12"/>
+                            <Label Text="Dica: escolha uma imagem do celular para usar como miniatura."
+                                   TextColor="{StaticResource PmMuted}"
+                                   FontSize="12"/>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="2" Spacing="8" VerticalOptions="Center">
+                            <Button Text="Escolher"
+                                    BackgroundColor="#243056"
+                                    Clicked="OnPickThumbClicked"/>
+                            <Button Text="Remover"
+                                    BackgroundColor="#3A2040"
+                                    Clicked="OnRemoveThumbClicked"/>
+                        </VerticalStackLayout>
+
+                    </Grid>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- DADOS -->
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+
                     <Label Text="Dados do Plano" FontAttributes="Bold" />
 
                     <Entry x:Name="TitleEntry" Placeholder="Título do plano" />
 
+                    <Label Text="Intervalo do Plano" TextColor="{StaticResource PmMuted}" FontSize="12"/>
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <DatePicker x:Name="DatePick" />
-                        <Button Grid.Column="1" Text="Vincular à Agenda (opcional)" BackgroundColor="#243056" Clicked="OnLinkAgendaClicked"/>
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Início" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <DatePicker x:Name="StartDatePick" DateSelected="OnDatesChanged"/>
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="6">
+                            <Label Text="Fim" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <DatePicker x:Name="EndDatePick" DateSelected="OnDatesChanged"/>
+                        </VerticalStackLayout>
                     </Grid>
 
-                    <Label Text="Objetivos" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Editor x:Name="ObjEditor" AutoSize="TextChanges" Placeholder="Objetivos..." />
+                    <Label x:Name="SlotsInfoLabel"
+                           Text="Slots: 0"
+                           TextColor="{StaticResource PmMuted}"
+                           FontSize="12"/>
 
-                    <Label Text="Conteúdo" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Editor x:Name="ContentEditor" AutoSize="TextChanges" Placeholder="Conteúdo..." />
+                    <Label Text="Observações" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Editor x:Name="ObsEditor" AutoSize="TextChanges" Placeholder="Observações do plano..." />
 
-                    <Label Text="Etapas" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Editor x:Name="StepsEditor" AutoSize="TextChanges" Placeholder="Passo a passo..." />
+                </VerticalStackLayout>
+            </Border>
 
-                    <Label Text="Avaliação" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Editor x:Name="EvalEditor" AutoSize="TextChanges" Placeholder="Como avaliar..." />
+            <!-- SLOTS (AULAS POR DIA) -->
+            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Padding="14" Spacing="10">
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Label Text="Aulas por dia (slots)" FontAttributes="Bold"/>
+                        <Button Grid.Column="1" Text="Atualizar aulas" BackgroundColor="#243056" Clicked="OnReloadLessons"/>
+                    </Grid>
+
+                    <Label Text="Em cada dia você pode adicionar múltiplas aulas e definir horários."
+                           TextColor="{StaticResource PmMuted}" FontSize="12"/>
+
+                    <Label x:Name="EmptySlotsLabel"
+                           IsVisible="False"
+                           Text="Defina o intervalo de datas para gerar os slots."
+                           TextColor="{StaticResource PmMuted}"
+                           HorizontalTextAlignment="Center"
+                           Margin="0,8,0,0"/>
+
+                    <CollectionView x:Name="SlotsList" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,10"
+                                        BackgroundColor="#0f172a"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 14">
+                                    <VerticalStackLayout Padding="12" Spacing="10">
+
+                                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                                            <Label Text="{Binding DateLabel}" FontAttributes="Bold" TextColor="White"/>
+                                            <Button Grid.Column="1"
+                                                    Text="+ Aula"
+                                                    BackgroundColor="#243056"
+                                                    Clicked="OnAddSlotItem"
+                                                    CommandParameter="{Binding .}"/>
+                                        </Grid>
+
+                                        <!-- Itens do dia -->
+                                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="10">
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border BackgroundColor="#111827"
+                                                            StrokeThickness="0"
+                                                            StrokeShape="RoundRectangle 12">
+                                                        <VerticalStackLayout Padding="10" Spacing="8">
+
+                                                            <Picker Title="Selecione uma aula (opcional)"
+                                                                    ItemsSource="{Binding LessonPickerItems}"
+                                                                    SelectedIndex="{Binding LessonPickerSelectedIndex}"
+                                                                    SelectedIndexChanged="OnSlotItemLessonChanged"/>
+
+                                                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                                                <VerticalStackLayout Spacing="4">
+                                                                    <Label Text="Início" TextColor="#cbd5e1" FontSize="12"/>
+                                                                    <TimePicker Time="{Binding StartTime}" PropertyChanged="OnSlotItemTimeChanged" />
+                                                                </VerticalStackLayout>
+
+                                                                <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                                                    <Label Text="Fim" TextColor="#cbd5e1" FontSize="12"/>
+                                                                    <TimePicker Time="{Binding EndTime}" PropertyChanged="OnSlotItemTimeChanged"/>
+                                                                </VerticalStackLayout>
+                                                            </Grid>
+
+                                                            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                                                <Button Text="Remover"
+                                                                        BackgroundColor="#3A2040"
+                                                                        Clicked="OnRemoveSlotItem"
+                                                                        CommandParameter="{Binding .}"/>
+
+                                                                <Button Grid.Column="1"
+                                                                        Text="Abrir aula"
+                                                                        Background="{StaticResource PmGradient}"
+                                                                        Clicked="OnOpenSlotItemLesson"
+                                                                        CommandParameter="{Binding .}"/>
+                                                            </Grid>
+
+                                                            <Label Text="{Binding StatusLabel}" TextColor="#cbd5e1" FontSize="12"/>
+
+                                                        </VerticalStackLayout>
+                                                    </Border>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </VerticalStackLayout>
+
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
                 </VerticalStackLayout>
             </Border>
 
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                 <Button Text="Cancelar" BackgroundColor="#3A2040" Clicked="OnCancel"/>
-                <Button Grid.Column="1" Text="Salvar" Background="{StaticResource PmGradient}" Clicked="OnSave"/>
+                <Button Grid.Column="1" Text="Salvar Plano" Background="{StaticResource PmGradient}" Clicked="OnSave"/>
             </Grid>
 
         </VerticalStackLayout>

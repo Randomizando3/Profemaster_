@@ -28,4 +28,21 @@ public sealed class LessonPlan
     public string LinkedEventId { get; set; } = "";
     public string LinkedEventTitle { get; set; } = "";
 
+    // Intervalo do plano
+    public DateTime StartDate { get; set; } = DateTime.Today;
+    public DateTime EndDate { get; set; } = DateTime.Today;
+
+    // Slots gerados (um por dia)
+    public List<LessonSlot> Slots { get; set; } = new();
+
+    // Simplificado: um campo só
+    public string Observations { get; set; } = "";
+
+    // Novas propriedades para thumbnail
+    public string ThumbLocalPath { get; set; } = "";
+    public string ThumbUrl { get; set; } = "";
+
+
+
+
 }

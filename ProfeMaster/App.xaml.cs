@@ -18,11 +18,19 @@ public partial class App : Application
     {
         base.OnStart();
 
-        var session = await _store.LoadSessionAsync();
-        if (session != null && !string.IsNullOrWhiteSpace(session.IdToken))
+        try
         {
-            await Shell.Current.GoToAsync("//login"); // garante shell carregado
-            await Shell.Current.GoToAsync("home");
+            var session = await _store.LoadSessionAsync();
+            if (session != null && !string.IsNullOrWhiteSpace(session.IdToken))
+            {
+                // garante shell carregado
+                await Shell.Current.GoToAsync("//login");
+                await Shell.Current.GoToAsync("home");
+            }
+        }
+        catch
+        {
+            // ignore: evita quebrar start por timing do Shell
         }
     }
 }
