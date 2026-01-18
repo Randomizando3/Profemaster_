@@ -23,6 +23,10 @@ public partial class StudentsPage : ContentPage
     private string _uid = "";
     private string _token = "";
 
+    // Editor state
+    private bool _editorIsEdit = false;
+    private StudentContact? _editing;
+
     public StudentsPage(LocalStore store, FirebaseDbService db)
     {
         InitializeComponent();
@@ -35,7 +39,11 @@ public partial class StudentsPage : ContentPage
     {
         base.OnAppearing();
 
-        CtxLabel.Text = $"{InstitutionName} • {ClassName}";
+        var ctxA = (InstitutionName ?? "").Trim();
+        var ctxB = (ClassName ?? "").Trim();
+        CtxLabel.Text = string.IsNullOrWhiteSpace(ctxA) && string.IsNullOrWhiteSpace(ctxB)
+            ? ""
+            : $"{ctxA} • {ctxB}".Trim(' ', '•');
 
         var session = await _store.LoadSessionAsync();
         if (session == null || string.IsNullOrWhiteSpace(session.Uid))
@@ -69,76 +77,143 @@ public partial class StudentsPage : ContentPage
             foreach (var s in list) Students.Add(s);
             await _store.SaveStudentsCacheAsync(InstitutionId, ClassId, list);
         }
-        catch { }
+        catch
+        {
+            // mantém cache
+        }
     }
 
     private async void OnRefreshClicked(object sender, EventArgs e) => await LoadFromCloudAsync();
 
-    private async void OnAddClicked(object sender, EventArgs e)
+    private async void OnCloseClicked(object sender, EventArgs e)
     {
-        var name = await DisplayPromptAsync("Novo aluno/contato", "Nome:", "Salvar", "Cancelar", "Ex: João Silva");
-        if (string.IsNullOrWhiteSpace(name)) return;
-
-        var phone = await DisplayPromptAsync("WhatsApp/Telefone", "Opcional:", "Salvar", "Pular", "Ex: 11 99999-9999") ?? "";
-        var email = await DisplayPromptAsync("E-mail", "Opcional:", "Salvar", "Pular", "Ex: aluno@dominio.com") ?? "";
-        var notes = await DisplayPromptAsync("Observações", "Opcional:", "Salvar", "Pular", "") ?? "";
-
-        var st = new StudentContact
-        {
-            InstitutionId = InstitutionId,
-            ClassroomId = ClassId,
-            Name = name.Trim(),
-            Phone = phone.Trim(),
-            Email = email.Trim(),
-            Notes = notes.Trim(),
-            CreatedAt = DateTimeOffset.UtcNow
-        };
-
-        var ok = await _db.UpsertStudentAsync(_uid, InstitutionId, ClassId, _token, st);
-        if (!ok)
-        {
-            await DisplayAlert("Erro", "Não foi possível salvar o aluno/contato.", "OK");
-            return;
-        }
-
-        Students.Insert(0, st);
-        await _store.SaveStudentsCacheAsync(InstitutionId, ClassId, Students.ToList());
+        if (Navigation.ModalStack.Count > 0)
+            await Navigation.PopModalAsync();
+        else
+            await Shell.Current.GoToAsync("..");
     }
 
-    private async void OnEditClicked(object sender, EventArgs e)
+    // =========================
+    // Editor (modal overlay)
+    // =========================
+    private void OpenEditor(bool isEdit, StudentContact? st)
+    {
+        _editorIsEdit = isEdit;
+        _editing = st;
+
+        EditorTitleLabel.Text = isEdit ? "Editar aluno/contato" : "Novo aluno/contato";
+
+        if (isEdit && st != null)
+        {
+            NameEntry.Text = st.Name ?? "";
+            PhoneEntry.Text = st.Phone ?? "";
+            EmailEntry.Text = st.Email ?? "";
+            NotesEditor.Text = st.Notes ?? "";
+        }
+        else
+        {
+            NameEntry.Text = "";
+            PhoneEntry.Text = "";
+            EmailEntry.Text = "";
+            NotesEditor.Text = "";
+        }
+
+        EditorOverlay.IsVisible = true;
+
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            await Task.Delay(50);
+            NameEntry.Focus();
+        });
+    }
+
+    private void CloseEditor()
+    {
+        EditorOverlay.IsVisible = false;
+    }
+
+    private void OnEditorClose(object sender, EventArgs e) => CloseEditor();
+    private void OnEditorCancel(object sender, EventArgs e) => CloseEditor();
+
+    private void OnAddClicked(object sender, EventArgs e)
+    {
+        OpenEditor(isEdit: false, st: null);
+    }
+
+    private void OnEditClicked(object sender, EventArgs e)
     {
         if (sender is not Button btn) return;
         if (btn.BindingContext is not StudentContact st) return;
 
-        var name = await DisplayPromptAsync("Editar", "Nome:", "Salvar", "Cancelar", initialValue: st.Name);
-        if (string.IsNullOrWhiteSpace(name)) return;
+        OpenEditor(isEdit: true, st: st);
+    }
 
-        var phone = await DisplayPromptAsync("Editar", "WhatsApp/Telefone:", "Salvar", "Cancelar", initialValue: st.Phone) ?? st.Phone;
-        var email = await DisplayPromptAsync("Editar", "E-mail:", "Salvar", "Cancelar", initialValue: st.Email) ?? st.Email;
-        var notes = await DisplayPromptAsync("Editar", "Observações:", "Salvar", "Cancelar", initialValue: st.Notes) ?? st.Notes;
+    private async void OnEditorSave(object sender, EventArgs e)
+    {
+        var name = (NameEntry.Text ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            await DisplayAlert("Erro", "Informe o nome.", "OK");
+            return;
+        }
 
-        st.Name = name.Trim();
-        st.Phone = phone.Trim();
-        st.Email = email.Trim();
-        st.Notes = notes.Trim();
+        var phone = (PhoneEntry.Text ?? "").Trim();
+        var email = (EmailEntry.Text ?? "").Trim();
+        var notes = (NotesEditor.Text ?? "").Trim();
+
+        StudentContact st;
+        var isEdit = _editorIsEdit && _editing != null;
+
+        if (isEdit)
+        {
+            st = _editing!;
+            st.Name = name;
+            st.Phone = phone;
+            st.Email = email;
+            st.Notes = notes;
+        }
+        else
+        {
+            st = new StudentContact
+            {
+                InstitutionId = InstitutionId,
+                ClassroomId = ClassId,
+                Name = name,
+                Phone = phone,
+                Email = email,
+                Notes = notes,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+        }
 
         var ok = await _db.UpsertStudentAsync(_uid, InstitutionId, ClassId, _token, st);
         if (!ok)
         {
-            await DisplayAlert("Erro", "Não foi possível atualizar.", "OK");
+            await DisplayAlert("Erro", isEdit ? "Não foi possível atualizar." : "Não foi possível salvar o aluno/contato.", "OK");
             return;
         }
 
-        var idx = Students.IndexOf(st);
-        if (idx >= 0)
+        if (isEdit)
         {
-            Students.RemoveAt(idx);
-            Students.Insert(idx, st);
+            var idx = Students.IndexOf(st);
+            if (idx >= 0)
+            {
+                Students.RemoveAt(idx);
+                Students.Insert(idx, st);
+            }
+        }
+        else
+        {
+            Students.Insert(0, st);
         }
 
         await _store.SaveStudentsCacheAsync(InstitutionId, ClassId, Students.ToList());
+        CloseEditor();
     }
 
+    // =========================
+    // Delete
+    // =========================
     private async void OnDeleteClicked(object sender, EventArgs e)
     {
         if (sender is not Button btn) return;

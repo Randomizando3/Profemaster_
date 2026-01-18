@@ -14,12 +14,30 @@ public partial class InstitutionsPage : ContentPage
     private string _uid = "";
     private string _token = "";
 
+    // Editor state
+    private Institution? _editing = null;
+
+    private readonly List<string> _typeOptions = new()
+    {
+        "Pública",
+        "Privada",
+        "Particular",
+        "Escola",
+        "Curso",
+        "Outros"
+    };
+
     public InstitutionsPage(LocalStore store, FirebaseDbService db)
     {
         InitializeComponent();
         _store = store;
         _db = db;
+
         BindingContext = this;
+
+        // Picker options
+        TypePicker.ItemsSource = _typeOptions;
+        TypePicker.SelectedIndex = 0;
     }
 
     protected override async void OnAppearing()
@@ -68,68 +86,17 @@ public partial class InstitutionsPage : ContentPage
         await LoadFromCloudAsync();
     }
 
-    private async void OnAddClicked(object sender, EventArgs e)
+    private void OnAddClicked(object sender, EventArgs e)
     {
-        var name = await DisplayPromptAsync("Nova instituição", "Nome da instituição:", "Salvar", "Cancelar", "Ex: Escola Estadual...");
-        if (string.IsNullOrWhiteSpace(name)) return;
-
-        var type = await DisplayPromptAsync("Tipo", "Pública / Privada / Particular:", "Salvar", "Cancelar", "Ex: Pública");
-        type = string.IsNullOrWhiteSpace(type) ? "Escola" : type.Trim();
-
-        var notes = await DisplayPromptAsync("Observações", "Opcional:", "Salvar", "Pular", "Ex: 8º ano A, sala 12");
-
-        var inst = new Institution
-        {
-            Name = name.Trim(),
-            Type = type.Trim(),
-            Notes = (notes ?? "").Trim(),
-            CreatedAt = DateTimeOffset.UtcNow
-        };
-
-        var ok = await _db.UpsertInstitutionAsync(_uid, _token, inst);
-        if (!ok)
-        {
-            await DisplayAlert("Erro", "Não foi possível salvar no servidor. Verifique a conexão.", "OK");
-            return;
-        }
-
-        Institutions.Insert(0, inst);
-        await _store.SaveInstitutionsCacheAsync(Institutions.ToList());
+        OpenEditorForNew();
     }
 
-    private async void OnEditClicked(object sender, EventArgs e)
+    private void OnEditClicked(object sender, EventArgs e)
     {
         if (sender is not Button btn) return;
         if (btn.BindingContext is not Institution inst) return;
 
-        var name = await DisplayPromptAsync("Editar", "Nome:", "Salvar", "Cancelar", initialValue: inst.Name);
-        if (string.IsNullOrWhiteSpace(name)) return;
-
-        var type = await DisplayPromptAsync("Editar", "Tipo:", "Salvar", "Cancelar", initialValue: inst.Type);
-        if (string.IsNullOrWhiteSpace(type)) type = inst.Type;
-
-        var notes = await DisplayPromptAsync("Editar", "Observações:", "Salvar", "Cancelar", initialValue: inst.Notes);
-
-        inst.Name = name.Trim();
-        inst.Type = type.Trim();
-        inst.Notes = (notes ?? "").Trim();
-
-        var ok = await _db.UpsertInstitutionAsync(_uid, _token, inst);
-        if (!ok)
-        {
-            await DisplayAlert("Erro", "Não foi possível atualizar no servidor.", "OK");
-            return;
-        }
-
-        // força refresh visual (CollectionView costuma atualizar, mas garantimos)
-        var idx = Institutions.IndexOf(inst);
-        if (idx >= 0)
-        {
-            Institutions.RemoveAt(idx);
-            Institutions.Insert(idx, inst);
-        }
-
-        await _store.SaveInstitutionsCacheAsync(Institutions.ToList());
+        OpenEditorForEdit(inst);
     }
 
     private async void OnDeleteClicked(object sender, EventArgs e)
@@ -159,4 +126,108 @@ public partial class InstitutionsPage : ContentPage
         await Shell.Current.GoToAsync($"classes?institutionId={Uri.EscapeDataString(inst.Id)}&institutionName={Uri.EscapeDataString(inst.Name)}");
     }
 
+    // =========================
+    // Overlay Editor (Add/Edit)
+    // =========================
+    private void OpenEditorForNew()
+    {
+        _editing = null;
+
+        EditorTitleLabel.Text = "Nova instituição";
+        NameEntry.Text = "";
+        NotesEditor.Text = "";
+
+        TypePicker.SelectedIndex = 0;
+
+        EditorOverlay.IsVisible = true;
+        NameEntry.Focus();
+    }
+
+    private void OpenEditorForEdit(Institution inst)
+    {
+        _editing = inst;
+
+        EditorTitleLabel.Text = "Editar instituição";
+        NameEntry.Text = inst.Name ?? "";
+        NotesEditor.Text = inst.Notes ?? "";
+
+        var idx = _typeOptions.FindIndex(x => string.Equals(x, inst.Type ?? "", StringComparison.OrdinalIgnoreCase));
+        TypePicker.SelectedIndex = idx >= 0 ? idx : 0;
+
+        EditorOverlay.IsVisible = true;
+        NameEntry.Focus();
+    }
+
+    private void CloseEditor()
+    {
+        EditorOverlay.IsVisible = false;
+        _editing = null;
+    }
+
+    private void OnEditorClose(object sender, EventArgs e) => CloseEditor();
+    private void OnEditorCancel(object sender, EventArgs e) => CloseEditor();
+
+    private async void OnEditorSave(object sender, EventArgs e)
+    {
+        var name = (NameEntry.Text ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            await DisplayAlert("Erro", "Informe o nome da instituição.", "OK");
+            return;
+        }
+
+        var type = "";
+        if (TypePicker.SelectedIndex >= 0 && TypePicker.SelectedIndex < _typeOptions.Count)
+            type = _typeOptions[TypePicker.SelectedIndex];
+        if (string.IsNullOrWhiteSpace(type))
+            type = "Escola";
+
+        var notes = (NotesEditor.Text ?? "").Trim();
+
+        if (_editing == null)
+        {
+            var inst = new Institution
+            {
+                Name = name,
+                Type = type,
+                Notes = notes,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+
+            var ok = await _db.UpsertInstitutionAsync(_uid, _token, inst);
+            if (!ok)
+            {
+                await DisplayAlert("Erro", "Não foi possível salvar no servidor. Verifique a conexão.", "OK");
+                return;
+            }
+
+            Institutions.Insert(0, inst);
+            await _store.SaveInstitutionsCacheAsync(Institutions.ToList());
+        }
+        else
+        {
+            _editing.Name = name;
+            _editing.Type = type;
+            _editing.Notes = notes;
+
+            var ok = await _db.UpsertInstitutionAsync(_uid, _token, _editing);
+            if (!ok)
+            {
+                await DisplayAlert("Erro", "Não foi possível atualizar no servidor.", "OK");
+                return;
+            }
+
+            // força refresh visual
+            var idx = Institutions.IndexOf(_editing);
+            if (idx >= 0)
+            {
+                Institutions.RemoveAt(idx);
+                Institutions.Insert(idx, _editing);
+            }
+
+            await _store.SaveInstitutionsCacheAsync(Institutions.ToList());
+        }
+
+        CloseEditor();
+    }
 }

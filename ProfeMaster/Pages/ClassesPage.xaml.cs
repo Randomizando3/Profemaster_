@@ -19,12 +19,27 @@ public partial class ClassesPage : ContentPage
     private string _uid = "";
     private string _token = "";
 
+    // Editor state
+    private bool _editorIsEdit = false;
+    private Classroom? _editing;
+
+    private readonly List<string> _periods = new()
+    {
+        "Manhã",
+        "Tarde",
+        "Noite",
+        "Integral",
+        "Outro"
+    };
+
     public ClassesPage(LocalStore store, FirebaseDbService db)
     {
         InitializeComponent();
         _store = store;
         _db = db;
         BindingContext = this;
+
+        PeriodPicker.ItemsSource = _periods;
     }
 
     protected override async void OnAppearing()
@@ -43,7 +58,6 @@ public partial class ClassesPage : ContentPage
         _uid = session.Uid;
         _token = session.IdToken;
 
-        // cache primeiro
         if (!string.IsNullOrWhiteSpace(InstitutionId))
         {
             var cached = await _store.LoadClassesCacheAsync(InstitutionId);
@@ -65,75 +79,150 @@ public partial class ClassesPage : ContentPage
             foreach (var c in list) Classes.Add(c);
             await _store.SaveClassesCacheAsync(InstitutionId, list);
         }
-        catch { }
+        catch
+        {
+            // mantém cache
+        }
     }
 
     private async void OnRefreshClicked(object sender, EventArgs e) => await LoadFromCloudAsync();
 
-    private async void OnAddClicked(object sender, EventArgs e)
+    private async void OnCloseClicked(object sender, EventArgs e)
     {
-        var name = await DisplayPromptAsync("Nova turma", "Nome:", "Salvar", "Cancelar", "Ex: 8º Ano A");
-        if (string.IsNullOrWhiteSpace(name)) return;
-
-        var period = await DisplayPromptAsync("Período", "Manhã/Tarde/Noite:", "Salvar", "Pular", "Ex: Manhã") ?? "";
-        var room = await DisplayPromptAsync("Sala", "Opcional:", "Salvar", "Pular", "Ex: Sala 12") ?? "";
-        var notes = await DisplayPromptAsync("Observações", "Opcional:", "Salvar", "Pular", "") ?? "";
-
-        var cls = new Classroom
-        {
-            InstitutionId = InstitutionId,
-            Name = name.Trim(),
-            Period = period.Trim(),
-            Room = room.Trim(),
-            Notes = notes.Trim(),
-            CreatedAt = DateTimeOffset.UtcNow
-        };
-
-        var ok = await _db.UpsertClassAsync(_uid, InstitutionId, _token, cls);
-        if (!ok)
-        {
-            await DisplayAlert("Erro", "Não foi possível salvar a turma.", "OK");
-            return;
-        }
-
-        Classes.Insert(0, cls);
-        await _store.SaveClassesCacheAsync(InstitutionId, Classes.ToList());
+        // volta para página anterior (normalmente Institutions)
+        if (Navigation.ModalStack.Count > 0)
+            await Navigation.PopModalAsync();
+        else
+            await Shell.Current.GoToAsync("..");
     }
 
-    private async void OnEditClicked(object sender, EventArgs e)
+    // =========================
+    // Editor (modal overlay)
+    // =========================
+    private void OpenEditor(bool isEdit, Classroom? cls)
+    {
+        _editorIsEdit = isEdit;
+        _editing = cls;
+
+        EditorTitleLabel.Text = isEdit ? "Editar turma" : "Nova turma";
+
+        if (isEdit && cls != null)
+        {
+            NameEntry.Text = cls.Name ?? "";
+            RoomEntry.Text = cls.Room ?? "";
+            NotesEditor.Text = cls.Notes ?? "";
+
+            // period -> index
+            var p = (cls.Period ?? "").Trim();
+            var idx = _periods.FindIndex(x => string.Equals(x, p, StringComparison.OrdinalIgnoreCase));
+            PeriodPicker.SelectedIndex = idx >= 0 ? idx : -1;
+        }
+        else
+        {
+            NameEntry.Text = "";
+            RoomEntry.Text = "";
+            NotesEditor.Text = "";
+            PeriodPicker.SelectedIndex = -1;
+        }
+
+        EditorOverlay.IsVisible = true;
+
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            await Task.Delay(50);
+            NameEntry.Focus();
+        });
+    }
+
+    private void CloseEditor()
+    {
+        EditorOverlay.IsVisible = false;
+    }
+
+    private void OnEditorClose(object sender, EventArgs e) => CloseEditor();
+    private void OnEditorCancel(object sender, EventArgs e) => CloseEditor();
+
+    private void OnAddClicked(object sender, EventArgs e)
+    {
+        OpenEditor(isEdit: false, cls: null);
+    }
+
+    private void OnEditClicked(object sender, EventArgs e)
     {
         if (sender is not Button btn) return;
         if (btn.BindingContext is not Classroom cls) return;
 
-        var name = await DisplayPromptAsync("Editar turma", "Nome:", "Salvar", "Cancelar", initialValue: cls.Name);
-        if (string.IsNullOrWhiteSpace(name)) return;
+        OpenEditor(isEdit: true, cls: cls);
+    }
 
-        var period = await DisplayPromptAsync("Editar", "Período:", "Salvar", "Cancelar", initialValue: cls.Period) ?? cls.Period;
-        var room = await DisplayPromptAsync("Editar", "Sala:", "Salvar", "Cancelar", initialValue: cls.Room) ?? cls.Room;
-        var notes = await DisplayPromptAsync("Editar", "Observações:", "Salvar", "Cancelar", initialValue: cls.Notes) ?? cls.Notes;
+    private async void OnEditorSave(object sender, EventArgs e)
+    {
+        var name = (NameEntry.Text ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            await DisplayAlert("Erro", "Informe o nome da turma.", "OK");
+            return;
+        }
 
-        cls.Name = name.Trim();
-        cls.Period = period.Trim();
-        cls.Room = room.Trim();
-        cls.Notes = notes.Trim();
+        var period = "";
+        if (PeriodPicker.SelectedIndex >= 0 && PeriodPicker.SelectedIndex < _periods.Count)
+            period = _periods[PeriodPicker.SelectedIndex];
+
+        var room = (RoomEntry.Text ?? "").Trim();
+        var notes = (NotesEditor.Text ?? "").Trim();
+
+        Classroom cls;
+        var isEdit = _editorIsEdit && _editing != null;
+
+        if (isEdit)
+        {
+            cls = _editing!;
+            cls.Name = name;
+            cls.Period = period;
+            cls.Room = room;
+            cls.Notes = notes;
+        }
+        else
+        {
+            cls = new Classroom
+            {
+                InstitutionId = InstitutionId,
+                Name = name,
+                Period = period,
+                Room = room,
+                Notes = notes,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
+        }
 
         var ok = await _db.UpsertClassAsync(_uid, InstitutionId, _token, cls);
         if (!ok)
         {
-            await DisplayAlert("Erro", "Não foi possível atualizar a turma.", "OK");
+            await DisplayAlert("Erro", isEdit ? "Não foi possível atualizar a turma." : "Não foi possível salvar a turma.", "OK");
             return;
         }
 
-        var idx = Classes.IndexOf(cls);
-        if (idx >= 0)
+        if (isEdit)
         {
-            Classes.RemoveAt(idx);
-            Classes.Insert(idx, cls);
+            var idx = Classes.IndexOf(cls);
+            if (idx >= 0)
+            {
+                Classes.RemoveAt(idx);
+                Classes.Insert(idx, cls);
+            }
+        }
+        else
+        {
+            Classes.Insert(0, cls);
         }
 
         await _store.SaveClassesCacheAsync(InstitutionId, Classes.ToList());
+        CloseEditor();
     }
 
+    // =========================
+    // Delete
+    // =========================
     private async void OnDeleteClicked(object sender, EventArgs e)
     {
         if (sender is not Button btn) return;
@@ -153,6 +242,9 @@ public partial class ClassesPage : ContentPage
         await _store.SaveClassesCacheAsync(InstitutionId, Classes.ToList());
     }
 
+    // =========================
+    // Students
+    // =========================
     private async void OnStudentsClicked(object sender, EventArgs e)
     {
         if (sender is not Button btn) return;

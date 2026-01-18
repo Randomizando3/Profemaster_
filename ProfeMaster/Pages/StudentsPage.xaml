@@ -3,44 +3,350 @@
     x:Class="ProfeMaster.Pages.StudentsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}"
-    Title="Alunos/Contatos">
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
 
-    <Grid Padding="16" RowSpacing="12">
+    <Grid Padding="18" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-            <Grid Padding="12" ColumnDefinitions="*,Auto,Auto">
-                <VerticalStackLayout Spacing="2">
-                    <Label Text="Alunos/Contatos" FontAttributes="Bold"/>
-                    <Label x:Name="CtxLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                </VerticalStackLayout>
-                <Button Grid.Column="1" Text="Atualizar" BackgroundColor="#243056" Clicked="OnRefreshClicked"/>
-                <Button Grid.Column="2" Text="+ Novo" Background="{StaticResource PmGradient}" Clicked="OnAddClicked"/>
-            </Grid>
-        </Border>
+        <!-- TOP BAR -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
 
-        <CollectionView Grid.Row="1" ItemsSource="{Binding Students}">
+            <!-- Voltar -->
+            <Button Grid.Column="0"
+                    Text="X"
+                    HeightRequest="40"
+                    WidthRequest="44"
+                    Padding="0"
+                    CornerRadius="16"
+                    BackgroundColor="#F2F2F2"
+                    TextColor="#111827"
+                    FontAttributes="Bold"
+                    Clicked="OnCloseClicked" />
+
+            <!-- Contexto -->
+            <VerticalStackLayout Grid.Column="1"
+                                 Spacing="2"
+                                 VerticalOptions="Center">
+                <Label Text="Alunos/Contatos"
+                       FontAttributes="Bold"
+                       FontSize="14"
+                       TextColor="#111827"/>
+                <Label x:Name="CtxLabel"
+                       FontSize="12"
+                       TextColor="#6B7280"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="1"/>
+            </VerticalStackLayout>
+
+            <Button Grid.Column="2"
+                    Text="Atualizar"
+                    HeightRequest="40"
+                    Padding="14,0"
+                    CornerRadius="16"
+                    BackgroundColor="#F2F2F2"
+                    TextColor="#111827"
+                    FontAttributes="Bold"
+                    FontSize="12"
+                    Clicked="OnRefreshClicked" />
+
+            <!-- + Novo com gradiente -->
+            <Border Grid.Column="3"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 16"
+                    HeightRequest="40"
+                    VerticalOptions="Center">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="#6A4FF0" Offset="0" />
+                        <GradientStop Color="#9B7BFF" Offset="1" />
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <Button Text="+ Novo"
+                        HeightRequest="40"
+                        Padding="14,0"
+                        CornerRadius="16"
+                        BackgroundColor="Transparent"
+                        TextColor="#FFFFFF"
+                        FontAttributes="Bold"
+                        FontSize="12"
+                        Clicked="OnAddClicked" />
+            </Border>
+        </Grid>
+
+        <!-- LISTA -->
+        <CollectionView Grid.Row="1"
+                        x:Name="List"
+                        ItemsSource="{Binding Students}"
+                        SelectionMode="None"
+                        Margin="0,2,0,0">
+
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Margin="0,0,0,10" BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 18">
-                        <Grid Padding="14" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
-                            <Label Text="{Binding Name}" FontAttributes="Bold" FontSize="16"/>
-                            <Label Grid.Row="1" Text="{Binding Phone}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            <Label Grid.Row="2" Text="{Binding Email}" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            <Label Grid.Row="3" Text="{Binding Notes}" TextColor="{StaticResource PmMuted}" FontSize="12" LineBreakMode="TailTruncation"/>
+                    <Border Margin="0,0,0,12"
+                            BackgroundColor="#FFFFFF"
+                            Stroke="#E5E7EB"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 18">
 
-                            <HorizontalStackLayout Grid.Column="1" Grid.RowSpan="4" Spacing="8" VerticalOptions="Center">
-                                <Button Text="Editar" BackgroundColor="#243056" Clicked="OnEditClicked"/>
-                                <Button Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDeleteClicked"/>
-                            </HorizontalStackLayout>
+                        <Grid Padding="12"
+                              ColumnSpacing="12"
+                              ColumnDefinitions="2.2*,Auto">
+
+                            <!-- TEXTO -->
+                            <VerticalStackLayout Grid.Column="0"
+                                                 Spacing="2"
+                                                 VerticalOptions="Center">
+
+                                <Label Text="{Binding Name}"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="#7A2FA6"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1"/>
+
+                                <!-- Telefone -->
+                                <Label FontSize="12"
+                                       TextColor="#6B7280"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Phone}" Value="">
+                                            <Setter Property="IsVisible" Value="False"/>
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Phone}" Value="{x:Null}">
+                                            <Setter Property="IsVisible" Value="False"/>
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                    <Label.Text>
+                                        <Binding Path="Phone"/>
+                                    </Label.Text>
+                                </Label>
+
+                                <!-- Email -->
+                                <Label FontSize="12"
+                                       TextColor="#9CA3AF"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Email}" Value="">
+                                            <Setter Property="IsVisible" Value="False"/>
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Email}" Value="{x:Null}">
+                                            <Setter Property="IsVisible" Value="False"/>
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                    <Label.Text>
+                                        <Binding Path="Email"/>
+                                    </Label.Text>
+                                </Label>
+
+                                <!-- Observação -->
+                                <Label FontSize="12"
+                                       TextColor="#9CA3AF"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Notes}" Value="">
+                                            <Setter Property="IsVisible" Value="False"/>
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label" Binding="{Binding Notes}" Value="{x:Null}">
+                                            <Setter Property="IsVisible" Value="False"/>
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                    <Label.Text>
+                                        <Binding Path="Notes"/>
+                                    </Label.Text>
+                                </Label>
+
+                            </VerticalStackLayout>
+
+                            <!-- AÇÕES: ✏️ e X -->
+                            <Grid Grid.Column="1"
+                                  ColumnDefinitions="Auto,Auto"
+                                  ColumnSpacing="8"
+                                  VerticalOptions="Center"
+                                  HorizontalOptions="End">
+
+                                <Button Grid.Column="0"
+                                        Text="✏️"
+                                        HeightRequest="36"
+                                        WidthRequest="44"
+                                        Padding="0"
+                                        CornerRadius="12"
+                                        BackgroundColor="#F2F2F2"
+                                        TextColor="#111827"
+                                        FontSize="14"
+                                        Clicked="OnEditClicked"/>
+
+                                <Button Grid.Column="1"
+                                        Text="X"
+                                        HeightRequest="36"
+                                        WidthRequest="44"
+                                        Padding="0"
+                                        CornerRadius="12"
+                                        BackgroundColor="#FF0000"
+                                        TextColor="#FFFFFF"
+                                        FontAttributes="Bold"
+                                        FontSize="12"
+                                        Clicked="OnDeleteClicked"/>
+                            </Grid>
+
                         </Grid>
                     </Border>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
+
+        <!-- OVERLAY EDITOR (ADD/EDIT) -->
+        <Grid x:Name="EditorOverlay"
+              IsVisible="False"
+              BackgroundColor="#80000000"
+              Grid.RowSpan="2"
+              Padding="18,0">
+
+            <Grid VerticalOptions="Center"
+                  HorizontalOptions="Center"
+                  WidthRequest="380"
+                  MaximumWidthRequest="420">
+
+                <Border BackgroundColor="#FFFFFF"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 22">
+
+                    <VerticalStackLayout Padding="16" Spacing="14">
+
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <Label x:Name="EditorTitleLabel"
+                                   Text="Novo aluno/contato"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   TextColor="#111827"
+                                   VerticalOptions="Center" />
+
+                            <Button Grid.Column="1"
+                                    Text="X"
+                                    HeightRequest="34"
+                                    WidthRequest="44"
+                                    Padding="0"
+                                    CornerRadius="12"
+                                    BackgroundColor="#F2F2F2"
+                                    TextColor="#111827"
+                                    Clicked="OnEditorClose"/>
+                        </Grid>
+
+                        <!-- Nome (obrigatório) -->
+                        <Border Stroke="#E5E7EB"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#FFFFFF"
+                                Padding="14,0"
+                                HeightRequest="54">
+                            <Grid VerticalOptions="Center">
+                                <Entry x:Name="NameEntry"
+                                       Placeholder="Nome"
+                                       TextColor="#111827"
+                                       PlaceholderColor="#9CA3AF"
+                                       BackgroundColor="Transparent"
+                                       VerticalTextAlignment="Center"
+                                       HeightRequest="54"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Telefone -->
+                        <Border Stroke="#E5E7EB"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#FFFFFF"
+                                Padding="14,0"
+                                HeightRequest="54">
+                            <Grid VerticalOptions="Center">
+                                <Entry x:Name="PhoneEntry"
+                                       Placeholder="WhatsApp/Telefone (opcional)"
+                                       TextColor="#111827"
+                                       PlaceholderColor="#9CA3AF"
+                                       BackgroundColor="Transparent"
+                                       VerticalTextAlignment="Center"
+                                       HeightRequest="54"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Email -->
+                        <Border Stroke="#E5E7EB"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#FFFFFF"
+                                Padding="14,0"
+                                HeightRequest="54">
+                            <Grid VerticalOptions="Center">
+                                <Entry x:Name="EmailEntry"
+                                       Placeholder="E-mail (opcional)"
+                                       Keyboard="Email"
+                                       TextColor="#111827"
+                                       PlaceholderColor="#9CA3AF"
+                                       BackgroundColor="Transparent"
+                                       VerticalTextAlignment="Center"
+                                       HeightRequest="54"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Observação -->
+                        <Border Stroke="#E5E7EB"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#FFFFFF"
+                                Padding="14,12">
+                            <Editor x:Name="NotesEditor"
+                                    Placeholder="Observação (opcional)"
+                                    AutoSize="TextChanges"
+                                    BackgroundColor="Transparent"
+                                    TextColor="#111827"
+                                    PlaceholderColor="#9CA3AF"
+                                    HeightRequest="110"/>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,4,0,0">
+                            <Button Text="Cancelar"
+                                    HeightRequest="46"
+                                    CornerRadius="16"
+                                    BackgroundColor="#F2F2F2"
+                                    TextColor="#111827"
+                                    FontAttributes="Bold"
+                                    FontSize="12"
+                                    Clicked="OnEditorCancel"/>
+
+                            <Border Grid.Column="1"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 16"
+                                    HeightRequest="46">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#6A4FF0" Offset="0" />
+                                        <GradientStop Color="#9B7BFF" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Border.Background>
+
+                                <Button Text="Salvar"
+                                        HeightRequest="46"
+                                        CornerRadius="16"
+                                        BackgroundColor="Transparent"
+                                        TextColor="#FFFFFF"
+                                        FontAttributes="Bold"
+                                        FontSize="12"
+                                        Clicked="OnEditorSave"/>
+                            </Border>
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </Grid>
+
     </Grid>
 </ContentPage>
