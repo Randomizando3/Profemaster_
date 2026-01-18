@@ -3,60 +3,133 @@
     x:Class="ProfeMaster.Pages.ExamsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}"
-    Title="Provas">
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
 
-    <Grid Padding="16" RowDefinitions="Auto,*" RowSpacing="12">
+    <ContentPage.Resources>
 
-        <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-            <Grid Padding="12" ColumnDefinitions="*,Auto">
-                <Label Text="Provas" FontSize="16" FontAttributes="Bold" />
+        <!-- Cores base -->
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+
+        <!-- Card principal -->
+        <Style x:Key="PmCard" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+        </Style>
+
+        <!-- Botões -->
+        <Style x:Key="PmBtnPrimary" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="Background" Value="{StaticResource PmGradient}" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
+
+        <Style x:Key="PmBtnSoft" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="BackgroundColor" Value="#F2F2F2" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
+
+    </ContentPage.Resources>
+
+    <Grid Padding="18" RowDefinitions="Auto,*" RowSpacing="12">
+
+        <!-- HEADER -->
+        <Border Style="{StaticResource PmCard}">
+            <Grid Padding="14" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+
+                <Label Text="Provas"
+                       FontSize="18"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource PmText}"
+                       VerticalOptions="Center"/>
+
                 <Button Grid.Column="1"
                         Text="+ Nova"
-                        Background="{StaticResource PmGradient}"
-                        Clicked="OnAdd"/>
+                        Style="{StaticResource PmBtnPrimary}"
+                        Clicked="OnAdd"
+                        VerticalOptions="Center"/>
             </Grid>
         </Border>
 
+        <!-- EMPTY -->
         <Label x:Name="EmptyLabel"
                Grid.Row="1"
                IsVisible="False"
                Text="Nenhuma prova criada ainda."
                TextColor="{StaticResource PmMuted}"
+               FontSize="12"
                HorizontalTextAlignment="Center"
-               Margin="0,16,0,0"/>
+               Margin="0,24,0,0"/>
 
+        <!-- LISTA -->
         <CollectionView x:Name="List"
                         Grid.Row="1"
                         SelectionMode="Single"
                         SelectionChanged="OnSelected">
+
             <CollectionView.ItemTemplate>
                 <DataTemplate>
-                    <Border Margin="0,0,0,10"
-                            BackgroundColor="{StaticResource PmCard}"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 18">
-                        <Grid Padding="14" ColumnDefinitions="Auto,*" ColumnSpacing="12">
 
-                            <Border WidthRequest="56" HeightRequest="56"
+                    <Border Style="{StaticResource PmCard}"
+                            Margin="0,0,0,12">
+
+                        <Grid Padding="14"
+                              ColumnDefinitions="Auto,*"
+                              ColumnSpacing="12">
+
+                            <!-- Thumb -->
+                            <Border WidthRequest="56"
+                                    HeightRequest="56"
                                     StrokeThickness="0"
                                     StrokeShape="RoundRectangle 14"
                                     BackgroundColor="#0f172a">
-                                <Image Aspect="AspectFill" Source="{Binding ThumbLocalPath}" />
+
+                                <Image Aspect="AspectFill"
+                                       Source="{Binding ThumbLocalPath}" />
                             </Border>
 
-                            <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16"/>
+                            <!-- Infos -->
+                            <VerticalStackLayout Grid.Column="1" Spacing="4"
+                                                 VerticalOptions="Center">
+
+                                <Label Text="{Binding Title}"
+                                       FontAttributes="Bold"
+                                       FontSize="16"
+                                       TextColor="{StaticResource PmText}"/>
+
                                 <Label Text="{Binding Start, StringFormat='{0:dd/MM/yyyy HH:mm}'}"
-                                       TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                                       TextColor="{StaticResource PmMuted}"
+                                       FontSize="12"/>
+
                                 <Label Text="{Binding InstitutionName}"
-                                       TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                                       TextColor="{StaticResource PmMuted}"
+                                       FontSize="12"/>
+
                             </VerticalStackLayout>
 
                         </Grid>
                     </Border>
+
                 </DataTemplate>
             </CollectionView.ItemTemplate>
+
         </CollectionView>
 
     </Grid>

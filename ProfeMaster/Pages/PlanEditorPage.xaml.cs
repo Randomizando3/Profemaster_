@@ -15,6 +15,12 @@ public partial class PlanEditorPage : ContentPage
 
     private readonly bool _hasClassContext;
 
+    // ===== NOVO: controle de criação/cancelamento =====
+    private readonly bool _isNew;
+    private bool _hasSavedOnce = false;
+    private bool _canceling = false;
+    private bool _autoSaveEnabled = true;
+
     // Aulas carregadas para vincular
     private List<Lesson> _lessons = new();
 
@@ -30,12 +36,15 @@ public partial class PlanEditorPage : ContentPage
     private bool _saveQueued = false;
     private bool _saving = false;
 
-    public PlanEditorPage(FirebaseDbService db, LocalStore store, LessonPlan plan)
+    // ===== ALTERADO: recebe isNew =====
+    public PlanEditorPage(FirebaseDbService db, LocalStore store, LessonPlan plan, bool isNew = false)
     {
         InitializeComponent();
         _db = db;
         _store = store;
         _plan = plan;
+
+        _isNew = isNew;
 
         _hasClassContext = !string.IsNullOrWhiteSpace(plan.InstitutionId) && !string.IsNullOrWhiteSpace(plan.ClassId);
 
@@ -529,6 +538,7 @@ public partial class PlanEditorPage : ContentPage
 
     private async Task PersistPlanAsync()
     {
+        if (_canceling) return;
         if (string.IsNullOrWhiteSpace(_uid) || string.IsNullOrWhiteSpace(_token))
             return;
 
@@ -545,11 +555,15 @@ public partial class PlanEditorPage : ContentPage
 
         if (_hasClassContext)
             await _db.UpsertPlanByClassAsync(_uid, _plan.InstitutionId, _plan.ClassId, _token, _plan);
+
+        _hasSavedOnce = true;
     }
 
     private void QueueAutoSave()
     {
         if (_isLoadingUi) return;
+        if (_canceling) return;
+        if (!_autoSaveEnabled) return;
 
         _saveQueued = true;
         _ = RunAutoSaveLoop();
@@ -564,8 +578,12 @@ public partial class PlanEditorPage : ContentPage
         {
             while (_saveQueued)
             {
+                if (_canceling) break;
+
                 _saveQueued = false;
                 await Task.Delay(180);
+
+                if (_canceling) break;
                 await PersistPlanAsync();
             }
         }
@@ -576,7 +594,29 @@ public partial class PlanEditorPage : ContentPage
     }
 
     private async void OnCancel(object sender, EventArgs e)
-        => await Navigation.PopModalAsync();
+    {
+        _canceling = true;
+        _autoSaveEnabled = false;
+        _saveQueued = false;
+
+        // Se estava criando e já chegou a salvar alguma vez, remove o registro
+        if (_isNew && _hasSavedOnce && !string.IsNullOrWhiteSpace(_uid) && !string.IsNullOrWhiteSpace(_token))
+        {
+            try
+            {
+                await _db.DeletePlanAllAsync(_uid, _token, _plan.Id);
+
+                if (!string.IsNullOrWhiteSpace(_plan.InstitutionId) && !string.IsNullOrWhiteSpace(_plan.ClassId))
+                    await _db.DeletePlanByClassAsync(_uid, _plan.InstitutionId, _plan.ClassId, _token, _plan.Id);
+            }
+            catch
+            {
+                // ignora falhas de delete no cancel
+            }
+        }
+
+        await Navigation.PopModalAsync();
+    }
 
     private async void OnSave(object sender, EventArgs e)
     {
@@ -586,6 +626,9 @@ public partial class PlanEditorPage : ContentPage
             await DisplayAlert("Erro", "Informe o título do plano.", "OK");
             return;
         }
+
+        _autoSaveEnabled = false;
+        _saveQueued = false;
 
         await PersistPlanAsync();
         await Navigation.PopModalAsync();

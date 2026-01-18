@@ -1,6 +1,8 @@
 ﻿using ProfeMaster.Models;
 using ProfeMaster.Services;
 
+using System.Reflection;
+
 namespace ProfeMaster.Pages;
 
 public partial class PlanDetailsPage : ContentPage
@@ -20,6 +22,10 @@ public partial class PlanDetailsPage : ContentPage
     // VMs
     private readonly List<SlotDayVm> _days = new();
 
+    // vínculo resolvido (pode vir do plano OU da agenda)
+    private string _resolvedAgendaEventId = "";
+    private string _resolvedAgendaEventTitle = "";
+
     public PlanDetailsPage(LocalStore store, FirebaseDbService db, FirebaseStorageService storage, LessonPlan plan)
     {
         InitializeComponent();
@@ -28,7 +34,7 @@ public partial class PlanDetailsPage : ContentPage
         _storage = storage;
         _plan = plan;
 
-        RenderHeader();
+        RenderHeader(loadingAgenda: true);
     }
 
     protected override async void OnAppearing()
@@ -48,6 +54,9 @@ public partial class PlanDetailsPage : ContentPage
         await ReloadFromCloud();
         await LoadLessonsAsync();
 
+        // tenta resolver vínculo da agenda (mesmo se o plano não tiver LinkedEventId)
+        await ResolveAgendaLinkAsync();
+
         EnsureSlotMigration();
         RebuildPreviewUi();
     }
@@ -55,28 +64,48 @@ public partial class PlanDetailsPage : ContentPage
     // =========================
     // HEADER
     // =========================
-    private void RenderHeader()
+    private void RenderHeader(bool loadingAgenda)
     {
         TitleLabel.Text = string.IsNullOrWhiteSpace(_plan.Title) ? "(Sem título)" : _plan.Title.Trim();
 
-        var start = _plan.StartDate == default ? (_plan.Date == default ? DateTime.Today : _plan.Date.Date) : _plan.StartDate.Date;
+        var start = _plan.StartDate == default
+            ? (_plan.Date == default ? DateTime.Today : _plan.Date.Date)
+            : _plan.StartDate.Date;
+
         var end = _plan.EndDate == default ? start : _plan.EndDate.Date;
         if (end < start) (start, end) = (end, start);
 
         var classInfo = $"{_plan.InstitutionName} • {_plan.ClassName}".Trim();
         classInfo = classInfo.Trim(' ', '•');
 
-        MetaLabel.Text = $"{start:dd/MM/yyyy} → {end:dd/MM/yyyy}" + (string.IsNullOrWhiteSpace(classInfo) ? "" : $" • {classInfo}");
+        MetaLabel.Text = $"{start:dd/MM/yyyy} → {end:dd/MM/yyyy}" +
+                         (string.IsNullOrWhiteSpace(classInfo) ? "" : $" • {classInfo}");
 
         ObsLabel.Text = string.IsNullOrWhiteSpace(_plan.Observations)
             ? "Observações: -"
             : $"Observações: {_plan.Observations.Trim()}";
 
-        // Agenda (preview apenas)
-        if (string.IsNullOrWhiteSpace(_plan.LinkedEventId))
-            AgendaLinkLabel.Text = "Nenhum vínculo.";
+        if (loadingAgenda)
+        {
+            AgendaLinkLabel.Text = "Carregando vínculo...";
+        }
         else
-            AgendaLinkLabel.Text = $"Vinculado: {_plan.LinkedEventTitle}";
+        {
+            // prioridade: vínculo resolvido (agenda ou plano)
+            var id = (_resolvedAgendaEventId ?? "").Trim();
+            var title = (_resolvedAgendaEventTitle ?? "").Trim();
+
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                AgendaLinkLabel.Text = string.IsNullOrWhiteSpace(title)
+                    ? "Vinculado: (sem título)"
+                    : $"Vinculado: {title}";
+            }
+            else
+            {
+                AgendaLinkLabel.Text = "Nenhum vínculo.";
+            }
+        }
 
         // Thumb offline-first
         try
@@ -95,6 +124,186 @@ public partial class PlanDetailsPage : ContentPage
         {
             ThumbImage.Source = null;
         }
+    }
+
+    // =========================
+    // VÍNCULO AGENDA (RESOLVE MESMO SE NÃO ESTIVER NO PLANO)
+    // =========================
+    private async Task ResolveAgendaLinkAsync()
+    {
+        try
+        {
+            // 1) Se o plano já tem o vínculo salvo, usa direto
+            var planLinkedId = (_plan.LinkedEventId ?? "").Trim();
+            if (!string.IsNullOrWhiteSpace(planLinkedId))
+            {
+                _resolvedAgendaEventId = planLinkedId;
+                _resolvedAgendaEventTitle = (_plan.LinkedEventTitle ?? "").Trim();
+                RenderHeader(loadingAgenda: false);
+                return;
+            }
+
+            // 2) Caso não tenha no plano, tenta localizar evento na agenda que aponta para este plano
+            //    Fazendo isso por reflection para não depender do nome exato dos métodos.
+            var candidates = await TryGetAgendaEventsByReflectionAsync();
+            if (candidates != null)
+            {
+                var found = FindAgendaEventLinkedToPlan(candidates, _plan.Id);
+                if (found != null)
+                {
+                    _resolvedAgendaEventId = (GetString(found, "Id", "EventId", "Key") ?? "").Trim();
+                    _resolvedAgendaEventTitle = (GetString(found, "Title", "Name", "EventTitle") ?? "").Trim();
+                }
+            }
+        }
+        catch
+        {
+            // ignora
+        }
+        finally
+        {
+            RenderHeader(loadingAgenda: false);
+        }
+    }
+
+    private async Task<IEnumerable<object>?> TryGetAgendaEventsByReflectionAsync()
+    {
+        // Métodos prováveis no seu FirebaseDbService (tentamos alguns nomes comuns)
+        // Assinaturas comuns:
+        //   Task<List<T>> GetAgendaAllAsync(string uid, string token)
+        //   Task<List<T>> GetAgendaByClassAsync(string uid, string instId, string classId, string token)
+        //   Task<List<T>> GetEventsAllAsync(string uid, string token)
+        //   Task<List<T>> GetAgendaAsync(string uid, string token)
+        var methodNames = new[]
+        {
+            "GetAgendaAllAsync",
+            "GetAgendaAsync",
+            "GetEventsAllAsync",
+            "GetEventsAsync",
+            "GetAgendaByClassAsync",
+            "GetEventsByClassAsync"
+        };
+
+        foreach (var name in methodNames)
+        {
+            try
+            {
+                var mi = _db.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (mi == null) continue;
+
+                var pars = mi.GetParameters();
+
+                object? taskObj = null;
+
+                // by class (uid, instId, classId, token)
+                if (pars.Length == 4)
+                {
+                    var instId = (_plan.InstitutionId ?? "").Trim();
+                    var classId = (_plan.ClassId ?? "").Trim();
+                    if (string.IsNullOrWhiteSpace(instId) || string.IsNullOrWhiteSpace(classId))
+                        continue;
+
+                    taskObj = mi.Invoke(_db, new object[] { _uid, instId, classId, _token });
+                }
+                // all (uid, token)
+                else if (pars.Length == 2)
+                {
+                    taskObj = mi.Invoke(_db, new object[] { _uid, _token });
+                }
+                else
+                {
+                    continue;
+                }
+
+                if (taskObj == null) continue;
+
+                // await Task<...>
+                await (Task)taskObj;
+
+                // pega Result via reflection
+                var resultProp = taskObj.GetType().GetProperty("Result");
+                var result = resultProp?.GetValue(taskObj);
+
+                if (result is System.Collections.IEnumerable enumerable)
+                {
+                    var list = new List<object>();
+                    foreach (var it in enumerable)
+                    {
+                        if (it != null) list.Add(it);
+                    }
+                    return list;
+                }
+            }
+            catch
+            {
+                // tenta o próximo nome
+            }
+        }
+
+        return null;
+    }
+
+    private object? FindAgendaEventLinkedToPlan(IEnumerable<object> events, string planId)
+    {
+        foreach (var ev in events)
+        {
+            try
+            {
+                // tenta várias propriedades prováveis de link
+                var linked =
+                    GetString(ev, "PlanId", "LessonPlanId", "LinkedPlanId", "LinkedPlan", "PlanKey", "PlanRef") ??
+                    GetString(ev, "LinkedId", "RefId");
+
+                if (!string.IsNullOrWhiteSpace(linked) && linked.Trim() == planId)
+                    return ev;
+
+                // às vezes o objeto tem um sub-objeto (Event) com propriedades
+                var sub = GetObject(ev, "Event", "AgendaEvent", "Data");
+                if (sub != null)
+                {
+                    var linked2 =
+                        GetString(sub, "PlanId", "LessonPlanId", "LinkedPlanId", "PlanKey", "PlanRef") ??
+                        GetString(sub, "LinkedId", "RefId");
+
+                    if (!string.IsNullOrWhiteSpace(linked2) && linked2.Trim() == planId)
+                        return ev;
+                }
+            }
+            catch
+            {
+                // ignora
+            }
+        }
+
+        return null;
+    }
+
+    private static string? GetString(object obj, params string[] propNames)
+    {
+        foreach (var p in propNames)
+        {
+            var pi = obj.GetType().GetProperty(p, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (pi == null) continue;
+
+            var v = pi.GetValue(obj);
+            if (v == null) continue;
+
+            return v.ToString();
+        }
+        return null;
+    }
+
+    private static object? GetObject(object obj, params string[] propNames)
+    {
+        foreach (var p in propNames)
+        {
+            var pi = obj.GetType().GetProperty(p, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (pi == null) continue;
+
+            var v = pi.GetValue(obj);
+            if (v != null) return v;
+        }
+        return null;
     }
 
     // =========================
@@ -121,7 +330,12 @@ public partial class PlanDetailsPage : ContentPage
             if (updated != null)
             {
                 _plan = updated;
-                RenderHeader();
+
+                // se o plano veio atualizado com vínculo, atualiza resolved também
+                _resolvedAgendaEventId = (_plan.LinkedEventId ?? "").Trim();
+                _resolvedAgendaEventTitle = (_plan.LinkedEventTitle ?? "").Trim();
+
+                RenderHeader(loadingAgenda: true);
             }
         }
         catch
@@ -139,7 +353,6 @@ public partial class PlanDetailsPage : ContentPage
             else
                 _lessons = await _db.GetLessonsAllAsync(_uid, _token);
 
-            // mantém seu padrão (Lesson tem UpdatedAt no seu projeto)
             _lessons = _lessons
                 .OrderByDescending(x => x.UpdatedAt)
                 .ThenByDescending(x => x.CreatedAt)
@@ -188,7 +401,6 @@ public partial class PlanDetailsPage : ContentPage
 
             if (day.Items.Count == 0)
             {
-                // preview: mostra um item “vazio”
                 vm.Items.Add(new SlotItemPreviewVm(day, new LessonSlotItem
                 {
                     StartTime = new TimeSpan(8, 0, 0),
@@ -220,18 +432,18 @@ public partial class PlanDetailsPage : ContentPage
     {
         await ReloadFromCloud();
         await LoadLessonsAsync();
+        await ResolveAgendaLinkAsync();
         EnsureSlotMigration();
         RebuildPreviewUi();
     }
 
     private async void OnEdit(object sender, EventArgs e)
     {
-        // Edição centralizada no Editor (sem duplicar no details)
         await Navigation.PushModalAsync(new PlanEditorPage(_db, _store, _plan));
 
-        // ao voltar, recarrega preview
         await ReloadFromCloud();
         await LoadLessonsAsync();
+        await ResolveAgendaLinkAsync();
         EnsureSlotMigration();
         RebuildPreviewUi();
     }
@@ -259,12 +471,11 @@ public partial class PlanDetailsPage : ContentPage
             return;
         }
 
-        // construtor correto (CS7036): (db, store, storage, lesson)
         await Navigation.PushModalAsync(new LessonEditorPage(_db, _store, _storage, lesson));
 
-        // volta e atualiza preview (caso tenha mudado thumb/título da aula, etc.)
         await LoadLessonsAsync();
         await ReloadFromCloud();
+        await ResolveAgendaLinkAsync();
         EnsureSlotMigration();
         RebuildPreviewUi();
     }

@@ -3,96 +3,373 @@
     x:Class="ProfeMaster.Pages.LessonEditorPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}"
-    Title="Aula">
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+    <ContentPage.Resources>
 
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-                <VerticalStackLayout Padding="14" Spacing="10">
+        <!-- Paleta (mesma linha do novo Agenda/Plans/Lessons) -->
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
 
-                    <Label Text="Aula (avulsa)" FontAttributes="Bold"/>
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
 
-                    <Label Text="Instituição e Turma" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <Picker x:Name="InstitutionPicker" Title="Instituição" SelectedIndexChanged="OnInstitutionChanged"/>
-                        <Picker x:Name="ClassPicker" Grid.Column="1" Title="Turma" SelectedIndexChanged="OnClassChanged"/>
-                    </Grid>
+        <Style x:Key="PmCardBorder" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+        </Style>
 
-                    <Entry x:Name="TitleEntry" Placeholder="Título da aula" />
+        <Style x:Key="PmFieldBorder" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
 
-                    <Label Text="Duração (min)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Entry x:Name="DurationEntry" Keyboard="Numeric" Placeholder="Ex: 50"/>
+        <Style x:Key="PmBtnPrimary" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="Background" Value="{StaticResource PmGradient}" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
 
-                    <Label Text="Capa (Thumb)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+        <Style x:Key="PmBtnSoft" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="BackgroundColor" Value="#F2F2F2" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
 
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                        <!-- Thumb na coluna 0 -->
-                        <Border Grid.Column="0"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 14"
-                            BackgroundColor="#0f172a"
-                            WidthRequest="80"
-                            HeightRequest="80">
-                            <Image x:Name="ThumbPreview" Aspect="AspectFill"/>
+        <Style x:Key="PmBtnDark" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="BackgroundColor" Value="#243056" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
+
+        <Style x:Key="PmBtnDanger" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="BackgroundColor" Value="#3A2040" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
+
+        <Style x:Key="SectionTitle" TargetType="Label">
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+        </Style>
+
+        <Style x:Key="SectionHint" TargetType="Label">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="TextColor" Value="{StaticResource PmMuted}" />
+        </Style>
+
+    </ContentPage.Resources>
+
+    <Grid Padding="18" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ===== TOP BAR ===== -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+            <Button Text="‹"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    CornerRadius="14"
+                    FontSize="20"
+                    BackgroundColor="#F2F2F2"
+                    TextColor="{StaticResource PmText}"
+                    Clicked="OnCancel"
+                    Padding="0"
+                    VerticalOptions="Center"/>
+
+            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                <Label Text="Aula"
+                       FontAttributes="Bold"
+                       FontSize="18"
+                       TextColor="{StaticResource PmText}" />
+                <Label Text="Edite dados, capa e materiais."
+                       FontSize="10"
+                       TextColor="{StaticResource PmMuted}" />
+            </VerticalStackLayout>
+
+            <Button Grid.Column="2"
+                    Text="Salvar"
+                    Style="{StaticResource PmBtnPrimary}"
+                    Clicked="OnSave"
+                    VerticalOptions="Center" />
+        </Grid>
+
+        <!-- ===== CONTENT ===== -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12" Padding="0,0,0,6">
+
+                <!-- ===== DADOS ===== -->
+                <Border Style="{StaticResource PmCardBorder}">
+                    <VerticalStackLayout Padding="14" Spacing="12">
+
+                        <Label Text="Dados da aula" Style="{StaticResource SectionTitle}" />
+                        <Label Text="Defina vínculo (opcional), título, duração e descrição." Style="{StaticResource SectionHint}" />
+
+                        <!-- Instituição / Turma (pickers custom = display visível + overlay) -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+
+                            <!-- Instituição -->
+                            <Border Style="{StaticResource PmFieldBorder}">
+                                <Grid ColumnDefinitions="*,Auto"
+                                      RowDefinitions="Auto,Auto"
+                                      VerticalOptions="Center">
+
+                                    <Label Text="Instituição"
+                                           FontSize="10"
+                                           TextColor="{StaticResource PmMuted}"
+                                           Margin="0,0,0,2"/>
+
+                                    <Label Grid.Row="1"
+                                           Text="{Binding Source={x:Reference InstitutionPicker}, Path=SelectedItem}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource PmText}"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="1" />
+
+                                    <Label Grid.Column="1"
+                                           Grid.RowSpan="2"
+                                           Text="▾"
+                                           FontSize="16"
+                                           TextColor="{StaticResource PmMuted}"
+                                           VerticalOptions="Center"
+                                           Margin="8,0,0,0"/>
+
+                                    <Picker x:Name="InstitutionPicker"
+                                            Grid.RowSpan="2"
+                                            Grid.ColumnSpan="2"
+                                            Title="Instituição"
+                                            SelectedIndexChanged="OnInstitutionChanged"
+                                            Opacity="0.02"
+                                            BackgroundColor="#FFFFFF"
+                                            TextColor="{StaticResource PmText}" />
+                                </Grid>
+                            </Border>
+
+                            <!-- Turma -->
+                            <Border Grid.Column="1" Style="{StaticResource PmFieldBorder}">
+                                <Grid ColumnDefinitions="*,Auto"
+                                      RowDefinitions="Auto,Auto"
+                                      VerticalOptions="Center">
+
+                                    <Label Text="Turma"
+                                           FontSize="10"
+                                           TextColor="{StaticResource PmMuted}"
+                                           Margin="0,0,0,2"/>
+
+                                    <Label Grid.Row="1"
+                                           Text="{Binding Source={x:Reference ClassPicker}, Path=SelectedItem}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource PmText}"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="1" />
+
+                                    <Label Grid.Column="1"
+                                           Grid.RowSpan="2"
+                                           Text="▾"
+                                           FontSize="16"
+                                           TextColor="{StaticResource PmMuted}"
+                                           VerticalOptions="Center"
+                                           Margin="8,0,0,0"/>
+
+                                    <Picker x:Name="ClassPicker"
+                                            Grid.RowSpan="2"
+                                            Grid.ColumnSpan="2"
+                                            Title="Turma"
+                                            SelectedIndexChanged="OnClassChanged"
+                                            Opacity="0.02"
+                                            BackgroundColor="#FFFFFF"
+                                            TextColor="{StaticResource PmText}" />
+                                </Grid>
+                            </Border>
+
+                        </Grid>
+
+                        <!-- Título -->
+                        <Border Style="{StaticResource PmFieldBorder}">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Título" FontSize="10" TextColor="{StaticResource PmMuted}" />
+                                <Entry x:Name="TitleEntry"
+                                       Placeholder="Título da aula"
+                                       TextColor="{StaticResource PmText}"
+                                       BackgroundColor="Transparent"
+                                       Margin="0,-6,0,0"/>
+                            </VerticalStackLayout>
                         </Border>
 
-                        <!-- Botões na coluna 1 -->
-                        <VerticalStackLayout Grid.Column="1"
-                         Spacing="8"
-                         VerticalOptions="Center">
-                            <Button Text="Selecionar capa"
-                                BackgroundColor="#243056"
-                                Clicked="OnPickThumb"/>
-                                            <Button Text="Remover capa"
-                                BackgroundColor="#3A2040"
-                                Clicked="OnRemoveThumb"/>
-                        </VerticalStackLayout>
-                    </Grid>
+                        <!-- Duração + Capa -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
 
-                    <Label Text="Descrição" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Editor x:Name="DescEditor" AutoSize="TextChanges" Placeholder="Conteúdo / observações..." />
+                            <!-- Duração -->
+                            <Border Style="{StaticResource PmFieldBorder}">
+                                <VerticalStackLayout Spacing="6">
+                                    <Label Text="Duração (min)" FontSize="10" TextColor="{StaticResource PmMuted}" />
+                                    <Entry x:Name="DurationEntry"
+                                           Keyboard="Numeric"
+                                           Placeholder="Ex: 50"
+                                           TextColor="{StaticResource PmText}"
+                                           BackgroundColor="Transparent"
+                                           Margin="0,-6,0,0"/>
+                                </VerticalStackLayout>
+                            </Border>
 
-                </VerticalStackLayout>
-            </Border>
+                            <!-- Thumb -->
+                            <Border Grid.Column="1" Style="{StaticResource PmFieldBorder}">
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
 
-            <!-- ===== Materiais ===== -->
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-                <VerticalStackLayout Padding="14" Spacing="10">
+                                    <Border WidthRequest="52"
+                                            HeightRequest="52"
+                                            Stroke="{StaticResource PmStroke}"
+                                            StrokeThickness="2"
+                                            StrokeShape="RoundRectangle 14"
+                                            BackgroundColor="#FFFFFF"
+                                            VerticalOptions="Center">
+                                        <Image x:Name="ThumbPreview"
+                                               Aspect="AspectFill" />
+                                    </Border>
 
-                    <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-                        <Label Text="Materiais" FontAttributes="Bold"/>
-                        <Button Grid.Column="1" Text="+ Link" BackgroundColor="#243056" Clicked="OnAddLink"/>
-                        <Button Grid.Column="2" x:Name="UploadBtn" Text="Upload" Background="{StaticResource PmGradient}" Clicked="OnUpload"/>
-                    </Grid>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="8" VerticalOptions="Center">
+                                        <Button Text="Selecionar capa"
+                                                Style="{StaticResource PmBtnDark}"
+                                                Clicked="OnPickThumb" />
+                                        <Button Text="Remover capa"
+                                                Style="{StaticResource PmBtnDanger}"
+                                                Clicked="OnRemoveThumb" />
+                                    </VerticalStackLayout>
 
-                    <CollectionView x:Name="MatList">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Border Margin="0,0,0,10" BackgroundColor="#0f172a" StrokeThickness="0" StrokeShape="RoundRectangle 14">
-                                    <Grid Padding="12" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                                        <Label Text="{Binding Title}" FontAttributes="Bold" TextColor="White"/>
-                                        <Label Grid.Row="1" Text="{Binding Url}" TextColor="#cbd5e1" FontSize="12" LineBreakMode="TailTruncation"/>
+                                </Grid>
+                            </Border>
 
-                                        <HorizontalStackLayout Grid.Column="1" Grid.RowSpan="2" Spacing="8" VerticalOptions="Center">
-                                            <Button Text="Abrir" BackgroundColor="#243056" Clicked="OnOpenMaterial"/>
-                                            <Button Text="Excluir" BackgroundColor="#3A2040" Clicked="OnDeleteMaterial"/>
-                                        </HorizontalStackLayout>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                        </Grid>
 
-                </VerticalStackLayout>
-            </Border>
+                        <!-- Descrição -->
+                        <Border Style="{StaticResource PmFieldBorder}">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Descrição" FontSize="10" TextColor="{StaticResource PmMuted}" />
+                                <Editor x:Name="DescEditor"
+                                        AutoSize="TextChanges"
+                                        Placeholder="Conteúdo / observações..."
+                                        TextColor="{StaticResource PmText}"
+                                        BackgroundColor="Transparent"
+                                        Margin="0,-6,0,0"/>
+                            </VerticalStackLayout>
+                        </Border>
 
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Cancelar" BackgroundColor="#3A2040" Clicked="OnCancel"/>
-                <Button Grid.Column="1" Text="Salvar" Background="{StaticResource PmGradient}" Clicked="OnSave"/>
-            </Grid>
+                    </VerticalStackLayout>
+                </Border>
 
-        </VerticalStackLayout>
-    </ScrollView>
+                <!-- ===== MATERIAIS ===== -->
+                <Border Style="{StaticResource PmCardBorder}">
+                    <VerticalStackLayout Padding="14" Spacing="12">
+
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Materiais" Style="{StaticResource SectionTitle}" />
+                                <Label Text="Links e arquivos de apoio para esta aula."
+                                       Style="{StaticResource SectionHint}" />
+                            </VerticalStackLayout>
+
+                            <Button Grid.Column="1"
+                                    Text="+ Link"
+                                    Style="{StaticResource PmBtnDark}"
+                                    Clicked="OnAddLink"
+                                    VerticalOptions="Center"/>
+
+                            <Button Grid.Column="2"
+                                    x:Name="UploadBtn"
+                                    Text="Upload"
+                                    Style="{StaticResource PmBtnPrimary}"
+                                    Clicked="OnUpload"
+                                    VerticalOptions="Center"/>
+                        </Grid>
+
+                        <CollectionView x:Name="MatList" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,0,0,12"
+                                            Style="{StaticResource PmCardBorder}">
+
+                                        <Grid Padding="12"
+                                              ColumnDefinitions="*,Auto"
+                                              ColumnSpacing="10"
+                                              RowDefinitions="Auto,Auto">
+
+                                            <Label Text="{Binding Title}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="14"
+                                                   TextColor="{StaticResource PmText}"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="1"/>
+
+                                            <Label Grid.Row="1"
+                                                   Text="{Binding Url}"
+                                                   TextColor="{StaticResource PmMuted}"
+                                                   FontSize="11"
+                                                   LineBreakMode="TailTruncation"
+                                                   MaxLines="1"
+                                                   Margin="0,4,0,0"/>
+
+                                            <HorizontalStackLayout Grid.Column="1"
+                                                                   Grid.RowSpan="2"
+                                                                   Spacing="8"
+                                                                   VerticalOptions="Center">
+
+                                                <Button Text="Abrir"
+                                                        Style="{StaticResource PmBtnSoft}"
+                                                        Clicked="OnOpenMaterial" />
+
+                                                <Button Text="Excluir"
+                                                        Style="{StaticResource PmBtnDanger}"
+                                                        Clicked="OnDeleteMaterial" />
+                                            </HorizontalStackLayout>
+
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- ===== BOTTOM ACTIONS (redundante, mas útil quando teclado cobre) ===== -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10" Padding="0,8,0,0">
+            <Button Text="Cancelar"
+                    Style="{StaticResource PmBtnDanger}"
+                    Clicked="OnCancel" />
+            <Button Grid.Column="1"
+                    Text="Salvar"
+                    Style="{StaticResource PmBtnPrimary}"
+                    Clicked="OnSave" />
+        </Grid>
+
+    </Grid>
 </ContentPage>

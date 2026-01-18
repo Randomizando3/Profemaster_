@@ -3,113 +3,340 @@
     x:Class="ProfeMaster.Pages.EventEditorPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}"
-    Title="Evento">
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+
+        <!-- Paleta padrão -->
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="PmCardBorder" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+        </Style>
+
+        <Style x:Key="PmH1" TargetType="Label">
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+        </Style>
+
+        <Style x:Key="PmH2" TargetType="Label">
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+        </Style>
+
+        <Style x:Key="PmCaption" TargetType="Label">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="TextColor" Value="{StaticResource PmMuted}" />
+        </Style>
+
+        <Style x:Key="PmEntryBase" TargetType="Entry">
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="PlaceholderColor" Value="{StaticResource PmMuted}" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+        </Style>
+
+        <Style x:Key="PmEditorBase" TargetType="Editor">
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="PlaceholderColor" Value="{StaticResource PmMuted}" />
+            <Setter Property="BackgroundColor" Value="Transparent" />
+        </Style>
+
+        <Style x:Key="PmBtnPrimary" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="Background" Value="{StaticResource PmGradient}" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
+
+        <Style x:Key="PmBtnSoft" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="BackgroundColor" Value="#F2F2F2" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
+
+        <Style x:Key="PmBtnDanger" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="BackgroundColor" Value="#3A2040" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
+
+        <Style x:Key="PmDayCard" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+        </Style>
+
+        <Style x:Key="PmInnerCard" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 14" />
+        </Style>
+
+        <!-- Campo visível p/ DatePicker/TimePicker (overlay clicável) -->
+        <Style x:Key="PmPickerField" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
+
+    </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+        <VerticalStackLayout Padding="18" Spacing="12">
 
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+            <!-- TOP BAR -->
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                <Label Text="Evento" Style="{StaticResource PmH1}" VerticalOptions="Center"/>
+
+                <Button Grid.Column="1"
+                        Text="X"
+                        Style="{StaticResource PmBtnSoft}"
+                        Clicked="OnClose"
+                        VerticalOptions="Center"
+                        WidthRequest="44"
+                        HeightRequest="44"
+                        Padding="0"/>
+            </Grid>
+
+            <!-- DADOS -->
+            <Border Style="{StaticResource PmCardBorder}">
                 <VerticalStackLayout Padding="14" Spacing="10">
-                    <Label Text="Dados do Evento" FontAttributes="Bold" />
 
-                    <Entry x:Name="TitleEntry" Placeholder="Nome do evento" />
+                    <Label Text="Dados do evento" Style="{StaticResource PmH2}"/>
 
-                    <Label Text="Período" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Border Style="{StaticResource PmInnerCard}" Padding="12,10">
+                        <Entry x:Name="TitleEntry"
+                               Style="{StaticResource PmEntryBase}"
+                               Placeholder="Nome do evento" />
+                    </Border>
+
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Início" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            <DatePicker x:Name="StartDatePick" DateSelected="OnDatesChanged"/>
-                        </VerticalStackLayout>
+                        <!-- Início -->
+                        <Border Style="{StaticResource PmPickerField}">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                <Label Text="Início" Style="{StaticResource PmCaption}" Margin="0,0,0,2"/>
+                                <Label Grid.Row="1"
+                                       Text="{Binding Source={x:Reference StartDatePick}, Path=Date, StringFormat='{0:dd/MM/yyyy}'}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource PmText}" />
+                                <Label Grid.Column="1"
+                                       Grid.RowSpan="2"
+                                       Text="📅"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmMuted}"
+                                       VerticalOptions="Center"
+                                       Margin="8,0,0,0"/>
+                                <DatePicker x:Name="StartDatePick"
+                                            Grid.RowSpan="2"
+                                            Grid.ColumnSpan="2"
+                                            DateSelected="OnDatesChanged"
+                                            Opacity="0.02"
+                                            BackgroundColor="#FFFFFF"
+                                            TextColor="{StaticResource PmText}" />
+                            </Grid>
+                        </Border>
 
-                        <VerticalStackLayout Grid.Column="1" Spacing="6">
-                            <Label Text="Fim" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            <DatePicker x:Name="EndDatePick" DateSelected="OnDatesChanged"/>
-                        </VerticalStackLayout>
+                        <!-- Fim -->
+                        <Border Grid.Column="1" Style="{StaticResource PmPickerField}">
+                            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                <Label Text="Fim" Style="{StaticResource PmCaption}" Margin="0,0,0,2"/>
+                                <Label Grid.Row="1"
+                                       Text="{Binding Source={x:Reference EndDatePick}, Path=Date, StringFormat='{0:dd/MM/yyyy}'}"
+                                       FontSize="12"
+                                       TextColor="{StaticResource PmText}" />
+                                <Label Grid.Column="1"
+                                       Grid.RowSpan="2"
+                                       Text="📅"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmMuted}"
+                                       VerticalOptions="Center"
+                                       Margin="8,0,0,0"/>
+                                <DatePicker x:Name="EndDatePick"
+                                            Grid.RowSpan="2"
+                                            Grid.ColumnSpan="2"
+                                            DateSelected="OnDatesChanged"
+                                            Opacity="0.02"
+                                            BackgroundColor="#FFFFFF"
+                                            TextColor="{StaticResource PmText}" />
+                            </Grid>
+                        </Border>
                     </Grid>
 
-                    <Label x:Name="SlotsInfoLabel" Text="Dias: 0" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <Label x:Name="SlotsInfoLabel"
+                           Text="Dias: 0"
+                           Style="{StaticResource PmCaption}"
+                           Margin="2,0,0,0"/>
 
-                    <Label Text="Descrição / Observações" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Editor x:Name="DescEditor" AutoSize="TextChanges" Placeholder="Detalhes gerais do evento..." />
+                    <Label Text="Descrição / observações" Style="{StaticResource PmCaption}"/>
+
+                    <Border Style="{StaticResource PmInnerCard}" Padding="12,10">
+                        <Editor x:Name="DescEditor"
+                                Style="{StaticResource PmEditorBase}"
+                                AutoSize="TextChanges"
+                                Placeholder="Detalhes gerais do evento..." />
+                    </Border>
+
                 </VerticalStackLayout>
             </Border>
 
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+            <!-- ATRAÇÕES -->
+            <Border Style="{StaticResource PmCardBorder}">
                 <VerticalStackLayout Padding="14" Spacing="10">
 
-                    <Label Text="Atrações por dia" FontAttributes="Bold"/>
-                    <Label Text="Você pode adicionar múltiplas atrações por dia e definir horários."
-                           TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Atrações por dia" Style="{StaticResource PmH2}"/>
+                        <Label Text="Adicione múltiplas atrações por dia e defina horários."
+                               Style="{StaticResource PmCaption}"/>
+                    </VerticalStackLayout>
 
                     <Label x:Name="EmptySlotsLabel"
                            IsVisible="False"
                            Text="Defina o período para gerar os dias do evento."
                            TextColor="{StaticResource PmMuted}"
                            HorizontalTextAlignment="Center"
-                           Margin="0,8,0,0"/>
+                           Margin="0,8,0,0"
+                           FontSize="11"/>
 
                     <CollectionView x:Name="SlotsList" SelectionMode="None">
                         <CollectionView.ItemTemplate>
                             <DataTemplate>
-                                <Border Margin="0,0,0,10"
-                                        BackgroundColor="#0f172a"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 14">
+
+                                <Border Style="{StaticResource PmDayCard}">
                                     <VerticalStackLayout Padding="12" Spacing="10">
 
                                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                                            <Label Text="{Binding DateLabel}" FontAttributes="Bold" TextColor="White"/>
+                                            <Label Text="{Binding DateLabel}"
+                                                   FontAttributes="Bold"
+                                                   FontSize="13"
+                                                   TextColor="{StaticResource PmText}"
+                                                   VerticalOptions="Center"/>
+
                                             <Button Grid.Column="1"
                                                     Text="+ Atração"
-                                                    BackgroundColor="#243056"
+                                                    Style="{StaticResource PmBtnSoft}"
                                                     Clicked="OnAddAttraction"
-                                                    CommandParameter="{Binding .}"/>
+                                                    CommandParameter="{Binding .}"
+                                                    VerticalOptions="Center"/>
                                         </Grid>
 
                                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Items}" Spacing="10">
                                             <BindableLayout.ItemTemplate>
                                                 <DataTemplate>
-                                                    <Border BackgroundColor="#111827"
-                                                            StrokeThickness="0"
-                                                            StrokeShape="RoundRectangle 12">
-                                                        <VerticalStackLayout Padding="10" Spacing="8">
 
-                                                            <Entry Placeholder="Nome da atração"
-                                                                   Text="{Binding Title, Mode=TwoWay}"
-                                                                   TextChanged="OnAttractionTextChanged"/>
+                                                    <Border Style="{StaticResource PmInnerCard}">
+                                                        <VerticalStackLayout Padding="12" Spacing="10">
+
+                                                            <Border Style="{StaticResource PmInnerCard}" Padding="12,10">
+                                                                <Entry Placeholder="Nome da atração"
+                                                                       Style="{StaticResource PmEntryBase}"
+                                                                       Text="{Binding Title, Mode=TwoWay}"
+                                                                       TextChanged="OnAttractionTextChanged"/>
+                                                            </Border>
 
                                                             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                                                                <VerticalStackLayout Spacing="4">
-                                                                    <Label Text="Início" TextColor="#cbd5e1" FontSize="12"/>
-                                                                    <TimePicker Time="{Binding StartTime, Mode=TwoWay}"
-                                                                                PropertyChanged="OnAttractionTimeChanged"/>
-                                                                </VerticalStackLayout>
 
-                                                                <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                                                    <Label Text="Fim" TextColor="#cbd5e1" FontSize="12"/>
-                                                                    <TimePicker Time="{Binding EndTime, Mode=TwoWay}"
-                                                                                PropertyChanged="OnAttractionTimeChanged"/>
-                                                                </VerticalStackLayout>
+                                                                <Border Style="{StaticResource PmPickerField}">
+                                                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                                                        <Label Text="Início" Style="{StaticResource PmCaption}" Margin="0,0,0,2"/>
+                                                                        <Label Grid.Row="1"
+                                                                               Text="{Binding StartTime, StringFormat='{0:hh\\:mm}'}"
+                                                                               FontSize="12"
+                                                                               TextColor="{StaticResource PmText}"/>
+                                                                        <Label Grid.Column="1"
+                                                                               Grid.RowSpan="2"
+                                                                               Text="🕒"
+                                                                               FontSize="14"
+                                                                               TextColor="{StaticResource PmMuted}"
+                                                                               VerticalOptions="Center"
+                                                                               Margin="8,0,0,0"/>
+                                                                        <TimePicker Time="{Binding StartTime, Mode=TwoWay}"
+                                                                                    Grid.RowSpan="2"
+                                                                                    Grid.ColumnSpan="2"
+                                                                                    Opacity="0.02"
+                                                                                    PropertyChanged="OnAttractionTimeChanged"
+                                                                                    TextColor="{StaticResource PmText}"
+                                                                                    BackgroundColor="#FFFFFF"/>
+                                                                    </Grid>
+                                                                </Border>
+
+                                                                <Border Grid.Column="1" Style="{StaticResource PmPickerField}">
+                                                                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+                                                                        <Label Text="Fim" Style="{StaticResource PmCaption}" Margin="0,0,0,2"/>
+                                                                        <Label Grid.Row="1"
+                                                                               Text="{Binding EndTime, StringFormat='{0:hh\\:mm}'}"
+                                                                               FontSize="12"
+                                                                               TextColor="{StaticResource PmText}"/>
+                                                                        <Label Grid.Column="1"
+                                                                               Grid.RowSpan="2"
+                                                                               Text="🕒"
+                                                                               FontSize="14"
+                                                                               TextColor="{StaticResource PmMuted}"
+                                                                               VerticalOptions="Center"
+                                                                               Margin="8,0,0,0"/>
+                                                                        <TimePicker Time="{Binding EndTime, Mode=TwoWay}"
+                                                                                    Grid.RowSpan="2"
+                                                                                    Grid.ColumnSpan="2"
+                                                                                    Opacity="0.02"
+                                                                                    PropertyChanged="OnAttractionTimeChanged"
+                                                                                    TextColor="{StaticResource PmText}"
+                                                                                    BackgroundColor="#FFFFFF"/>
+                                                                    </Grid>
+                                                                </Border>
+
                                                             </Grid>
 
-                                                            <Editor Placeholder="Notas (opcional)"
-                                                                    AutoSize="TextChanges"
-                                                                    Text="{Binding Notes, Mode=TwoWay}"
-                                                                    TextChanged="OnAttractionTextChanged"/>
+                                                            <Label Text="Notas (opcional)" Style="{StaticResource PmCaption}"/>
+
+                                                            <Border Style="{StaticResource PmInnerCard}" Padding="12,10">
+                                                                <Editor Placeholder="Notas..."
+                                                                        Style="{StaticResource PmEditorBase}"
+                                                                        AutoSize="TextChanges"
+                                                                        Text="{Binding Notes, Mode=TwoWay}"
+                                                                        TextChanged="OnAttractionTextChanged"/>
+                                                            </Border>
 
                                                             <Button Text="Remover"
-                                                                    BackgroundColor="#3A2040"
+                                                                    Style="{StaticResource PmBtnDanger}"
                                                                     Clicked="OnRemoveAttraction"
                                                                     CommandParameter="{Binding .}"/>
+
                                                         </VerticalStackLayout>
                                                     </Border>
+
                                                 </DataTemplate>
                                             </BindableLayout.ItemTemplate>
                                         </VerticalStackLayout>
 
                                     </VerticalStackLayout>
                                 </Border>
+
                             </DataTemplate>
                         </CollectionView.ItemTemplate>
                     </CollectionView>
@@ -117,9 +344,16 @@
                 </VerticalStackLayout>
             </Border>
 
+            <!-- FOOTER -->
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Cancelar" BackgroundColor="#3A2040" Clicked="OnCancel"/>
-                <Button Grid.Column="1" Text="Fechar" Background="{StaticResource PmGradient}" Clicked="OnClose"/>
+                <Button Text="Cancelar"
+                        Style="{StaticResource PmBtnDanger}"
+                        Clicked="OnCancel"/>
+
+                <Button Grid.Column="1"
+                        Text="Fechar"
+                        Style="{StaticResource PmBtnPrimary}"
+                        Clicked="OnClose"/>
             </Grid>
 
         </VerticalStackLayout>

@@ -3,140 +3,274 @@
     x:Class="ProfeMaster.Pages.PlanDetailsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}"
-    Title="Detalhes do Plano">
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
 
-    <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+    <ContentPage.Resources>
 
-            <!-- HEADER / DADOS -->
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-                <VerticalStackLayout Padding="14" Spacing="10">
+        <!-- Paleta igual ao padrão “novo” (AgendaPage) -->
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
 
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
-                        <Border WidthRequest="72"
-                                HeightRequest="72"
-                                StrokeThickness="0"
-                                StrokeShape="RoundRectangle 16"
-                                BackgroundColor="#0f172a">
-                            <Image x:Name="ThumbImage" Aspect="AspectFill" />
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="PmBtnSoft" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="BackgroundColor" Value="#F2F2F2" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
+
+        <Style x:Key="PmBtnPrimary" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="Background" Value="{StaticResource PmGradient}" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
+
+        <Style x:Key="PmCardBorder" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+        </Style>
+
+        <Style x:Key="PmFieldBorder" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
+
+    </ContentPage.Resources>
+
+    <Grid Padding="18" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ===== TOP BAR ===== -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+
+            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                <Label Text="Detalhes do Plano"
+                       FontAttributes="Bold"
+                       FontSize="18"
+                       TextColor="{StaticResource PmText}" />
+                <Label x:Name="MetaLabel"
+                       Text="—"
+                       TextColor="{StaticResource PmMuted}"
+                       FontSize="10" />
+            </VerticalStackLayout>
+
+            <Button Grid.Column="1"
+                    Text="Atualizar"
+                    Style="{StaticResource PmBtnSoft}"
+                    Clicked="OnReload"
+                    VerticalOptions="Center" />
+        </Grid>
+
+        <!-- ===== CONTENT ===== -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12" Padding="0,6,0,16">
+
+                <!-- ===== HEADER / DADOS ===== -->
+                <Border Style="{StaticResource PmCardBorder}">
+                    <VerticalStackLayout Padding="14" Spacing="12">
+
+                        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <!-- Thumb -->
+                            <Border WidthRequest="72"
+                                    HeightRequest="72"
+                                    StrokeThickness="2"
+                                    Stroke="{StaticResource PmStroke}"
+                                    StrokeShape="RoundRectangle 16"
+                                    BackgroundColor="#FFFFFF">
+                                <Image x:Name="ThumbImage"
+                                       Aspect="AspectFill" />
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                <Label x:Name="TitleLabel"
+                                       Text="(Sem título)"
+                                       FontAttributes="Bold"
+                                       FontSize="16"
+                                       TextColor="#7A2FA6"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="2" />
+
+                                <Label x:Name="ObsLabel"
+                                       Text=""
+                                       TextColor="{StaticResource PmMuted}"
+                                       FontSize="11"
+                                       LineBreakMode="WordWrap" />
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- Agenda preview (agora resolve vínculo mesmo se não estiver no plano) -->
+                        <Border Style="{StaticResource PmFieldBorder}">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  RowDefinitions="Auto,Auto"
+                                  ColumnSpacing="10"
+                                  VerticalOptions="Center">
+
+                                <Label Text="Agenda"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}"
+                                       Margin="0,0,0,2"/>
+
+                                <Label Grid.Row="1"
+                                       x:Name="AgendaLinkLabel"
+                                       Text="Carregando vínculo..."
+                                       FontSize="12"
+                                       TextColor="{StaticResource PmText}"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="1" />
+
+                                <Label Grid.Column="1"
+                                       Grid.RowSpan="2"
+                                       Text="↗"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmMuted}"
+                                       VerticalOptions="Center" />
+                            </Grid>
                         </Border>
 
-                        <VerticalStackLayout Grid.Column="1" Spacing="4">
-                            <Label x:Name="TitleLabel" FontAttributes="Bold" FontSize="18" />
-                            <Label x:Name="MetaLabel" TextColor="{StaticResource PmMuted}" FontSize="12" />
-                            <Label x:Name="ObsLabel" TextColor="{StaticResource PmMuted}" FontSize="12" LineBreakMode="WordWrap" />
-                        </VerticalStackLayout>
-                    </Grid>
+                    </VerticalStackLayout>
+                </Border>
 
-                    <!-- Vínculo com Agenda (somente preview) -->
-                    <Border BackgroundColor="#0f172a" StrokeThickness="0" StrokeShape="RoundRectangle 14">
-                        <VerticalStackLayout Padding="10" Spacing="4">
-                            <Label Text="Agenda" FontAttributes="Bold" TextColor="White" FontSize="12"/>
-                            <Label x:Name="AgendaLinkLabel" TextColor="#cbd5e1" FontSize="12"/>
-                        </VerticalStackLayout>
-                    </Border>
+                <!-- ===== AULAS DO PLANO (preview) ===== -->
+                <Border Style="{StaticResource PmCardBorder}">
+                    <VerticalStackLayout Padding="14" Spacing="10">
 
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- AULAS DO PLANO (PREVIEW) -->
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-                <VerticalStackLayout Padding="14" Spacing="10">
-
-                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
                         <VerticalStackLayout Spacing="2">
-                            <Label Text="Aulas do plano" FontAttributes="Bold"/>
-                            <Label Text="Preview por dia e horário (edição somente em “Editar Plano”)."
-                                   TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                            <Label Text="Aulas do plano"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource PmText}" />
+                            <Label Text="Preview por dia e horário (edição somente em “Editar plano”)."
+                                   TextColor="{StaticResource PmMuted}"
+                                   FontSize="11" />
                         </VerticalStackLayout>
 
-                        <Button Grid.Column="1"
-                                Text="Atualizar"
-                                BackgroundColor="#243056"
-                                Clicked="OnReload"/>
-                    </Grid>
+                        <Label x:Name="EmptySlotsLabel"
+                               IsVisible="False"
+                               Text="Sem slots. Edite o plano para definir o intervalo e gerar os dias."
+                               TextColor="{StaticResource PmMuted}"
+                               HorizontalTextAlignment="Center"
+                               Margin="0,8,0,0"
+                               FontSize="11" />
 
-                    <Label x:Name="EmptySlotsLabel"
-                           IsVisible="False"
-                           Text="Sem slots. Edite o plano para definir o intervalo e gerar os dias."
-                           TextColor="{StaticResource PmMuted}"
-                           HorizontalTextAlignment="Center"
-                           Margin="0,8,0,0"/>
+                        <CollectionView x:Name="SlotsList" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BackgroundColor="#FFFFFF"
+                                            Stroke="{StaticResource PmStroke}"
+                                            StrokeThickness="2"
+                                            StrokeShape="RoundRectangle 18"
+                                            Margin="0,0,0,12">
+                                        <VerticalStackLayout Padding="12" Spacing="10">
 
-                    <CollectionView x:Name="SlotsList" SelectionMode="None">
-                        <CollectionView.ItemTemplate>
-                            <DataTemplate>
-                                <Border Margin="0,0,0,10"
-                                        BackgroundColor="#0f172a"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 14">
-                                    <VerticalStackLayout Padding="12" Spacing="10">
+                                            <Border BackgroundColor="#F7F7F7"
+                                                    StrokeThickness="0"
+                                                    StrokeShape="RoundRectangle 14"
+                                                    Padding="10,8">
+                                                <Label Text="{Binding DateLabel}"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{StaticResource PmText}"
+                                                       FontSize="12" />
+                                            </Border>
 
-                                        <Label Text="{Binding DateLabel}"
-                                               FontAttributes="Bold"
-                                               TextColor="White"/>
+                                            <CollectionView ItemsSource="{Binding Items}"
+                                                            SelectionMode="None">
+                                                <CollectionView.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border BackgroundColor="#FFFFFF"
+                                                                Stroke="{StaticResource PmStroke}"
+                                                                StrokeThickness="2"
+                                                                StrokeShape="RoundRectangle 16"
+                                                                Margin="0,0,0,10">
+                                                            <Grid Padding="12"
+                                                                  ColumnDefinitions="Auto,*,Auto"
+                                                                  ColumnSpacing="10"
+                                                                  RowDefinitions="Auto,Auto">
 
-                                        <!-- itens (aulas) do dia -->
-                                        <CollectionView ItemsSource="{Binding Items}" SelectionMode="None">
-                                            <CollectionView.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border BackgroundColor="#111827"
-                                                            StrokeThickness="0"
-                                                            StrokeShape="RoundRectangle 12"
-                                                            Margin="0,0,0,10">
-                                                        <Grid Padding="10"
-                                                              ColumnDefinitions="Auto,*,Auto"
-                                                              ColumnSpacing="10"
-                                                              RowDefinitions="Auto,Auto">
+                                                                <Border Grid.RowSpan="2"
+                                                                        BackgroundColor="#F2F2F2"
+                                                                        StrokeThickness="0"
+                                                                        StrokeShape="RoundRectangle 12"
+                                                                        Padding="10,8"
+                                                                        VerticalOptions="Center">
+                                                                    <Label Text="{Binding TimeText}"
+                                                                           TextColor="{StaticResource PmText}"
+                                                                           FontSize="12"
+                                                                           FontAttributes="Bold" />
+                                                                </Border>
 
-                                                            <Label Grid.Row="0"
-                                                                   Text="{Binding TimeText}"
-                                                                   TextColor="#cbd5e1"
-                                                                   FontSize="12"
-                                                                   FontAttributes="Bold"/>
+                                                                <Label Grid.Column="1"
+                                                                       Grid.Row="0"
+                                                                       Text="{Binding LessonTitleText}"
+                                                                       TextColor="#7A2FA6"
+                                                                       FontSize="14"
+                                                                       FontAttributes="Bold"
+                                                                       LineBreakMode="TailTruncation"
+                                                                       MaxLines="1" />
 
-                                                            <Label Grid.Row="0"
-                                                                   Grid.Column="1"
-                                                                   Text="{Binding LessonTitleText}"
-                                                                   TextColor="White"
-                                                                   FontSize="14"
-                                                                   FontAttributes="Bold"
-                                                                   LineBreakMode="TailTruncation"/>
+                                                                <Label Grid.Column="1"
+                                                                       Grid.Row="1"
+                                                                       Text="{Binding StatusText}"
+                                                                       TextColor="{StaticResource PmMuted}"
+                                                                       FontSize="11"
+                                                                       LineBreakMode="TailTruncation"
+                                                                       MaxLines="2" />
 
-                                                            <Label Grid.Row="1"
-                                                                   Grid.ColumnSpan="2"
-                                                                   Text="{Binding StatusText}"
-                                                                   TextColor="#cbd5e1"
-                                                                   FontSize="12"/>
+                                                                <Button Grid.Column="2"
+                                                                        Grid.RowSpan="2"
+                                                                        Text="Abrir"
+                                                                        Style="{StaticResource PmBtnPrimary}"
+                                                                        Clicked="OnOpenSlotItemLesson"
+                                                                        CommandParameter="{Binding .}"
+                                                                        VerticalOptions="Center"
+                                                                        Padding="14,10" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </CollectionView.ItemTemplate>
+                                            </CollectionView>
 
-                                                            <Button Grid.RowSpan="2"
-                                                                    Grid.Column="2"
-                                                                    Text="Abrir"
-                                                                    Background="{StaticResource PmGradient}"
-                                                                    Clicked="OnOpenSlotItemLesson"
-                                                                    CommandParameter="{Binding .}"/>
-                                                        </Grid>
-                                                    </Border>
-                                                </DataTemplate>
-                                            </CollectionView.ItemTemplate>
-                                        </CollectionView>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
 
-                                    </VerticalStackLayout>
-                                </Border>
-                            </DataTemplate>
-                        </CollectionView.ItemTemplate>
-                    </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
 
-                </VerticalStackLayout>
-            </Border>
+                <!-- ===== AÇÕES ===== -->
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,4,0,0">
+                    <Button Text="Voltar"
+                            Style="{StaticResource PmBtnSoft}"
+                            Clicked="OnBack" />
+                    <Button Grid.Column="1"
+                            Text="Editar plano"
+                            Style="{StaticResource PmBtnPrimary}"
+                            Clicked="OnEdit" />
+                </Grid>
 
-            <!-- AÇÕES -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Voltar" BackgroundColor="#243056" Clicked="OnBack"/>
-                <Button Grid.Column="1" Text="Editar Plano" Background="{StaticResource PmGradient}" Clicked="OnEdit"/>
-            </Grid>
+            </VerticalStackLayout>
+        </ScrollView>
 
-        </VerticalStackLayout>
-    </ScrollView>
+    </Grid>
 </ContentPage>

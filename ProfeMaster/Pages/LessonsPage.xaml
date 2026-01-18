@@ -3,60 +3,187 @@
     x:Class="ProfeMaster.Pages.LessonsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}"
-    Title="Aulas">
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
 
-    <Grid Padding="16" RowDefinitions="Auto,*" RowSpacing="12">
+    <ContentPage.Resources>
 
-        <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-            <Grid Padding="12" ColumnDefinitions="*,Auto">
-                <Label Text="Aulas" FontSize="16" FontAttributes="Bold" />
-                <Button Grid.Column="1" Text="+ Nova" Background="{StaticResource PmGradient}" Clicked="OnAdd"/>
-            </Grid>
-        </Border>
+        <!-- Paleta padrão (igual Agenda/Plans “novo”) -->
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
 
-        <Label x:Name="EmptyLabel"
-               Grid.Row="1"
-               IsVisible="False"
-               Text="Nenhuma aula criada ainda."
-               TextColor="{StaticResource PmMuted}"
-               HorizontalTextAlignment="Center"
-               Margin="0,16,0,0"/>
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
 
-        <CollectionView x:Name="List"
-                        Grid.Row="1"
-                        SelectionMode="Single"
-                        SelectionChanged="OnSelected">
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-                    <Border Margin="0,0,0,10"
-                            BackgroundColor="{StaticResource PmCard}"
-                            StrokeThickness="0"
-                            StrokeShape="RoundRectangle 18">
-                        <Grid Padding="14" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+        <Style x:Key="PmBtnPrimary" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="Background" Value="{StaticResource PmGradient}" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
 
-                            <Border WidthRequest="56" HeightRequest="56"
-                                    StrokeThickness="0"
-                                    StrokeShape="RoundRectangle 14"
-                                    BackgroundColor="#0f172a">
-                                <Image Aspect="AspectFill" Source="{Binding ThumbLocalPath}" />
-                            </Border>
+        <Style x:Key="PmCardBorder" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+        </Style>
 
-                            <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                <Label Text="{Binding Title}" FontAttributes="Bold" FontSize="16"/>
-                                <Label Text="{Binding DurationMinutes, StringFormat='Duração: {0} min'}"
-                                       TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                                <Label Text="{Binding ClassName}"
-                                       TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                                <Label Text="{Binding MaterialsV2.Count, StringFormat='Materiais: {0}'}"
-                                       TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                            </VerticalStackLayout>
+        <Style x:Key="ChipBorder" TargetType="Border">
+            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 10" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="HorizontalOptions" Value="Start" />
+            <Setter Property="VerticalOptions" Value="Center" />
+            <Setter Property="BackgroundColor" Value="#F2F2F2" />
+        </Style>
 
-                        </Grid>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+    </ContentPage.Resources>
 
+    <Grid Padding="18" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ===== TOP BAR ===== -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
+
+            <VerticalStackLayout Spacing="2" VerticalOptions="Center">
+                <Label Text="Aulas"
+                       FontAttributes="Bold"
+                       FontSize="18"
+                       TextColor="{StaticResource PmText}" />
+                <Label x:Name="SubLabel"
+                       Text="Toque em uma aula para abrir."
+                       TextColor="{StaticResource PmMuted}"
+                       FontSize="10" />
+            </VerticalStackLayout>
+
+            <Button Grid.Column="1"
+                    Text="+ Nova"
+                    Style="{StaticResource PmBtnPrimary}"
+                    Clicked="OnAdd"
+                    VerticalOptions="Center" />
+        </Grid>
+
+        <!-- ===== CONTENT ===== -->
+        <Grid Grid.Row="1" RowDefinitions="Auto,*" RowSpacing="10">
+
+            <!-- “Card” informativo (sem botão/handler) -->
+            <Border Grid.Row="0" Style="{StaticResource PmCardBorder}">
+                <Grid Padding="10">
+                    <Label Text="Gerencie suas aulas e materiais."
+                           TextColor="{StaticResource PmMuted}"
+                           FontSize="11"
+                           VerticalOptions="Center" />
+                </Grid>
+            </Border>
+
+            <Label x:Name="EmptyLabel"
+                   Grid.Row="1"
+                   IsVisible="False"
+                   Text="Nenhuma aula criada ainda."
+                   TextColor="{StaticResource PmMuted}"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,18,0,0"
+                   FontSize="11"/>
+
+            <CollectionView x:Name="List"
+                            Grid.Row="1"
+                            SelectionMode="Single"
+                            SelectionChanged="OnSelected"
+                            Margin="0,0,0,8">
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource PmCardBorder}"
+                                Margin="0,0,0,12">
+
+                            <Grid Padding="12"
+                                  ColumnDefinitions="Auto,*,Auto"
+                                  ColumnSpacing="12"
+                                  RowDefinitions="Auto,Auto">
+
+                                <!-- THUMB -->
+                                <Border Grid.RowSpan="2"
+                                        WidthRequest="56"
+                                        HeightRequest="56"
+                                        Stroke="{StaticResource PmStroke}"
+                                        StrokeThickness="2"
+                                        StrokeShape="RoundRectangle 14"
+                                        BackgroundColor="#FFFFFF"
+                                        VerticalOptions="Center">
+                                    <Image Aspect="AspectFill"
+                                           Source="{Binding ThumbLocalPath}" />
+                                </Border>
+
+                                <!-- TÍTULO + META -->
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Grid.RowSpan="2"
+                                                     Spacing="6"
+                                                     VerticalOptions="Center">
+
+                                    <Label Text="{Binding Title}"
+                                           FontAttributes="Bold"
+                                           FontSize="16"
+                                           TextColor="#7A2FA6"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="1" />
+
+                                    <HorizontalStackLayout Spacing="8">
+
+                                        <!-- Duração -->
+                                        <Border Style="{StaticResource ChipBorder}">
+                                            <Label Text="{Binding DurationMinutes, StringFormat='{0} min'}"
+                                                   TextColor="{StaticResource PmText}"
+                                                   FontSize="11"
+                                                   FontAttributes="Bold"
+                                                   VerticalTextAlignment="Center"
+                                                   HorizontalTextAlignment="Center" />
+                                        </Border>
+
+                                        <!-- Materiais -->
+                                        <Border Style="{StaticResource ChipBorder}">
+                                            <Label Text="{Binding MaterialsV2.Count, StringFormat='Materiais: {0}'}"
+                                                   TextColor="{StaticResource PmMuted}"
+                                                   FontSize="11"
+                                                   VerticalTextAlignment="Center"
+                                                   HorizontalTextAlignment="Center" />
+                                        </Border>
+
+                                    </HorizontalStackLayout>
+
+                                    <!-- Turma / Contexto -->
+                                    <Label Text="{Binding ClassName}"
+                                           TextColor="{StaticResource PmMuted}"
+                                           FontSize="11"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="1" />
+
+                                </VerticalStackLayout>
+
+                                <!-- seta -->
+                                <Label Grid.Column="2"
+                                       Grid.RowSpan="2"
+                                       Text="›"
+                                       FontSize="24"
+                                       TextColor="{StaticResource PmMuted}"
+                                       VerticalOptions="Center"
+                                       Margin="0,0,2,0" />
+
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </Grid>
     </Grid>
 </ContentPage>

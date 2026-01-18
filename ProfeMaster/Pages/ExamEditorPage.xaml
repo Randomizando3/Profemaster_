@@ -1,46 +1,209 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage x:Class="ProfeMaster.Pages.ExamEditorPage"
-             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             BackgroundColor="{StaticResource PmBg}"
-             Title="Prova">
+<ContentPage
+    x:Class="ProfeMaster.Pages.ExamEditorPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+
+        <!-- Cores base -->
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+
+        <!-- Card -->
+        <Style x:Key="PmCard" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 20" />
+        </Style>
+
+        <!-- Inputs -->
+        <Style x:Key="PmEntry" TargetType="Entry">
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="PlaceholderColor" Value="#9A9A9A" />
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+        </Style>
+
+        <Style x:Key="PmEditor" TargetType="Editor">
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="PlaceholderColor" Value="#9A9A9A" />
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+        </Style>
+
+        <!-- Botões -->
+        <Style x:Key="PmBtnPrimary" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="Background" Value="{StaticResource PmGradient}" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
+
+        <Style x:Key="PmBtnSoft" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="BackgroundColor" Value="#F2F2F2" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
+
+        <Style x:Key="PmBtnDark" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="BackgroundColor" Value="#243056" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
+
+        <Style x:Key="PmBtnDanger" TargetType="Button">
+            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="BackgroundColor" Value="#3A2040" />
+            <Setter Property="Padding" Value="14,12" />
+        </Style>
+
+        <!-- Campo com borda -->
+        <Style x:Key="PmField" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 16" />
+            <Setter Property="Padding" Value="12,10" />
+        </Style>
+
+    </ContentPage.Resources>
 
     <ScrollView>
-        <VerticalStackLayout Padding="16" Spacing="12">
+        <VerticalStackLayout Padding="18" Spacing="12">
 
-            <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-                <VerticalStackLayout Padding="14" Spacing="10">
+            <!-- HEADER -->
+            <Border Style="{StaticResource PmCard}">
+                <Grid Padding="14" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Prova"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource PmText}" />
+                        <Label Text="Crie/edite dados, capa e descrição."
+                               FontSize="12"
+                               TextColor="{StaticResource PmMuted}" />
+                    </VerticalStackLayout>
 
-                    <Entry x:Name="TitleEntry" Placeholder="Título da prova" />
+                    <!-- (opcional) botão "Ajuda" -->
+                    <Button Grid.Column="1"
+                            Text="Dicas"
+                            Style="{StaticResource PmBtnSoft}"
+                            Clicked="OnGeneratePlaceholder"
+                            VerticalOptions="Center"
+                            IsVisible="False"/>
+                </Grid>
+            </Border>
 
-                    <Label Text="Capa (thumb)" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                        <Border WidthRequest="80" HeightRequest="80" StrokeThickness="0" StrokeShape="RoundRectangle 14" BackgroundColor="#0f172a">
-                            <Image x:Name="ThumbPreview" Aspect="AspectFill"/>
-                        </Border>
-                        <VerticalStackLayout Spacing="8" VerticalOptions="Center">
-                            <Button Text="Selecionar capa" BackgroundColor="#243056" Clicked="OnPickThumb"/>
-                            <Button Text="Remover capa" BackgroundColor="#3A2040" Clicked="OnRemoveThumb"/>
+            <!-- DADOS -->
+            <Border Style="{StaticResource PmCard}">
+                <VerticalStackLayout Padding="14" Spacing="12">
+
+                    <Label Text="Dados da prova"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource PmText}" />
+
+                    <!-- Título -->
+                    <Border Style="{StaticResource PmField}">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Título"
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
+                            <Entry x:Name="TitleEntry"
+                                   Style="{StaticResource PmEntry}"
+                                   Placeholder="Título da prova" />
                         </VerticalStackLayout>
-                    </Grid>
+                    </Border>
 
-                    <Label Text="Descrição" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Editor x:Name="DescEditor" AutoSize="TextChanges" Placeholder="Contexto da prova, conteúdos, observações..." />
+                    <!-- Thumb -->
+                    <Border Style="{StaticResource PmField}">
+                        <VerticalStackLayout Spacing="10">
+                            <Label Text="Capa (thumb)"
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
 
-                    <!-- Placeholder para gerar prova -->
-                    <Button Text="Criar prova (em breve)"
-                            Background="{StaticResource PmGradient}"
-                            Clicked="OnGeneratePlaceholder"/>
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
 
-                    <Label Text="Este botão será ligado à IA ou banco local depois."
-                           TextColor="{StaticResource PmMuted}" FontSize="12"/>
+                                <Border WidthRequest="80"
+                                        HeightRequest="80"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 14"
+                                        BackgroundColor="#0f172a">
+                                    <Image x:Name="ThumbPreview" Aspect="AspectFill"/>
+                                </Border>
+
+                                <VerticalStackLayout Grid.Column="1"
+                                                     Spacing="8"
+                                                     VerticalOptions="Center">
+                                    <Button Text="Selecionar capa"
+                                            Style="{StaticResource PmBtnDark}"
+                                            Clicked="OnPickThumb"/>
+                                    <Button Text="Remover capa"
+                                            Style="{StaticResource PmBtnDanger}"
+                                            Clicked="OnRemoveThumb"/>
+                                </VerticalStackLayout>
+
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Descrição -->
+                    <Border Style="{StaticResource PmField}">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Descrição"
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
+                            <Editor x:Name="DescEditor"
+                                    Style="{StaticResource PmEditor}"
+                                    AutoSize="TextChanges"
+                                    Placeholder="Contexto da prova, conteúdos, observações..." />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- Placeholder gerar prova -->
+                    <Border Style="{StaticResource PmField}">
+                        <VerticalStackLayout Spacing="8">
+                            <Button Text="Criar prova (em breve)"
+                                    Style="{StaticResource PmBtnPrimary}"
+                                    Clicked="OnGeneratePlaceholder"/>
+
+                            <Label Text="Este botão pode ser ligado à IA ou a um banco local depois."
+                                   TextColor="{StaticResource PmMuted}"
+                                   FontSize="12"/>
+                        </VerticalStackLayout>
+                    </Border>
 
                 </VerticalStackLayout>
             </Border>
 
+            <!-- AÇÕES -->
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Cancelar" BackgroundColor="#3A2040" Clicked="OnCancel"/>
-                <Button Grid.Column="1" Text="Salvar" Background="{StaticResource PmGradient}" Clicked="OnSave"/>
+                <Button Text="Cancelar"
+                        Style="{StaticResource PmBtnDanger}"
+                        Clicked="OnCancel"/>
+                <Button Grid.Column="1"
+                        Text="Salvar"
+                        Style="{StaticResource PmBtnPrimary}"
+                        Clicked="OnSave"/>
             </Grid>
 
         </VerticalStackLayout>

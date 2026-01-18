@@ -10,16 +10,11 @@ public partial class PlansPage : ContentPage
     private readonly FirebaseDbService _db;
     private readonly FirebaseStorageService _storage;
 
-    // VM simples só para exibir dados extras no card
     public sealed class PlanCardVm
     {
         public LessonPlan Plan { get; set; } = new();
-
         public string Title { get; set; } = "";
-
-        // thumb pronto para o XAML (offline-first)
         public ImageSource? ThumbSource { get; set; }
-
         public string IntervalText { get; set; } = "";
         public string SlotsText { get; set; } = "";
         public string LinkedLessonsText { get; set; } = "";
@@ -37,6 +32,10 @@ public partial class PlansPage : ContentPage
 
     private Institution? _selectedInst;
     private Classroom? _selectedClass;
+
+    // ======= NOVO (igual Agenda) =======
+    private double _segW = 0;          // largura de 1 segmento
+    private const double _segGap = 6;  // ColumnSpacing do SegRoot
 
     public PlansPage(LocalStore store, FirebaseDbService db, FirebaseStorageService storage)
     {
@@ -63,8 +62,58 @@ public partial class PlansPage : ContentPage
 
         await LoadInstitutionsAsync();
         await LoadCacheThenCloudAsync();
+
+        // garante visual correto ao entrar
+        ApplySegmentVisual(animated: false);
     }
 
+    // ======= SEGMENTED (igual Agenda) =======
+    private void OnSegRootSizeChanged(object? sender, EventArgs e)
+    {
+        ComputeSegWidth();
+        ApplySegmentVisual(animated: false);
+    }
+
+    private void ComputeSegWidth()
+    {
+        try
+        {
+            var total = SegRoot?.Width ?? 0;
+            if (total <= 0) return;
+
+            // 2 colunas com gap no meio
+            _segW = (total - _segGap) / 2.0;
+            if (_segW < 0) _segW = 0;
+
+            SegHighlight.WidthRequest = _segW;
+        }
+        catch { }
+    }
+
+    private void ApplySegmentVisual(bool animated)
+    {
+        // recalcula se ainda não tem width
+        if (_segW <= 0) ComputeSegWidth();
+
+        var targetX = _modeAll ? 0 : (_segW + _segGap);
+
+        BtnAll.TextColor = _modeAll ? Colors.White : Color.FromArgb("#6B6B6B");
+        BtnClass.TextColor = _modeAll ? Color.FromArgb("#6B6B6B") : Colors.White;
+
+        if (SegHighlight == null) return;
+
+        if (!animated)
+        {
+            SegHighlight.TranslationX = targetX;
+            return;
+        }
+
+        _ = SegHighlight.TranslateTo(targetX, 0, 140, Easing.CubicOut);
+    }
+
+    // =========================
+    // helpers do seu código
+    // =========================
     private static DateTime SafeDate(DateTime dt)
         => dt == default ? DateTime.Today : dt.Date;
 
@@ -72,7 +121,6 @@ public partial class PlansPage : ContentPage
     {
         try
         {
-            // Offline-first
             var localPath = p.ThumbLocalPath ?? "";
             var url = p.ThumbUrl ?? "";
 
@@ -95,7 +143,6 @@ public partial class PlansPage : ContentPage
         p.Slots ??= new();
         foreach (var s in p.Slots)
         {
-            // compat com seu model novo
             try { s.EnsureMigrated(); } catch { }
             s.Items ??= new();
         }
@@ -106,7 +153,6 @@ public partial class PlansPage : ContentPage
         p.Slots ??= new();
         EnsureSlotMigration(p);
 
-        // Intervalo: usa Start/End se existirem, senão cai no Date antigo
         var start = p.StartDate != default ? p.StartDate.Date : SafeDate(p.Date);
         var end = p.EndDate != default ? p.EndDate.Date : SafeDate(p.Date);
         if (end < start) end = start;
@@ -115,10 +161,8 @@ public partial class PlansPage : ContentPage
             ? $"Intervalo: {start:dd/MM/yyyy}"
             : $"Intervalo: {start:dd/MM/yyyy} → {end:dd/MM/yyyy}";
 
-        // Slots = dias
         var slotsCount = p.Slots.Count;
 
-        // Aulas vinculadas = soma de itens com LessonId preenchido
         var linkedCount = 0;
         foreach (var day in p.Slots)
         {
@@ -179,7 +223,6 @@ public partial class PlansPage : ContentPage
 
     private IEnumerable<LessonPlan> SortPlans(IEnumerable<LessonPlan> plans)
     {
-        // Sem UpdatedAt: ordena por CreatedAt e fallback Date
         return plans
             .OrderByDescending(p => p.CreatedAt)
             .ThenByDescending(p => p.Date);
@@ -261,23 +304,22 @@ public partial class PlansPage : ContentPage
             await LoadClassFromCloudAsync(_selectedInst.Id, _selectedClass.Id);
     }
 
+    // ======= MODE (corrigido + highlight) =======
     private async void OnModeAllClicked(object sender, EventArgs e)
     {
         _modeAll = true;
-        BtnAll.Background = (Brush)Application.Current.Resources["PmGradient"];
-        BtnClass.BackgroundColor = Color.FromArgb("#243056");
+        ApplySegmentVisual(animated: true);
         await LoadCacheThenCloudAsync();
     }
 
     private async void OnModeClassClicked(object sender, EventArgs e)
     {
         _modeAll = false;
-        BtnAll.BackgroundColor = Color.FromArgb("#243056");
-        BtnClass.Background = (Brush)Application.Current.Resources["PmGradient"];
 
         if (_institutions.Count > 0 && InstitutionPicker.SelectedIndex < 0)
             InstitutionPicker.SelectedIndex = 0;
 
+        ApplySegmentVisual(animated: true);
         await LoadCacheThenCloudAsync();
     }
 
@@ -315,8 +357,7 @@ public partial class PlansPage : ContentPage
         await RefreshCurrentModeAsync();
     }
 
-    // ======= ADD/EDIT =======
-
+    // ======= ADD/EDIT/DELETE/OPEN =======
     private async void OnAddClicked(object sender, EventArgs e)
     {
         var plan = new LessonPlan
@@ -328,7 +369,6 @@ public partial class PlansPage : ContentPage
             Slots = new List<LessonSlot>()
         };
 
-        // se estiver em modo turma, já fixa vínculo
         if (!_modeAll && _selectedInst != null && _selectedClass != null)
         {
             plan.InstitutionId = _selectedInst.Id;
@@ -363,15 +403,12 @@ public partial class PlansPage : ContentPage
         await _db.DeletePlanAllAsync(_uid, _token, plan.Id);
 
         if (!string.IsNullOrWhiteSpace(plan.InstitutionId) && !string.IsNullOrWhiteSpace(plan.ClassId))
-        {
             await _db.DeletePlanByClassAsync(_uid, plan.InstitutionId, plan.ClassId, _token, plan.Id);
-        }
 
         Items.Remove(vm);
         await RefreshCurrentModeAsync();
     }
 
-    // seleção abre detalhes
     private async void OnSelected(object sender, SelectionChangedEventArgs e)
     {
         var vm = e.CurrentSelection?.FirstOrDefault() as PlanCardVm;
