@@ -1,4 +1,5 @@
-﻿namespace ProfeMaster.Models;
+﻿// Models/ExamItem.cs
+namespace ProfeMaster.Models;
 
 public sealed class ExamItem
 {
@@ -8,4 +9,8 @@ public sealed class ExamItem
     public string ThumbLocalPath { get; set; } = "";
     public string ThumbUrl { get; set; } = ""; // futuro Storage
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    // ===== NOVO: JSON do quiz gerado/editar =====
+    // Guarda o QuizDocument serializado (Theme, Difficulty, GeneratedAt, Questions...)
+    public string QuizJson { get; set; } = "";
 }

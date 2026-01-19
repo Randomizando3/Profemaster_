@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.QuizGeneratorPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#FFFFFF"
+    Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+        <Color x:Key="PmSoft">#F2F2F2</Color>
+
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+    </ContentPage.Resources>
+
+    <Grid Padding="18" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP BAR -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+
+            <!-- Botão voltar -->
+            <Border BackgroundColor="#FFFFFF"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Button Text="Voltar"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource PmText}"
+                        FontAttributes="Bold"
+                        FontSize="12"
+                        Padding="4,0"
+                        Clicked="OnClose"/>
+            </Border>
+
+            <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                <Label Text="Gerar Quiz" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource PmText}"/>
+                <Label x:Name="NetLabel" Text="Online/Offline" FontSize="11" TextColor="{StaticResource PmMuted}"/>
+            </VerticalStackLayout>
+
+            <Border Grid.Column="2"
+                    BackgroundColor="{StaticResource PmSoft}"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Label Text="Quiz"
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}"
+                       VerticalOptions="Center"/>
+            </Border>
+        </Grid>
+
+        <!-- CONTENT -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12">
+
+                <!-- Card Config -->
+                <Border BackgroundColor="#FFFFFF"
+                        Stroke="{StaticResource PmStroke}"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="12">
+
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                            <Label Text="Configuração"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource PmText}" />
+
+                            <Button Grid.Column="1"
+                                    Text="Gerar"
+                                    Background="{StaticResource PmGradient}"
+                                    TextColor="#FFFFFF"
+                                    CornerRadius="16"
+                                    HeightRequest="40"
+                                    Padding="14,0"
+                                    Clicked="OnGenerate"/>
+                        </Grid>
+
+                        <!-- Quantidade: (- / número / +) visíveis -->
+                        <Border BackgroundColor="#FAFAFF"
+                                Stroke="{StaticResource PmStroke}"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                Padding="12,10">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+
+                                <Border WidthRequest="52"
+                                        HeightRequest="44"
+                                        BackgroundColor="{StaticResource PmSoft}"
+                                        Stroke="{StaticResource PmStroke}"
+                                        StrokeThickness="2"
+                                        StrokeShape="RoundRectangle 14"
+                                        VerticalOptions="Center"
+                                        HorizontalOptions="Start">
+                                    <Button Text="−"
+                                            BackgroundColor="Transparent"
+                                            TextColor="#6B7280"
+                                            FontAttributes="Bold"
+                                            FontSize="18"
+                                            Padding="0"
+                                            Clicked="OnCountMinus"/>
+                                </Border>
+
+                                <Grid Grid.Column="1" ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Center">
+                                    <Border WidthRequest="44"
+                                            HeightRequest="44"
+                                            Background="{StaticResource PmGradient}"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 14"
+                                            VerticalOptions="Center"
+                                            HorizontalOptions="Start">
+                                        <Label x:Name="CountLabel"
+                                               Text="5"
+                                               FontAttributes="Bold"
+                                               FontSize="16"
+                                               TextColor="#FFFFFF"
+                                               HorizontalTextAlignment="Center"
+                                               VerticalTextAlignment="Center"/>
+                                    </Border>
+
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                        <Label Text="Perguntas"
+                                               FontAttributes="Bold"
+                                               FontSize="12"
+                                               TextColor="{StaticResource PmText}"/>
+                                        <Label Text="Defina entre 1 e 10."
+                                               FontSize="10"
+                                               TextColor="{StaticResource PmMuted}"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+
+                                <Border Grid.Column="2"
+                                        WidthRequest="52"
+                                        HeightRequest="44"
+                                        BackgroundColor="{StaticResource PmSoft}"
+                                        Stroke="{StaticResource PmStroke}"
+                                        StrokeThickness="2"
+                                        StrokeShape="RoundRectangle 14"
+                                        VerticalOptions="Center"
+                                        HorizontalOptions="End">
+                                    <Button Text="+"
+                                            BackgroundColor="Transparent"
+                                            TextColor="#6B7280"
+                                            FontAttributes="Bold"
+                                            FontSize="18"
+                                            Padding="0"
+                                            Clicked="OnCountPlus"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <Label Text="Tema/Assunto" FontSize="10" TextColor="{StaticResource PmMuted}" />
+                        <Border BackgroundColor="#FFFFFF"
+                                Stroke="{StaticResource PmStroke}"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                Padding="12,10">
+                            <Entry x:Name="ThemeEntry"
+                                   Placeholder="Ex: Revolução Industrial"
+                                   BackgroundColor="Transparent"
+                                   TextColor="{StaticResource PmText}"
+                                   PlaceholderColor="{StaticResource PmMuted}"
+                                   FontSize="13"/>
+                        </Border>
+
+                        <!-- Dificuldade: Label espelho + Picker nativo invisível -->
+                        <Label Text="Nível/Dificuldade" FontSize="10" TextColor="{StaticResource PmMuted}" />
+                        <Border BackgroundColor="#FFFFFF"
+                                Stroke="{StaticResource PmStroke}"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                Padding="12,10">
+
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+
+                                <Label x:Name="DifficultyValueLabel"
+                                       Text="Ensino Médio"
+                                       TextColor="{StaticResource PmText}"
+                                       FontSize="13"
+                                       VerticalTextAlignment="Center" />
+
+                                <Label Grid.Column="1"
+                                       Text="▼"
+                                       TextColor="{StaticResource PmMuted}"
+                                       VerticalTextAlignment="Center"
+                                       FontSize="12"/>
+
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDifficultyTap"/>
+                                </Grid.GestureRecognizers>
+
+                                <!-- Picker real (nativo); fica invisível, mas funciona -->
+                                <Picker x:Name="DifficultyPicker"
+                                        Opacity="0.01"
+                                        HeightRequest="1"
+                                        IsVisible="True"/>
+                            </Grid>
+                        </Border>
+
+                        <Label Text="Base (opcional)" FontSize="10" TextColor="{StaticResource PmMuted}" />
+                        <Border BackgroundColor="#FFFFFF"
+                                Stroke="{StaticResource PmStroke}"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                Padding="12,10">
+                            <Editor x:Name="BaseEditor"
+                                    AutoSize="TextChanges"
+                                    Placeholder="Cole um texto base para orientar a IA (não é obrigatório)."
+                                    BackgroundColor="Transparent"
+                                    TextColor="{StaticResource PmText}"
+                                    PlaceholderColor="{StaticResource PmMuted}"
+                                    FontSize="13"/>
+                        </Border>
+
+                        <Label x:Name="StatusLabel" Text="" FontSize="11" TextColor="{StaticResource PmMuted}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- List -->
+                <Border BackgroundColor="#FFFFFF"
+                        Stroke="{StaticResource PmStroke}"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
+                            <Label Text="Perguntas (editáveis)" FontAttributes="Bold" TextColor="{StaticResource PmText}" />
+
+                            <Button Grid.Column="1"
+                                    Text="Limpar"
+                                    BackgroundColor="{StaticResource PmSoft}"
+                                    TextColor="{StaticResource PmText}"
+                                    CornerRadius="16"
+                                    HeightRequest="40"
+                                    Padding="14,0"
+                                    Clicked="OnClear"/>
+
+                            <Button Grid.Column="2"
+                                    Text="JSON"
+                                    BackgroundColor="{StaticResource PmSoft}"
+                                    TextColor="{StaticResource PmText}"
+                                    CornerRadius="16"
+                                    HeightRequest="40"
+                                    Padding="14,0"
+                                    Clicked="OnShowJson"/>
+                        </Grid>
+
+                        <Label x:Name="EmptyLabel"
+                               Text="Nenhuma pergunta ainda."
+                               TextColor="{StaticResource PmMuted}"
+                               FontSize="11"
+                               IsVisible="True"
+                               HorizontalTextAlignment="Center"
+                               Margin="0,6,0,0"/>
+
+                        <CollectionView x:Name="QuestionsList" SelectionMode="None">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Margin="0,0,0,12"
+                                            BackgroundColor="#FFFFFF"
+                                            Stroke="{StaticResource PmStroke}"
+                                            StrokeThickness="2"
+                                            StrokeShape="RoundRectangle 16"
+                                            Padding="12">
+                                        <VerticalStackLayout Spacing="10">
+
+                                            <Label Text="{Binding Number, StringFormat='Pergunta {0}'}"
+                                                   FontAttributes="Bold"
+                                                   TextColor="#7A2FA6"
+                                                   FontSize="12"/>
+
+                                            <Border BackgroundColor="#FFFFFF"
+                                                    Stroke="{StaticResource PmStroke}"
+                                                    StrokeThickness="2"
+                                                    StrokeShape="RoundRectangle 14"
+                                                    Padding="10,8">
+                                                <Editor Text="{Binding Prompt, Mode=TwoWay}"
+                                                        AutoSize="TextChanges"
+                                                        BackgroundColor="Transparent"
+                                                        TextColor="{StaticResource PmText}"
+                                                        FontSize="13"/>
+                                            </Border>
+
+                                            <!-- Alternativas -->
+                                            <VerticalStackLayout Spacing="8">
+
+                                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                                    <Label Text="A)" TextColor="{StaticResource PmMuted}" VerticalOptions="Center"/>
+                                                    <Border Grid.Column="1"
+                                                            BackgroundColor="#FFFFFF"
+                                                            Stroke="{StaticResource PmStroke}"
+                                                            StrokeThickness="2"
+                                                            StrokeShape="RoundRectangle 12"
+                                                            Padding="10,6">
+                                                        <Entry Text="{Binding A, Mode=TwoWay}"
+                                                               BackgroundColor="Transparent"
+                                                               TextColor="{StaticResource PmText}"
+                                                               HeightRequest="40"
+                                                               VerticalTextAlignment="Center"/>
+                                                    </Border>
+                                                </Grid>
+
+                                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                                    <Label Text="B)" TextColor="{StaticResource PmMuted}" VerticalOptions="Center"/>
+                                                    <Border Grid.Column="1"
+                                                            BackgroundColor="#FFFFFF"
+                                                            Stroke="{StaticResource PmStroke}"
+                                                            StrokeThickness="2"
+                                                            StrokeShape="RoundRectangle 12"
+                                                            Padding="10,6">
+                                                        <Entry Text="{Binding B, Mode=TwoWay}"
+                                                               BackgroundColor="Transparent"
+                                                               TextColor="{StaticResource PmText}"
+                                                               HeightRequest="40"
+                                                               VerticalTextAlignment="Center"/>
+                                                    </Border>
+                                                </Grid>
+
+                                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                                    <Label Text="C)" TextColor="{StaticResource PmMuted}" VerticalOptions="Center"/>
+                                                    <Border Grid.Column="1"
+                                                            BackgroundColor="#FFFFFF"
+                                                            Stroke="{StaticResource PmStroke}"
+                                                            StrokeThickness="2"
+                                                            StrokeShape="RoundRectangle 12"
+                                                            Padding="10,6">
+                                                        <Entry Text="{Binding C, Mode=TwoWay}"
+                                                               BackgroundColor="Transparent"
+                                                               TextColor="{StaticResource PmText}"
+                                                               HeightRequest="40"
+                                                               VerticalTextAlignment="Center"/>
+                                                    </Border>
+                                                </Grid>
+
+                                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                                    <Label Text="D)" TextColor="{StaticResource PmMuted}" VerticalOptions="Center"/>
+                                                    <Border Grid.Column="1"
+                                                            BackgroundColor="#FFFFFF"
+                                                            Stroke="{StaticResource PmStroke}"
+                                                            StrokeThickness="2"
+                                                            StrokeShape="RoundRectangle 12"
+                                                            Padding="10,6">
+                                                        <Entry Text="{Binding D, Mode=TwoWay}"
+                                                               BackgroundColor="Transparent"
+                                                               TextColor="{StaticResource PmText}"
+                                                               HeightRequest="40"
+                                                               VerticalTextAlignment="Center"/>
+                                                    </Border>
+                                                </Grid>
+
+                                            </VerticalStackLayout>
+
+                                            <!-- Gabarito: Label espelho + Picker nativo invisível -->
+                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                                <Label Text="Gabarito"
+                                                       TextColor="{StaticResource PmMuted}"
+                                                       VerticalOptions="Center" />
+
+                                                <Border Grid.Column="1"
+                                                        BackgroundColor="#FFFFFF"
+                                                        Stroke="{StaticResource PmStroke}"
+                                                        StrokeThickness="2"
+                                                        StrokeShape="RoundRectangle 12"
+                                                        Padding="10,6">
+                                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+
+                                                        <Label Text="{Binding Answer}"
+                                                               TextColor="{StaticResource PmText}"
+                                                               FontSize="13"
+                                                               VerticalTextAlignment="Center" />
+
+                                                        <Label Grid.Column="1"
+                                                               Text="▼"
+                                                               TextColor="{StaticResource PmMuted}"
+                                                               VerticalTextAlignment="Center"
+                                                               FontSize="12"/>
+
+                                                        <!-- Picker real (sem conteúdo direto): ItemsSource setado no code-behind -->
+                                                        <Picker Opacity="0.01"
+                                                            HeightRequest="1"
+                                                            IsVisible="True"
+                                                            SelectedItem="{Binding Answer, Mode=TwoWay}"
+                                                            HandlerChanged="OnAnswerPickerHandlerChanged"/>
+                                                    </Grid>
+                                                </Border>
+                                            </Grid>
+
+                                            <Button Text="Remover pergunta"
+                                                    BackgroundColor="{StaticResource PmSoft}"
+                                                    TextColor="{StaticResource PmText}"
+                                                    CornerRadius="14"
+                                                    HeightRequest="40"
+                                                    Clicked="OnRemoveQuestion"
+                                                    CommandParameter="{Binding .}"/>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- BOTTOM EXPORT -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+            <Button Text="PDF (Questões)"
+                    Background="{StaticResource PmGradient}"
+                    TextColor="#FFFFFF"
+                    CornerRadius="16"
+                    HeightRequest="52"
+                    Clicked="OnExportQuestionsPdf"/>
+
+            <Button Grid.Column="1"
+                    Text="PDF (Gabarito)"
+                    BackgroundColor="{StaticResource PmSoft}"
+                    TextColor="{StaticResource PmText}"
+                    CornerRadius="16"
+                    HeightRequest="52"
+                    Clicked="OnExportAnswersPdf"/>
+        </Grid>
+
+    </Grid>
+</ContentPage>

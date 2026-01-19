@@ -32,7 +32,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<FirebaseAuthService>();
         builder.Services.AddSingleton<FirebaseDbService>();
         builder.Services.AddSingleton<FirebaseStorageService>();
-
+        builder.Services.AddSingleton<GroqQuizService>();
 
         builder.Services.AddTransient<LoginPage>();
         builder.Services.AddTransient<RegisterPage>();
@@ -48,6 +48,7 @@ public static class MauiProgram
         builder.Services.AddTransient<ExamsPage>();
         builder.Services.AddTransient<EventsPage>();
         builder.Services.AddTransient<LessonsPage>();
+
 
 
 

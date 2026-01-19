@@ -22,6 +22,8 @@ node_modules/
 config/FirebaseConfig.cs
 ProfeMaster/config/FirebaseConfig.cs
 ProfeMaster/Services/FirebaseStorageService.cs
+ProfeMaster/Services/FirebaseStorageService.cs
+ProfeMaster/Services/GroqQuizService.cs
 
 # --- Arquivos de Sistema Operacional ---
 .DS_Store

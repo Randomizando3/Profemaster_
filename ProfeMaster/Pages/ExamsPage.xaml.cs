@@ -7,16 +7,18 @@ public partial class ExamsPage : ContentPage
 {
     private readonly LocalStore _store;
     private readonly FirebaseDbService _db;
+    private readonly GroqQuizService _quizSvc;
 
     private string _uid = "";
     private string _token = "";
     private List<ExamItem> _items = new();
 
-    public ExamsPage(LocalStore store, FirebaseDbService db)
+    public ExamsPage(LocalStore store, FirebaseDbService db, GroqQuizService quizSvc)
     {
         InitializeComponent();
         _store = store;
         _db = db;
+        _quizSvc = quizSvc;
     }
 
     protected override async void OnAppearing()
@@ -58,7 +60,7 @@ public partial class ExamsPage : ContentPage
     private async void OnAdd(object sender, EventArgs e)
     {
         var item = new ExamItem();
-        await Navigation.PushModalAsync(new ExamEditorPage(_db, _store, item));
+        await Navigation.PushModalAsync(new ExamEditorPage(_db, _store, _quizSvc, item));
         await LoadAsync();
     }
 
@@ -68,7 +70,8 @@ public partial class ExamsPage : ContentPage
         if (item == null) return;
 
         ((CollectionView)sender).SelectedItem = null;
-        await Navigation.PushModalAsync(new ExamEditorPage(_db, _store, item));
+
+        await Navigation.PushModalAsync(new ExamEditorPage(_db, _store, _quizSvc, item));
         await LoadAsync();
     }
 }

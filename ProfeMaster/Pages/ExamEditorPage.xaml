@@ -104,13 +104,13 @@
                                TextColor="{StaticResource PmMuted}" />
                     </VerticalStackLayout>
 
-                    <!-- (opcional) botão "Ajuda" -->
+                    <!-- (opcional) botão "Dicas" -->
                     <Button Grid.Column="1"
                             Text="Dicas"
                             Style="{StaticResource PmBtnSoft}"
                             Clicked="OnGeneratePlaceholder"
                             VerticalOptions="Center"
-                            IsVisible="False"/>
+                            IsVisible="False" />
                 </Grid>
             </Border>
 
@@ -148,7 +148,7 @@
                                         StrokeThickness="0"
                                         StrokeShape="RoundRectangle 14"
                                         BackgroundColor="#0f172a">
-                                    <Image x:Name="ThumbPreview" Aspect="AspectFill"/>
+                                    <Image x:Name="ThumbPreview" Aspect="AspectFill" />
                                 </Border>
 
                                 <VerticalStackLayout Grid.Column="1"
@@ -156,10 +156,10 @@
                                                      VerticalOptions="Center">
                                     <Button Text="Selecionar capa"
                                             Style="{StaticResource PmBtnDark}"
-                                            Clicked="OnPickThumb"/>
+                                            Clicked="OnPickThumb" />
                                     <Button Text="Remover capa"
                                             Style="{StaticResource PmBtnDanger}"
-                                            Clicked="OnRemoveThumb"/>
+                                            Clicked="OnRemoveThumb" />
                                 </VerticalStackLayout>
 
                             </Grid>
@@ -179,16 +179,40 @@
                         </VerticalStackLayout>
                     </Border>
 
-                    <!-- Placeholder gerar prova -->
+                    <!-- QUIZ -->
                     <Border Style="{StaticResource PmField}">
-                        <VerticalStackLayout Spacing="8">
-                            <Button Text="Criar prova (em breve)"
-                                    Style="{StaticResource PmBtnPrimary}"
-                                    Clicked="OnGeneratePlaceholder"/>
+                        <VerticalStackLayout Spacing="10">
 
-                            <Label Text="Este botão pode ser ligado à IA ou a um banco local depois."
+                            <!-- STATUS -->
+                            <Label x:Name="QuizStatusLabel"
+                                   Text="Nenhum quiz anexado ainda."
                                    TextColor="{StaticResource PmMuted}"
-                                   FontSize="12"/>
+                                   FontSize="12" />
+
+                            <!-- AÇÕES (só quando existir quiz) -->
+                            <Grid x:Name="QuizActionsRow"
+                                  ColumnDefinitions="*,*"
+                                  ColumnSpacing="10"
+                                  IsVisible="False">
+
+                                <Button x:Name="BtnOpenQuiz"
+                                        Text="Abrir / editar"
+                                        Style="{StaticResource PmBtnDark}"
+                                        Clicked="OnOpenQuiz" />
+
+                                <Button x:Name="BtnDeleteQuiz"
+                                        Grid.Column="1"
+                                        Text="Excluir"
+                                        Style="{StaticResource PmBtnDanger}"
+                                        Clicked="OnDeleteQuiz" />
+                            </Grid>
+
+                            <!-- BOTÃO PRINCIPAL -->
+                            <Button x:Name="BtnCreateQuiz"
+                                    Text="Gerar quiz"
+                                    Style="{StaticResource PmBtnPrimary}"
+                                    Clicked="OnGeneratePlaceholder" />
+
                         </VerticalStackLayout>
                     </Border>
 
@@ -199,11 +223,11 @@
             <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                 <Button Text="Cancelar"
                         Style="{StaticResource PmBtnDanger}"
-                        Clicked="OnCancel"/>
+                        Clicked="OnCancel" />
                 <Button Grid.Column="1"
                         Text="Salvar"
                         Style="{StaticResource PmBtnPrimary}"
-                        Clicked="OnSave"/>
+                        Clicked="OnSave" />
             </Grid>
 
         </VerticalStackLayout>
