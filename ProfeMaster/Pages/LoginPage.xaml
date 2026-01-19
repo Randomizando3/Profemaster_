@@ -3,63 +3,223 @@
     x:Class="ProfeMaster.Pages.LoginPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}">
+    BackgroundColor="White"
+    Shell.NavBarIsVisible="False">
 
-    <Grid>
-        <!-- Fundo com gradiente suave -->
-        <Grid.RowDefinitions>
-            <RowDefinition Height="260"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <!-- TELA TODA (altura e largura) -->
+    <Grid
+        HorizontalOptions="FillAndExpand"
+        VerticalOptions="FillAndExpand">
 
-        <Border Grid.Row="0" StrokeThickness="0">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#6D5BFF" Offset="0"/>
-                    <GradientStop Color="#22D3EE" Offset="0.6"/>
-                    <GradientStop Color="#FF4FD8" Offset="1"/>
-                </LinearGradientBrush>
-            </Border.Background>
-        </Border>
+        <!-- FUNDO (arte bglogin.png) ocupando tudo -->
+        <Image
+            Source="bglogin.png"
+            Aspect="AspectFill"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="FillAndExpand" />
 
-        <VerticalStackLayout Grid.Row="0" Padding="24,48,24,0" Spacing="10">
-            <Label Text="ProfeMaster UP" FontSize="26" FontAttributes="Bold" />
-            <Label Text="Organize instituições, turmas, aulas e materiais em um só lugar." TextColor="{StaticResource PmBg}" />
-        </VerticalStackLayout>
+        <!-- CAMADAS (logo / form / rodapé) -->
+        <Grid
+            RowDefinitions="0.15*,0.38*,0.26*"
+            ColumnDefinitions="*"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="FillAndExpand">
 
-        <Border Grid.Row="1"
-                Margin="16,-32,16,16"
-                BackgroundColor="{StaticResource PmCard}"
-                StrokeThickness="0"
-                StrokeShape="RoundRectangle 20">
-            <ScrollView>
-                <VerticalStackLayout Padding="18" Spacing="10">
+            <!-- ===== TOP: LOGO ===== -->
+            <Grid
+                Grid.Row="0"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="FillAndExpand">
 
-                    <Label Text="Entrar" FontSize="18" FontAttributes="Bold" />
+                <Image
+                    Source="logowhite.png"
+                    Aspect="AspectFit"
+                    HeightRequest="160"
+                    WidthRequest="230"
+                    HorizontalOptions="Center"
+                    VerticalOptions="Center"
+                    Margin="0,10,0,0" />
+            </Grid>
 
-                    <Label Text="E-mail" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                    <Entry x:Name="EmailEntry" Keyboard="Email" Placeholder="seuemail@dominio.com" />
+            <!-- ===== MID: CAMPOS + LINK + LOGIN ===== -->
+            <Grid
+                Grid.Row="1"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="FillAndExpand"
+                Padding="28,0"
+                Margin="0,0,0,0">
 
-                    <Label Text="Senha" TextColor="{StaticResource PmMuted}" FontSize="12" Margin="0,8,0,0"/>
-                    <Entry x:Name="PassEntry" IsPassword="True" Placeholder="••••••••" />
+                <Grid
+                    RowDefinitions="Auto,Auto,Auto,Auto"
+                    RowSpacing="18"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="Center">
 
-                    <Button Text="Entrar"
-                            Margin="0,14,0,0"
-                            Background="{StaticResource PmGradient}"
-                            Clicked="OnLoginClicked"/>
+                    <!-- Usuário -->
+                    <Border
+                        Grid.Row="0"
+                        BackgroundColor="White"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 24"
+                        HeightRequest="64"
+                        HorizontalOptions="FillAndExpand"
+                        VerticalOptions="Center">
 
-                    <Button Text="Criar conta"
-                            BackgroundColor="#243056"
-                            Clicked="OnGoRegisterClicked"/>
+                        <Grid
+                            Padding="14,0"
+                            ColumnDefinitions="28,*"
+                            ColumnSpacing="10"
+                            HorizontalOptions="FillAndExpand"
+                            VerticalOptions="FillAndExpand">
 
-                    <Label x:Name="StatusLabel"
-                           Text=""
-                           TextColor="#FCA5A5"
-                           FontSize="12"
-                           Margin="0,6,0,0"/>
+                            <Image
+                                Source="user.png"
+                                WidthRequest="18"
+                                HeightRequest="18"
+                                Opacity="0.70"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center" />
 
-                </VerticalStackLayout>
-            </ScrollView>
-        </Border>
+                            <Entry
+                                Grid.Column="1"
+                                x:Name="EmailEntry"
+                                Placeholder="Usuário"
+                                Keyboard="Email"
+                                BackgroundColor="Transparent"
+                                TextColor="#1F2937"
+                                PlaceholderColor="#94A3B8"
+                                FontSize="17"
+                                ClearButtonVisibility="WhileEditing"
+                                HorizontalOptions="FillAndExpand"
+                                VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Senha -->
+                    <Border
+                        Grid.Row="1"
+                        BackgroundColor="White"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 24"
+                        HeightRequest="64"
+                        HorizontalOptions="FillAndExpand"
+                        VerticalOptions="Center">
+
+                        <Grid
+                            Padding="18,0"
+                            ColumnDefinitions="28,*"
+                            ColumnSpacing="10"
+                            HorizontalOptions="FillAndExpand"
+                            VerticalOptions="FillAndExpand">
+
+                            <Image
+                                Source="pass.png"
+                                WidthRequest="18"
+                                HeightRequest="18"
+                                Opacity="0.70"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center" />
+
+                            <Entry
+                                Grid.Column="1"
+                                x:Name="PassEntry"
+                                Placeholder="Senha"
+                                IsPassword="True"
+                                BackgroundColor="Transparent"
+                                TextColor="#1F2937"
+                                PlaceholderColor="#94A3B8"
+                                FontSize="17"
+                                HorizontalOptions="FillAndExpand"
+                                VerticalOptions="Center" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Esqueci -->
+                    <Label
+                        Grid.Row="2"
+                        Text="Esqueceu sua senha? Clique aqui"
+                        FontSize="12"
+                        TextColor="#F2F2F2"
+                        HorizontalTextAlignment="Center"
+                        HorizontalOptions="FillAndExpand"
+                        Margin="0,-6,0,0">
+                        <Label.GestureRecognizers>
+                            <TapGestureRecognizer />
+                        </Label.GestureRecognizers>
+                    </Label>
+
+                    <!-- Login (contornado) -->
+                    <Button
+                        Grid.Row="3"
+                        x:Name="LoginButton"
+                        Text="Login"
+                        HeightRequest="62"
+                        CornerRadius="24"
+                        BackgroundColor="Transparent"
+                        TextColor="White"
+                        BorderColor="#E7E2FF"
+                        BorderWidth="1"
+                        FontAttributes="Bold"
+                        FontSize="17"
+                        HorizontalOptions="FillAndExpand"
+                        VerticalOptions="Center"
+                        Clicked="OnLoginClicked" />
+                </Grid>
+            </Grid>
+
+            <!-- ===== BOTTOM: TEXTO + REGISTRAR (colado embaixo) ===== -->
+            <Grid
+                Grid.Row="2"
+                HorizontalOptions="FillAndExpand"
+                VerticalOptions="FillAndExpand"
+                Padding="28,0,28,24">
+
+                <Grid
+                    RowDefinitions="*,Auto,Auto"
+                    RowSpacing="10"
+                    HorizontalOptions="FillAndExpand"
+                    VerticalOptions="FillAndExpand">
+
+                    <!-- empurra tudo para baixo -->
+                    <Grid Grid.Row="0" />
+
+                    <Label
+                        Grid.Row="1"
+                        Text="Não tem uma conta?"
+                        FontSize="13"
+                        TextColor="#6B7280"
+                        HorizontalTextAlignment="Center"
+                        HorizontalOptions="FillAndExpand"
+                        Margin="0,0,0,6" />
+
+                    <Button
+                        Grid.Row="2"
+                        Text="Registre-se"
+                        HeightRequest="62"
+                        CornerRadius="26"
+                        BackgroundColor="#9B6BFF"
+                        TextColor="White"
+                        FontAttributes="Bold"
+                        FontSize="17"
+                        HorizontalOptions="FillAndExpand"
+                        VerticalOptions="End"
+                        Clicked="OnGoRegisterClicked" />
+                </Grid>
+            </Grid>
+
+        </Grid>
+
+        <!-- Status flutuante (opcional) - aparece por cima sem "empurrar" o layout -->
+        <Label
+            x:Name="StatusLabel"
+            Text=""
+            IsVisible="False"
+            FontSize="12"
+            TextColor="#FCA5A5"
+            HorizontalTextAlignment="Center"
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="Start"
+            Margin="28,14,28,0" />
+
     </Grid>
 </ContentPage>

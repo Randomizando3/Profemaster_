@@ -18,33 +18,32 @@ public partial class HomePage : ContentPage
 
         var session = await _store.LoadSessionAsync();
         EmailLabel.Text = session?.Email ?? "";
+
         if (session == null || string.IsNullOrWhiteSpace(session.IdToken))
-        {
-            await Shell.Current.GoToAsync("//login");
-        }
+            await Shell.Current.GoToAsync("///login");
     }
 
+    private async void OnGoAgenda(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync("///tabs/agenda");
+
     private async void OnGoInstitutions(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync("institutions");
-    }
+        => await Shell.Current.GoToAsync("///tabs/institutions");
+
+    private async void OnGoPlans(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync("///tabs/plans");
+
+    private async void OnGoExams(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync("///tabs/exams");
+
+    private async void OnGoEvents(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync("///tabs/events");
+
+    private async void OnLessons(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync("///tabs/lessons");
 
     private async void OnLogoutClicked(object sender, EventArgs e)
     {
         await _store.ClearSessionAsync();
-        await Shell.Current.GoToAsync("//login");
+        await Shell.Current.GoToAsync("///login");
     }
-
-    private async void OnGoAgenda(object sender, EventArgs e) => await Shell.Current.GoToAsync("agenda");
-    private async void OnGoPlans(object sender, EventArgs e) => await Shell.Current.GoToAsync("plans");
-    private async void OnGoExams(object sender, EventArgs e) => await Shell.Current.GoToAsync("exams");
-    private async void OnGoEvents(object sender, EventArgs e) => await Shell.Current.GoToAsync("events");
-
-    private async void OnLessons(object sender, EventArgs e)
-    {
-        await Shell.Current.GoToAsync("lessons");
-    }
-
-
-
 }

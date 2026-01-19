@@ -7,11 +7,63 @@
     Shell.FlyoutBehavior="Disabled"
     BackgroundColor="{StaticResource PmBg}">
 
-    <!-- Rotas -->
+    <!-- ===== ROTAS FORA DO TABBAR (ex: login) ===== -->
     <ShellContent
         Route="login"
         ContentTemplate="{DataTemplate pages:LoginPage}" />
 
-    <ShellContent Title="Aulas" Route="lessons" ContentTemplate="{DataTemplate pages:LessonsPage}" />
+    <!-- ===== TABBAR PRINCIPAL ===== -->
+    <TabBar Route="tabs">
+
+        <!-- HOME (primeiro item) -->
+        <ShellContent
+            Route="home"
+            Title="Home"
+            Icon="home.png"
+            ContentTemplate="{DataTemplate pages:HomePage}" />
+
+        <ShellContent
+            Route="agenda"
+            Title="Agenda"
+            Icon="schedule.png"
+            ContentTemplate="{DataTemplate pages:AgendaPage}" />
+
+        <ShellContent
+            Route="institutions"
+            Title="Instituições"
+            Icon="school.png"
+            ContentTemplate="{DataTemplate pages:InstitutionsPage}" />
+
+        <ShellContent
+            Route="plans"
+            Title="Planos"
+            Icon="plans.png"
+            ContentTemplate="{DataTemplate pages:PlansPage}" />
+
+        <ShellContent
+            Route="exams"
+            Title="Provas"
+            Icon="quiz.png"
+            ContentTemplate="{DataTemplate pages:ExamsPage}" />
+
+        <ShellContent
+            Route="lessons"
+            Title="Aulas"
+            Icon="aulas.png"
+            ContentTemplate="{DataTemplate pages:LessonsPage}" />
+
+        <ShellContent
+            Route="events"
+            Title="Eventos"
+            Icon="events.png"
+            ContentTemplate="{DataTemplate pages:EventsPage}" />
+
+    </TabBar>
+
+    <!-- cores do seu print -->
+    <Shell.TabBarBackgroundColor>#7A2D8C</Shell.TabBarBackgroundColor>
+    <Shell.TabBarForegroundColor>#FFFFFF</Shell.TabBarForegroundColor>
+    <Shell.TabBarTitleColor>#FFFFFF</Shell.TabBarTitleColor>
+    <Shell.TabBarUnselectedColor>#E9D7F0</Shell.TabBarUnselectedColor>
 
 </Shell>

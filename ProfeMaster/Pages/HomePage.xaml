@@ -3,55 +3,360 @@
     x:Class="ProfeMaster.Pages.HomePage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}">
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
 
-    <Grid Padding="16" RowSpacing="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <!-- Inline resources (mesma linha da AgendaPage) -->
+    <ContentPage.Resources>
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+        <Color x:Key="PmSoft">#F2F2F2</Color>
 
-        <Border Grid.Row="0" StrokeThickness="0" BackgroundColor="{StaticResource PmCard}" StrokeShape="RoundRectangle 20">
-            <Grid Padding="16" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
-                <Label Text="Bem-vindo(a)" FontSize="18" FontAttributes="Bold"/>
-                <Button Grid.Column="1" Text="Sair" BackgroundColor="#243056" Clicked="OnLogoutClicked" />
+        <Color x:Key="PmPurple">#8B2CE2</Color>
+        <Color x:Key="PmIndigo">#7E97D9</Color>
+        <Color x:Key="PmViolet">#B66AF4</Color>
+    </ContentPage.Resources>
 
-                <Label Grid.Row="1" Grid.ColumnSpan="2" x:Name="EmailLabel" TextColor="{StaticResource PmMuted}" FontSize="12"/>
+    <Grid Padding="18" RowSpacing="14" RowDefinitions="Auto,Auto,*">
+
+        <!-- ===== TOP BAR ===== -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="10">
+
+            <!-- Avatar "bolinha" -->
+            <Border WidthRequest="42"
+                    HeightRequest="42"
+                    StrokeThickness="2"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeShape="RoundRectangle 21"
+                    BackgroundColor="#FFFFFF"
+                    VerticalOptions="Center">
+                <Label Text="👩‍🏫"
+                       FontSize="18"
+                       HorizontalTextAlignment="Center"
+                       VerticalTextAlignment="Center"
+                       TextColor="{StaticResource PmText}" />
+            </Border>
+
+            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                <Label Text="Bem-vindo(a)"
+                       FontAttributes="Bold"
+                       FontSize="18"
+                       TextColor="{StaticResource PmText}" />
+                <Label x:Name="EmailLabel"
+                       Text=""
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="1" />
+            </VerticalStackLayout>
+
+            <!-- Upgrade (estrela) - sem ação por enquanto -->
+            <Border Grid.Column="2"
+                    WidthRequest="38"
+                    HeightRequest="38"
+                    StrokeThickness="2"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeShape="RoundRectangle 14"
+                    BackgroundColor="#FFFFFF"
+                    HorizontalOptions="End"
+                    VerticalOptions="Center">
+                <Button Text="★"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource PmPurple}"
+                        FontSize="18"
+                        FontAttributes="Bold"
+                        Padding="0"
+                        IsEnabled="False" />
+            </Border>
+
+            <!-- Sair -->
+            <Button Grid.Column="3"
+                    Text="Sair"
+                    Clicked="OnLogoutClicked"
+                    CornerRadius="14"
+                    FontAttributes="Bold"
+                    FontSize="11"
+                    TextColor="{StaticResource PmText}"
+                    BackgroundColor="{StaticResource PmSoft}"
+                    Padding="12,0"
+                    HeightRequest="38"
+                    VerticalOptions="Center" />
+        </Grid>
+
+        <!-- ===== HERO CARD ===== -->
+        <Border Grid.Row="1"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 20"
+                Padding="16">
+
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{StaticResource PmViolet}" Offset="0" />
+                    <GradientStop Color="{StaticResource PmIndigo}" Offset="1" />
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Sua rotina, em um só lugar"
+                           FontAttributes="Bold"
+                           FontSize="16"
+                           TextColor="#FFFFFF" />
+
+                    <Label Text="Instituições, turmas, planos, aulas, provas e eventos — com sincronização quando online."
+                           FontSize="11"
+                           TextColor="#F5F3FF"
+                           LineBreakMode="WordWrap" />
+                </VerticalStackLayout>
+
+                <Border Grid.Column="1"
+                        WidthRequest="46"
+                        HeightRequest="46"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16"
+                        BackgroundColor="#FFFFFF"
+                        Opacity="0.95"
+                        VerticalOptions="Center">
+                    <Label Text="📌"
+                           FontSize="20"
+                           HorizontalTextAlignment="Center"
+                           VerticalTextAlignment="Center"
+                           TextColor="{StaticResource PmText}" />
+                </Border>
+
             </Grid>
         </Border>
 
-        <VerticalStackLayout Grid.Row="1" Spacing="12">
+        <!-- ===== SHORTCUTS ===== -->
+        <ScrollView Grid.Row="2">
+            <VerticalStackLayout Spacing="14">
 
-            <Border StrokeThickness="0" StrokeShape="RoundRectangle 20">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#6D5BFF" Offset="0"/>
-                        <GradientStop Color="#22D3EE" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-                <VerticalStackLayout Padding="16" Spacing="6">
-                    <Label Text="Sua rotina, em um só lugar" FontSize="16" FontAttributes="Bold" />
-                    <Label Text="Múltiplas instituições, turmas e aulas. Tudo sincronizado quando online." FontSize="12" TextColor="#071022" />
-                </VerticalStackLayout>
-            </Border>
+                <Grid ColumnDefinitions="*,*" ColumnSpacing="12" RowSpacing="12"
+                      RowDefinitions="Auto,Auto,Auto">
 
-            <Button Text="Instituições"
-                    Background="{StaticResource PmGradient}"
-                    Clicked="OnGoInstitutions"/>
+                    <!-- Instituições -->
+                    <Border Grid.Row="0" Grid.Column="0"
+                            BackgroundColor="#FFFFFF"
+                            Stroke="{StaticResource PmStroke}"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="14">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Border WidthRequest="38" HeightRequest="38"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#EFEAFE"
+                                    VerticalOptions="Center">
+                                <Label Text="🏫" FontSize="18"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{StaticResource PmText}" />
+                            </Border>
 
-            <Button Text="Agenda"
-        Background="{StaticResource PmGradient}"
-        Clicked="OnGoAgenda"/>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Instituições"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmText}" />
+                                <Label Text="Cadastre e gerencie turmas"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}" />
+                            </VerticalStackLayout>
 
-            <Button Text="Planos de Aula"
-        Background="{StaticResource PmGradient}"
-        Clicked="OnGoPlans"/>
+                            <!-- overlay clicável -->
+                            <Button Grid.RowSpan="2" Grid.ColumnSpan="2"
+                                    BackgroundColor="Transparent"
+                                    Clicked="OnGoInstitutions" />
+                        </Grid>
+                    </Border>
 
-            <Button Grid.Row="1" Text="Provas" BackgroundColor="#243056" Clicked="OnGoExams"/>
-            <Button Grid.Row="1" Grid.Column="1" Text="Aulas" BackgroundColor="#243056" Clicked="OnLessons"/>
-            <Button Grid.Row="1" Grid.Column="1" Text="Eventos" BackgroundColor="#243056" Clicked="OnGoEvents"/>
-            
+                    <!-- Agenda -->
+                    <Border Grid.Row="0" Grid.Column="1"
+                            BackgroundColor="#FFFFFF"
+                            Stroke="{StaticResource PmStroke}"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="14">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Border WidthRequest="38" HeightRequest="38"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#EAF7FF"
+                                    VerticalOptions="Center">
+                                <Label Text="🗓️" FontSize="18"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{StaticResource PmText}" />
+                            </Border>
 
-        </VerticalStackLayout>
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Agenda"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmText}" />
+                                <Label Text="Veja o dia e o que vem"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}" />
+                            </VerticalStackLayout>
+
+                            <Button Grid.RowSpan="2" Grid.ColumnSpan="2"
+                                    BackgroundColor="Transparent"
+                                    Clicked="OnGoAgenda" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Planos -->
+                    <Border Grid.Row="1" Grid.Column="0"
+                            BackgroundColor="#FFFFFF"
+                            Stroke="{StaticResource PmStroke}"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="14">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Border WidthRequest="38" HeightRequest="38"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#EFFFF1"
+                                    VerticalOptions="Center">
+                                <Label Text="🧩" FontSize="18"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{StaticResource PmText}" />
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Planos"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmText}" />
+                                <Label Text="Planeje por dia e horário"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}" />
+                            </VerticalStackLayout>
+
+                            <Button Grid.RowSpan="2" Grid.ColumnSpan="2"
+                                    BackgroundColor="Transparent"
+                                    Clicked="OnGoPlans" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Provas -->
+                    <Border Grid.Row="1" Grid.Column="1"
+                            BackgroundColor="#FFFFFF"
+                            Stroke="{StaticResource PmStroke}"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="14">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Border WidthRequest="38" HeightRequest="38"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#FFF1F1"
+                                    VerticalOptions="Center">
+                                <Label Text="📝" FontSize="18"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{StaticResource PmText}" />
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Provas"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmText}" />
+                                <Label Text="Controle e descrições"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}" />
+                            </VerticalStackLayout>
+
+                            <Button Grid.RowSpan="2" Grid.ColumnSpan="2"
+                                    BackgroundColor="Transparent"
+                                    Clicked="OnGoExams" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Aulas -->
+                    <Border Grid.Row="2" Grid.Column="0"
+                            BackgroundColor="#FFFFFF"
+                            Stroke="{StaticResource PmStroke}"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="14">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Border WidthRequest="38" HeightRequest="38"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#F3E8FF"
+                                    VerticalOptions="Center">
+                                <Label Text="📚" FontSize="18"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{StaticResource PmText}" />
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Aulas"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmText}" />
+                                <Label Text="Materiais e uploads"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}" />
+                            </VerticalStackLayout>
+
+                            <Button Grid.RowSpan="2" Grid.ColumnSpan="2"
+                                    BackgroundColor="Transparent"
+                                    Clicked="OnLessons" />
+                        </Grid>
+                    </Border>
+
+                    <!-- Eventos -->
+                    <Border Grid.Row="2" Grid.Column="1"
+                            BackgroundColor="#FFFFFF"
+                            Stroke="{StaticResource PmStroke}"
+                            StrokeThickness="2"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="14">
+                        <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                            <Border WidthRequest="38" HeightRequest="38"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 14"
+                                    BackgroundColor="#EAF2FF"
+                                    VerticalOptions="Center">
+                                <Label Text="🎉" FontSize="18"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{StaticResource PmText}" />
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                <Label Text="Eventos"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmText}" />
+                                <Label Text="Atrações por dia"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}" />
+                            </VerticalStackLayout>
+
+                            <Button Grid.RowSpan="2" Grid.ColumnSpan="2"
+                                    BackgroundColor="Transparent"
+                                    Clicked="OnGoEvents" />
+                        </Grid>
+                    </Border>
+
+                </Grid>
+
+                <!-- Rodapé discreto -->
+                <Label Text="Dica: mantenha seus dados sincronizados clicando em Atualizar nas telas principais."
+                       FontSize="10"
+                       TextColor="{StaticResource PmMuted}"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,2,0,10"/>
+            </VerticalStackLayout>
+        </ScrollView>
     </Grid>
 </ContentPage>

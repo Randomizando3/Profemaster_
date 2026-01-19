@@ -3,32 +3,143 @@
     x:Class="ProfeMaster.Pages.RegisterPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{StaticResource PmBg}">
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
 
-    <Grid Padding="16">
-        <Border BackgroundColor="{StaticResource PmCard}" StrokeThickness="0" StrokeShape="RoundRectangle 20">
-            <VerticalStackLayout Padding="18" Spacing="10">
+    <ContentPage.Resources>
+        <!-- Mesmo “kit” visual da Agenda -->
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
 
-                <Label Text="Criar conta" FontSize="18" FontAttributes="Bold" />
+        <Color x:Key="PmPurple">#8B2CE2</Color>
+        <Color x:Key="PmSoft">#F2F2F2</Color>
+    </ContentPage.Resources>
 
-                <Label Text="E-mail" TextColor="{StaticResource PmMuted}" FontSize="12"/>
-                <Entry x:Name="EmailEntry" Keyboard="Email" Placeholder="seuemail@dominio.com" />
+    <Grid Padding="18" RowSpacing="10"
+          RowDefinitions="Auto,Auto,*">
 
-                <Label Text="Senha" TextColor="{StaticResource PmMuted}" FontSize="12" Margin="0,8,0,0"/>
-                <Entry x:Name="PassEntry" IsPassword="True" Placeholder="mínimo 6 caracteres" />
+        <!-- ===== TOP BAR (igual a ideia do topo da Agenda: título + ação) ===== -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="12">
 
+            <Label Text="Criar conta"
+                   FontAttributes="Bold"
+                   FontSize="18"
+                   TextColor="{StaticResource PmText}"
+                   VerticalOptions="Center"/>
+
+            <Button Grid.Column="1"
+                    Text="Voltar"
+                    Clicked="OnBackClicked"
+                    CornerRadius="14"
+                    FontAttributes="Bold"
+                    FontSize="11"
+                    TextColor="{StaticResource PmText}"
+                    BackgroundColor="{StaticResource PmSoft}"
+                    Padding="12,0"
+                    HeightRequest="34"
+                    VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- Subtexto (igual ModeLabel / hints da Agenda) -->
+        <Label Grid.Row="1"
+               Text="Informe um e-mail válido e crie uma senha com no mínimo 6 caracteres."
+               TextColor="{StaticResource PmMuted}"
+               FontSize="11"
+               Margin="2,0,2,6"/>
+
+        <!-- ===== FORM CARD (mesmo card branco com stroke 2) ===== -->
+        <Border Grid.Row="2"
+                BackgroundColor="#FFFFFF"
+                Stroke="{StaticResource PmStroke}"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 18"
+                Padding="0">
+
+            <VerticalStackLayout Spacing="12">
+
+                <!-- Status -->
+                <Label x:Name="StatusLabel"
+                       Text=""
+                       IsVisible="False"
+                       TextColor="#F04646"
+                       FontSize="11"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,2,0,0"/>
+
+                <!-- Campo Email no estilo “campo” da Agenda (label + display) -->
+                <Border BackgroundColor="#FFFFFF"
+                        Stroke="{StaticResource PmStroke}"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="12,10">
+
+                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Label Text="E-mail"
+                               FontSize="10"
+                               TextColor="{StaticResource PmMuted}"
+                               Margin="0,0,0,2"/>
+
+                        <Entry Grid.Row="1"
+                               x:Name="EmailEntry"
+                               Keyboard="Email"
+                               Placeholder="seuemail@dominio.com"
+                               BackgroundColor="Transparent"
+                               TextColor="{StaticResource PmText}"
+                               PlaceholderColor="#9CA3AF"
+                               FontSize="13"
+                               Margin="0,-6,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- Campo Senha -->
+                <Border BackgroundColor="#FFFFFF"
+                        Stroke="{StaticResource PmStroke}"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="12,10">
+
+                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <Label Text="Senha"
+                               FontSize="10"
+                               TextColor="{StaticResource PmMuted}"
+                               Margin="0,0,0,2"/>
+
+                        <Entry Grid.Row="1"
+                               x:Name="PassEntry"
+                               IsPassword="True"
+                               Placeholder="mínimo 6 caracteres"
+                               BackgroundColor="Transparent"
+                               TextColor="{StaticResource PmText}"
+                               PlaceholderColor="#9CA3AF"
+                               FontSize="13"
+                               Margin="0,-6,0,0"/>
+                    </Grid>
+                </Border>
+
+                <!-- Botão principal (roxo sólido como “Limpar filtro de data” / CTA da Agenda) -->
                 <Button Text="Cadastrar"
-                        Margin="0,14,0,0"
-                        Background="{StaticResource PmGradient}"
-                        Clicked="OnRegisterClicked"/>
+                        Clicked="OnRegisterClicked"
+                        CornerRadius="14"
+                        FontAttributes="Bold"
+                        FontSize="12"
+                        TextColor="#FFFFFF"
+                        BackgroundColor="{StaticResource PmPurple}"
+                        Padding="14,12"
+                        Margin="0,6,0,0"/>
 
-                <Button Text="Voltar"
-                        BackgroundColor="#243056"
-                        Clicked="OnBackClicked"/>
-
-                <Label x:Name="StatusLabel" Text="" TextColor="#FCA5A5" FontSize="12" />
-
+                <!-- Botão secundário (cinza claro igual Atualizar na Agenda) -->
+                <Button Text="Já tenho conta"
+                        Clicked="OnBackClicked"
+                        CornerRadius="14"
+                        FontAttributes="Bold"
+                        FontSize="11"
+                        TextColor="{StaticResource PmText}"
+                        BackgroundColor="{StaticResource PmSoft}"
+                        Padding="14,12"/>
             </VerticalStackLayout>
         </Border>
+
     </Grid>
 </ContentPage>
