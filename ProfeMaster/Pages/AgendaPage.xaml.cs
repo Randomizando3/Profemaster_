@@ -1,4 +1,5 @@
-using System.Collections.ObjectModel;
+ï»¿using System.Collections.ObjectModel;
+using System.Globalization;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
 
@@ -6,6 +7,21 @@ namespace ProfeMaster.Pages;
 
 public partial class AgendaPage : ContentPage
 {
+    // =========================
+    // âœ… Converter embutido no code-behind
+    // =========================
+    private sealed class StringNotEmptyConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var s = value as string;
+            return !string.IsNullOrWhiteSpace(s);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            => throw new NotSupportedException();
+    }
+
     private readonly LocalStore _store;
     private readonly FirebaseDbService _db;
     private readonly FirebaseStorageService _storage;
@@ -30,6 +46,9 @@ public partial class AgendaPage : ContentPage
 
     public AgendaPage(LocalStore store, FirebaseDbService db, FirebaseStorageService storage)
     {
+        // âœ… Tem que ser ANTES do InitializeComponent()
+        Resources["StringNotEmptyConverter"] = new StringNotEmptyConverter();
+
         InitializeComponent();
 
         _store = store;
@@ -67,10 +86,8 @@ public partial class AgendaPage : ContentPage
     {
         if (SegHighlight == null || BtnAll == null || BtnClass == null) return;
 
-        // move o highlight (fundo degradê)
         Grid.SetColumn(SegHighlight, _modeAll ? 0 : 1);
 
-        // texto branco no selecionado, cinza no outro (igual print)
         BtnAll.TextColor = _modeAll ? Colors.White : Color.FromArgb("#6B6B6B");
         BtnClass.TextColor = _modeAll ? Color.FromArgb("#6B6B6B") : Colors.White;
     }
@@ -177,13 +194,13 @@ public partial class AgendaPage : ContentPage
 
             if (_selectedInst == null || _selectedClass == null)
             {
-                ModeLabel.Text = "Selecione a instituição e a turma";
+                ModeLabel.Text = "Selecione a instituiÃ§Ã£o e a turma";
                 Rows.Clear();
                 EmptyLabel.IsVisible = false;
                 return;
             }
 
-            ModeLabel.Text = $"{_selectedInst.Name} • {_selectedClass.Name}";
+            ModeLabel.Text = $"{_selectedInst.Name} â€¢ {_selectedClass.Name}";
 
             var cached = await _store.LoadAgendaClassCacheAsync(_selectedInst.Id, _selectedClass.Id);
             if (cached != null)

@@ -55,7 +55,7 @@
             <!-- Upgrade (estrela) - sem ação por enquanto -->
             <Border Grid.Column="2"
                     WidthRequest="38"
-                    HeightRequest="38"
+                    HeightRequest="55"
                     StrokeThickness="2"
                     Stroke="{StaticResource PmStroke}"
                     StrokeShape="RoundRectangle 14"
@@ -161,7 +161,7 @@
                                        FontAttributes="Bold"
                                        FontSize="14"
                                        TextColor="{StaticResource PmText}" />
-                                <Label Text="Cadastre e gerencie turmas"
+                                <Label Text="Gerencie suas escolas e turmas"
                                        FontSize="10"
                                        TextColor="{StaticResource PmMuted}" />
                             </VerticalStackLayout>
@@ -197,7 +197,7 @@
                                        FontAttributes="Bold"
                                        FontSize="14"
                                        TextColor="{StaticResource PmText}" />
-                                <Label Text="Veja o dia e o que vem"
+                                <Label Text="Planeje seu dia a dia"
                                        FontSize="10"
                                        TextColor="{StaticResource PmMuted}" />
                             </VerticalStackLayout>
@@ -228,11 +228,11 @@
                             </Border>
 
                             <VerticalStackLayout Grid.Column="1" Spacing="2">
-                                <Label Text="Planos"
+                                <Label Text="Planos de Aula"
                                        FontAttributes="Bold"
                                        FontSize="14"
                                        TextColor="{StaticResource PmText}" />
-                                <Label Text="Planeje por dia e horário"
+                                <Label Text="Organize suas aulas em grupos"
                                        FontSize="10"
                                        TextColor="{StaticResource PmMuted}" />
                             </VerticalStackLayout>
@@ -267,7 +267,7 @@
                                        FontAttributes="Bold"
                                        FontSize="14"
                                        TextColor="{StaticResource PmText}" />
-                                <Label Text="Controle e descrições"
+                                <Label Text="Crie provas e coloque na agenda"
                                        FontSize="10"
                                        TextColor="{StaticResource PmMuted}" />
                             </VerticalStackLayout>
@@ -302,7 +302,7 @@
                                        FontAttributes="Bold"
                                        FontSize="14"
                                        TextColor="{StaticResource PmText}" />
-                                <Label Text="Materiais e uploads"
+                                <Label Text="Planje suas aulas"
                                        FontSize="10"
                                        TextColor="{StaticResource PmMuted}" />
                             </VerticalStackLayout>
@@ -337,7 +337,7 @@
                                        FontAttributes="Bold"
                                        FontSize="14"
                                        TextColor="{StaticResource PmText}" />
-                                <Label Text="Atrações por dia"
+                                <Label Text="Adicione Reuniões ou eventos a sua agenda"
                                        FontSize="10"
                                        TextColor="{StaticResource PmMuted}" />
                             </VerticalStackLayout>

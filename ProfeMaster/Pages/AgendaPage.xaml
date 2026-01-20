@@ -254,13 +254,11 @@
                           RowDefinitions="Auto,Auto"
                           VerticalOptions="Center">
 
-                        <!-- label de título do campo -->
                         <Label Text="Instituição"
                                FontSize="10"
                                TextColor="{StaticResource PmMuted}"
                                Margin="0,0,0,2"/>
 
-                        <!-- display do selecionado (não fica transparente) -->
                         <Label Grid.Row="1"
                                Text="{Binding Source={x:Reference InstitutionPicker}, Path=SelectedItem}"
                                FontSize="12"
@@ -268,7 +266,6 @@
                                LineBreakMode="TailTruncation"
                                MaxLines="1" />
 
-                        <!-- seta -->
                         <Label Grid.Column="1"
                                Grid.RowSpan="2"
                                Text="▾"
@@ -277,7 +274,6 @@
                                VerticalOptions="Center"
                                Margin="8,0,0,0"/>
 
-                        <!-- Picker real (invisível mas clicável, cobre o campo todo) -->
                         <Picker x:Name="InstitutionPicker"
                                 Grid.RowSpan="2"
                                 Grid.ColumnSpan="2"
@@ -356,7 +352,6 @@
                                     Toggled="OnShowPastToggled" />
                         </VerticalStackLayout>
 
-                        <!-- DatePicker com display visível + overlay clicável -->
                         <Border Grid.Column="1"
                                 BackgroundColor="#FFFFFF"
                                 Stroke="{StaticResource PmStroke}"
@@ -385,7 +380,6 @@
                                        VerticalOptions="Center"
                                        Margin="8,0,0,0"/>
 
-                                <!-- DatePicker real invisível mas clicável -->
                                 <DatePicker x:Name="FilterDatePicker"
                                             Grid.RowSpan="2"
                                             Grid.ColumnSpan="2"
@@ -409,7 +403,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- vazio -->
             <Label Grid.Row="3"
                    x:Name="EmptyLabel"
                    IsVisible="False"
@@ -419,7 +412,6 @@
                    Margin="0,10,0,0"
                    FontSize="11" />
 
-            <!-- lista -->
             <CollectionView Grid.Row="3"
                             x:Name="AgendaList"
                             ItemsSource="{Binding Rows}"
@@ -428,7 +420,6 @@
                             ItemTemplate="{StaticResource AgendaRowSelector}"
                             Margin="0,-15,0,22" />
 
-            <!-- floating + -->
             <Border Grid.Row="3"
                     StrokeThickness="0"
                     StrokeShape="RoundRectangle 40"
