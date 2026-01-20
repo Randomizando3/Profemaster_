@@ -28,7 +28,6 @@
         <!-- TOP BAR -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
 
-            <!-- Botão voltar -->
             <Border BackgroundColor="#FFFFFF"
                     Stroke="{StaticResource PmStroke}"
                     StrokeThickness="2"
@@ -75,12 +74,47 @@
                         Padding="14">
                     <VerticalStackLayout Spacing="12">
 
+                        <!-- HEADER: Modo (agora ocupa o espaço) + Gerar -->
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                            <Label Text="Configuração"
-                                   FontAttributes="Bold"
-                                   TextColor="{StaticResource PmText}" />
 
-                            <Button Grid.Column="1"
+                            <!-- MODO (mais largo e bonito) -->
+                            <Border Grid.Column="0"
+                                    BackgroundColor="{StaticResource PmSoft}"
+                                    Stroke="{StaticResource PmStroke}"
+                                    StrokeThickness="2"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="12,8"
+                                    VerticalOptions="Center">
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+
+                                    <Label x:Name="ModeValueLabel"
+                                           Text="IA (Online)"
+                                           TextColor="{StaticResource PmText}"
+                                           FontSize="12"
+                                           FontAttributes="Bold"
+                                           VerticalTextAlignment="Center"/>
+
+                                    <Label Grid.Column="1"
+                                           Text="▼"
+                                           TextColor="{StaticResource PmMuted}"
+                                           VerticalTextAlignment="Center"
+                                           FontSize="12"/>
+
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnModeTap"/>
+                                    </Grid.GestureRecognizers>
+
+                                    <Picker x:Name="ModePicker"
+                                            Opacity="0.01"
+                                            HeightRequest="1"
+                                            IsVisible="True"
+                                            SelectedIndexChanged="OnModeChanged"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- GERAR -->
+                            <Button x:Name="GenerateBtn"
+                                    Grid.Column="1"
                                     Text="Gerar"
                                     Background="{StaticResource PmGradient}"
                                     TextColor="#FFFFFF"
@@ -90,7 +124,56 @@
                                     Clicked="OnGenerate"/>
                         </Grid>
 
-                        <!-- Quantidade: (- / número / +) visíveis -->
+                        <!-- Painel OFFLINE (Banco + Importar + Baixar exemplo) -->
+                        <Border x:Name="OfflinePanel"
+                                BackgroundColor="#FAFAFF"
+                                Stroke="{StaticResource PmStroke}"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                Padding="12,10"
+                                IsVisible="False">
+                            <VerticalStackLayout Spacing="8">
+
+                                <Label Text="Modo Offline"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource PmText}"
+                                       FontSize="12"/>
+
+                                <Label x:Name="OfflineStatusLabel"
+                                       Text="Banco offline: carregando..."
+                                       TextColor="{StaticResource PmMuted}"
+                                       FontSize="11"/>
+
+                                <!-- Importar + Baixar exemplo -->
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+
+                                    <Button Text="Importar perguntas"
+                                            BackgroundColor="{StaticResource PmSoft}"
+                                            TextColor="{StaticResource PmText}"
+                                            CornerRadius="16"
+                                            FontSize="12"
+                                            HeightRequest="40"
+                                            Padding="14,0"
+                                            Clicked="OnImportOfflineBank"/>
+
+                                    <Button Grid.Column="1"
+                                            Text="Json de Exemplo"
+                                            Background="{StaticResource PmGradient}"
+                                            TextColor="#FFFFFF"
+                                            CornerRadius="16"
+                                            FontSize="12"
+                                            HeightRequest="40"
+                                            Padding="14,0"
+                                            Clicked="OnDownloadOfflineBankExample"/>
+                                </Grid>
+
+                                <Label Text="Dica: ao gerar no modo online ou preencher perguntas personalizadas, o app salva automaticamente no banco offline (offline_bank.json)."
+                                       TextColor="{StaticResource PmMuted}"
+                                       FontSize="10"/>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Quantidade -->
                         <Border BackgroundColor="#FAFAFF"
                                 Stroke="{StaticResource PmStroke}"
                                 StrokeThickness="2"
@@ -99,7 +182,7 @@
                             <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
 
                                 <Border WidthRequest="52"
-                                        HeightRequest="44"
+                                        HeightRequest="55"
                                         BackgroundColor="{StaticResource PmSoft}"
                                         Stroke="{StaticResource PmStroke}"
                                         StrokeThickness="2"
@@ -145,7 +228,7 @@
 
                                 <Border Grid.Column="2"
                                         WidthRequest="52"
-                                        HeightRequest="44"
+                                        HeightRequest="55"
                                         BackgroundColor="{StaticResource PmSoft}"
                                         Stroke="{StaticResource PmStroke}"
                                         StrokeThickness="2"
@@ -177,14 +260,13 @@
                                    FontSize="13"/>
                         </Border>
 
-                        <!-- Dificuldade: Label espelho + Picker nativo invisível -->
+                        <!-- Dificuldade -->
                         <Label Text="Nível/Dificuldade" FontSize="10" TextColor="{StaticResource PmMuted}" />
                         <Border BackgroundColor="#FFFFFF"
                                 Stroke="{StaticResource PmStroke}"
                                 StrokeThickness="2"
                                 StrokeShape="RoundRectangle 16"
                                 Padding="12,10">
-
                             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
 
                                 <Label x:Name="DifficultyValueLabel"
@@ -203,7 +285,6 @@
                                     <TapGestureRecognizer Tapped="OnDifficultyTap"/>
                                 </Grid.GestureRecognizers>
 
-                                <!-- Picker real (nativo); fica invisível, mas funciona -->
                                 <Picker x:Name="DifficultyPicker"
                                         Opacity="0.01"
                                         HeightRequest="1"
@@ -219,7 +300,7 @@
                                 Padding="12,10">
                             <Editor x:Name="BaseEditor"
                                     AutoSize="TextChanges"
-                                    Placeholder="Cole um texto base para orientar a IA (não é obrigatório)."
+                                    Placeholder="Cole um texto base para orientar (não é obrigatório)."
                                     BackgroundColor="Transparent"
                                     TextColor="{StaticResource PmText}"
                                     PlaceholderColor="{StaticResource PmMuted}"
@@ -238,7 +319,7 @@
                         Padding="14">
                     <VerticalStackLayout Spacing="10">
                         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
-                            <Label Text="Perguntas (editáveis)" FontAttributes="Bold" TextColor="{StaticResource PmText}" />
+                            <Label Text="Perguntas (editáveis)" Padding="0,10,0,0" FontAttributes="Bold" TextColor="{StaticResource PmText}" />
 
                             <Button Grid.Column="1"
                                     Text="Limpar"
@@ -295,7 +376,6 @@
                                                         FontSize="13"/>
                                             </Border>
 
-                                            <!-- Alternativas -->
                                             <VerticalStackLayout Spacing="8">
 
                                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
@@ -364,7 +444,6 @@
 
                                             </VerticalStackLayout>
 
-                                            <!-- Gabarito: Label espelho + Picker nativo invisível -->
                                             <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                                 <Label Text="Gabarito"
                                                        TextColor="{StaticResource PmMuted}"
@@ -377,7 +456,6 @@
                                                         StrokeShape="RoundRectangle 12"
                                                         Padding="10,6">
                                                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
-
                                                         <Label Text="{Binding Answer}"
                                                                TextColor="{StaticResource PmText}"
                                                                FontSize="13"
@@ -389,19 +467,18 @@
                                                                VerticalTextAlignment="Center"
                                                                FontSize="12"/>
 
-                                                        <!-- Picker real (sem conteúdo direto): ItemsSource setado no code-behind -->
                                                         <Picker Opacity="0.01"
-                                                            HeightRequest="1"
-                                                            IsVisible="True"
-                                                            SelectedItem="{Binding Answer, Mode=TwoWay}"
-                                                            HandlerChanged="OnAnswerPickerHandlerChanged"/>
+                                                                HeightRequest="1"
+                                                                IsVisible="True"
+                                                                SelectedItem="{Binding Answer, Mode=TwoWay}"
+                                                                HandlerChanged="OnAnswerPickerHandlerChanged"/>
                                                     </Grid>
                                                 </Border>
                                             </Grid>
 
                                             <Button Text="Remover pergunta"
-                                                    BackgroundColor="{StaticResource PmSoft}"
-                                                    TextColor="{StaticResource PmText}"
+                                                    BackgroundColor="Red"
+                                                    TextColor="White"
                                                     CornerRadius="14"
                                                     HeightRequest="40"
                                                     Clicked="OnRemoveQuestion"

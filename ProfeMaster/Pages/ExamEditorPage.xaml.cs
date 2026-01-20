@@ -9,6 +9,7 @@ public partial class ExamEditorPage : ContentPage
     private readonly LocalStore _store;
     private readonly GroqQuizService _quizSvc;
 
+    private readonly bool _isExisting;
     private ExamItem _item;
 
     private string _uid = "";
@@ -17,16 +18,22 @@ public partial class ExamEditorPage : ContentPage
     public ExamEditorPage(FirebaseDbService db, LocalStore store, GroqQuizService quizSvc, ExamItem item)
     {
         InitializeComponent();
+
         _db = db;
         _store = store;
         _quizSvc = quizSvc;
         _item = item;
+
+        // Heurística: se veio da lista, normalmente tem CreatedAt antigo e/ou conteúdo.
+        // Se você cria um ExamItem() novo, ele vem vazio (Title/Description) e CreatedAt "agora".
+        _isExisting = LooksExisting(_item);
 
         TitleEntry.Text = _item.Title;
         DescEditor.Text = _item.Description;
 
         RefreshThumb();
         RefreshQuizUI();
+        RefreshPrimaryActionsUI();
     }
 
     protected override async void OnAppearing()
@@ -44,6 +51,57 @@ public partial class ExamEditorPage : ContentPage
         _token = session.IdToken;
 
         RefreshQuizUI();
+        RefreshPrimaryActionsUI();
+    }
+
+    private static bool LooksExisting(ExamItem it)
+    {
+        if (it == null) return false;
+
+        // Se já tem conteúdo, tratamos como existente
+        if (!string.IsNullOrWhiteSpace(it.Title)) return true;
+        if (!string.IsNullOrWhiteSpace(it.Description)) return true;
+        if (!string.IsNullOrWhiteSpace(it.ThumbLocalPath)) return true;
+        if (!string.IsNullOrWhiteSpace(it.ThumbUrl)) return true;
+
+        // Se tiver QuizJson (caso você já adicionou no model)
+        var quizProp = it.GetType().GetProperty("QuizJson");
+        if (quizProp != null)
+        {
+            var v = quizProp.GetValue(it) as string;
+            if (!string.IsNullOrWhiteSpace(v)) return true;
+        }
+
+        // Se não tem nada, mas CreatedAt não é "agora", pode ser existente
+        // (tolerância de 2 minutos)
+        try
+        {
+            var diff = DateTimeOffset.UtcNow - it.CreatedAt;
+            if (diff.Duration() > TimeSpan.FromMinutes(2))
+                return true;
+        }
+        catch { }
+
+        return false;
+    }
+
+    private void RefreshPrimaryActionsUI()
+    {
+        // LeftActionBtn: Cancelar (novo) OU Excluir (existente)
+        if (_isExisting)
+        {
+            LeftActionBtn.Text = "Excluir prova";
+            LeftActionBtn.Clicked -= OnCancel;
+            LeftActionBtn.Clicked -= OnDeleteExam;
+            LeftActionBtn.Clicked += OnDeleteExam;
+        }
+        else
+        {
+            LeftActionBtn.Text = "Cancelar";
+            LeftActionBtn.Clicked -= OnDeleteExam;
+            LeftActionBtn.Clicked -= OnCancel;
+            LeftActionBtn.Clicked += OnCancel;
+        }
     }
 
     private void RefreshThumb()
@@ -63,7 +121,8 @@ public partial class ExamEditorPage : ContentPage
 
     private void RefreshQuizUI()
     {
-        var hasQuiz = !string.IsNullOrWhiteSpace(_item.QuizJson);
+        var quizJson = GetQuizJson(_item);
+        var hasQuiz = !string.IsNullOrWhiteSpace(quizJson);
 
         QuizStatusLabel.Text = hasQuiz
             ? "Quiz já criado e anexado a esta prova."
@@ -76,6 +135,31 @@ public partial class ExamEditorPage : ContentPage
         BtnOpenQuiz.IsVisible = hasQuiz;
         BtnDeleteQuiz.IsVisible = hasQuiz;
     }
+
+    // ===== Helpers para QuizJson (sem quebrar build se você ainda não atualizou o model em todos lugares)
+    private static string GetQuizJson(ExamItem it)
+    {
+        try
+        {
+            var p = it.GetType().GetProperty("QuizJson");
+            return (p?.GetValue(it) as string) ?? "";
+        }
+        catch { return ""; }
+    }
+
+    private static void SetQuizJson(ExamItem it, string value)
+    {
+        try
+        {
+            var p = it.GetType().GetProperty("QuizJson");
+            if (p != null && p.PropertyType == typeof(string))
+                p.SetValue(it, value ?? "");
+        }
+        catch { }
+    }
+
+    private async void OnBack(object sender, EventArgs e)
+        => await Navigation.PopModalAsync();
 
     private async void OnPickThumb(object sender, EventArgs e)
     {
@@ -117,7 +201,9 @@ public partial class ExamEditorPage : ContentPage
         if (!EnsureSession())
             return;
 
-        var hasQuiz = !string.IsNullOrWhiteSpace(_item.QuizJson);
+        var currentQuiz = GetQuizJson(_item);
+        var hasQuiz = !string.IsNullOrWhiteSpace(currentQuiz);
+
         if (hasQuiz)
         {
             var confirm = await DisplayAlert(
@@ -135,14 +221,13 @@ public partial class ExamEditorPage : ContentPage
             if (string.IsNullOrWhiteSpace(json))
                 return;
 
-            _item.QuizJson = json;
+            SetQuizJson(_item, json);
 
             MainThread.BeginInvokeOnMainThread(RefreshQuizUI);
-
             await TryAutoSaveExamAsync();
         });
 
-        // Novo quiz = inicia vazio (não carrega o anterior)
+        // Novo quiz = inicia vazio
         await Navigation.PushModalAsync(page);
     }
 
@@ -151,7 +236,9 @@ public partial class ExamEditorPage : ContentPage
         if (!EnsureSession())
             return;
 
-        if (string.IsNullOrWhiteSpace(_item.QuizJson))
+        var quizJson = GetQuizJson(_item);
+
+        if (string.IsNullOrWhiteSpace(quizJson))
         {
             await DisplayAlert("Aviso", "Ainda não há quiz anexado.", "OK");
             RefreshQuizUI();
@@ -163,15 +250,13 @@ public partial class ExamEditorPage : ContentPage
             if (string.IsNullOrWhiteSpace(json))
                 return;
 
-            _item.QuizJson = json;
+            SetQuizJson(_item, json);
 
             MainThread.BeginInvokeOnMainThread(RefreshQuizUI);
-
             await TryAutoSaveExamAsync();
         });
 
-        page.LoadFromJson(_item.QuizJson);
-
+        page.LoadFromJson(quizJson);
         await Navigation.PushModalAsync(page);
     }
 
@@ -180,7 +265,8 @@ public partial class ExamEditorPage : ContentPage
         if (!EnsureSession())
             return;
 
-        if (string.IsNullOrWhiteSpace(_item.QuizJson))
+        var quizJson = GetQuizJson(_item);
+        if (string.IsNullOrWhiteSpace(quizJson))
         {
             RefreshQuizUI();
             return;
@@ -194,8 +280,7 @@ public partial class ExamEditorPage : ContentPage
 
         if (!confirm) return;
 
-        _item.QuizJson = "";
-
+        SetQuizJson(_item, "");
         RefreshQuizUI();
 
         await TryAutoSaveExamAsync();
@@ -218,7 +303,7 @@ public partial class ExamEditorPage : ContentPage
             var title = (TitleEntry.Text ?? "").Trim();
             if (string.IsNullOrWhiteSpace(title))
             {
-                // não salva sem título (para não criar prova "fantasma")
+                // não salva sem título
                 return;
             }
 
@@ -235,6 +320,37 @@ public partial class ExamEditorPage : ContentPage
 
     private async void OnCancel(object sender, EventArgs e)
         => await Navigation.PopModalAsync();
+
+    private async void OnDeleteExam(object sender, EventArgs e)
+    {
+        if (!EnsureSession())
+            return;
+
+        var confirm = await DisplayAlert(
+            "Excluir prova",
+            "Deseja excluir esta prova? Essa ação não pode ser desfeita.",
+            "Excluir",
+            "Cancelar");
+
+        if (!confirm) return;
+
+        try
+        {
+            var ok = await _db.DeleteExamAsync(_uid, _token, _item.Id);
+
+            if (!ok)
+            {
+                await DisplayAlert("Erro", "Não foi possível excluir a prova.", "OK");
+                return;
+            }
+
+            await Navigation.PopModalAsync();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Erro", "Falha ao excluir:\n" + ex.Message, "OK");
+        }
+    }
 
     private async void OnSave(object sender, EventArgs e)
     {

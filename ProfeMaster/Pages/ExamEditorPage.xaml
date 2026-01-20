@@ -88,148 +88,176 @@
 
     </ContentPage.Resources>
 
-    <ScrollView>
-        <VerticalStackLayout Padding="18" Spacing="12">
+    <Grid Padding="18" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-            <!-- HEADER -->
-            <Border Style="{StaticResource PmCard}">
-                <Grid Padding="14" ColumnDefinitions="*,Auto" ColumnSpacing="10">
-                    <VerticalStackLayout Spacing="2">
-                        <Label Text="Prova"
-                               FontSize="18"
+        <!-- TOP BAR -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+
+            <Border BackgroundColor="#FFFFFF"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Button Text="Voltar"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource PmText}"
+                        FontAttributes="Bold"
+                        FontSize="12"
+                        Padding="4,0"
+                        Clicked="OnBack"/>
+            </Border>
+
+            <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                <Label Text="Prova"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource PmText}" />
+                <Label Text="Crie/edite dados, capa e descrição."
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}" />
+            </VerticalStackLayout>
+
+            <Border Grid.Column="2"
+                    BackgroundColor="#F2F2F2"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Label Text="Editor"
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}"
+                       VerticalOptions="Center"/>
+            </Border>
+        </Grid>
+
+        <!-- CONTENT -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12">
+
+                <!-- DADOS -->
+                <Border Style="{StaticResource PmCard}">
+                    <VerticalStackLayout Padding="14" Spacing="12">
+
+                        <Label Text="Dados da prova"
                                FontAttributes="Bold"
                                TextColor="{StaticResource PmText}" />
-                        <Label Text="Crie/edite dados, capa e descrição."
-                               FontSize="12"
-                               TextColor="{StaticResource PmMuted}" />
-                    </VerticalStackLayout>
 
-                    <!-- (opcional) botão "Dicas" -->
-                    <Button Grid.Column="1"
-                            Text="Dicas"
-                            Style="{StaticResource PmBtnSoft}"
-                            Clicked="OnGeneratePlaceholder"
-                            VerticalOptions="Center"
-                            IsVisible="False" />
-                </Grid>
-            </Border>
+                        <!-- Título -->
+                        <Border Style="{StaticResource PmField}">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Título"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}" />
+                                <Entry x:Name="TitleEntry"
+                                       Style="{StaticResource PmEntry}"
+                                       Placeholder="Título da prova" />
+                            </VerticalStackLayout>
+                        </Border>
 
-            <!-- DADOS -->
-            <Border Style="{StaticResource PmCard}">
-                <VerticalStackLayout Padding="14" Spacing="12">
+                        <!-- Thumb -->
+                        <Border Style="{StaticResource PmField}">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="Capa (thumb)"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}" />
 
-                    <Label Text="Dados da prova"
-                           FontAttributes="Bold"
-                           TextColor="{StaticResource PmText}" />
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
 
-                    <!-- Título -->
-                    <Border Style="{StaticResource PmField}">
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Título"
-                                   FontSize="10"
-                                   TextColor="{StaticResource PmMuted}" />
-                            <Entry x:Name="TitleEntry"
-                                   Style="{StaticResource PmEntry}"
-                                   Placeholder="Título da prova" />
-                        </VerticalStackLayout>
-                    </Border>
+                                    <Border WidthRequest="80"
+                                            HeightRequest="80"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 14"
+                                            BackgroundColor="#0f172a">
+                                        <Image x:Name="ThumbPreview" Aspect="AspectFill" />
+                                    </Border>
 
-                    <!-- Thumb -->
-                    <Border Style="{StaticResource PmField}">
-                        <VerticalStackLayout Spacing="10">
-                            <Label Text="Capa (thumb)"
-                                   FontSize="10"
-                                   TextColor="{StaticResource PmMuted}" />
+                                    <VerticalStackLayout Grid.Column="1"
+                                                         Spacing="8"
+                                                         VerticalOptions="Center">
+                                        <Button Text="Selecionar capa"
+                                                Style="{StaticResource PmBtnDark}"
+                                                Clicked="OnPickThumb" />
+                                        <Button Text="Remover capa"
+                                                Style="{StaticResource PmBtnDanger}"
+                                                Clicked="OnRemoveThumb" />
+                                    </VerticalStackLayout>
 
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
 
-                                <Border WidthRequest="80"
-                                        HeightRequest="80"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 14"
-                                        BackgroundColor="#0f172a">
-                                    <Image x:Name="ThumbPreview" Aspect="AspectFill" />
-                                </Border>
+                        <!-- Descrição -->
+                        <Border Style="{StaticResource PmField}">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Descrição"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}" />
+                                <Editor x:Name="DescEditor"
+                                        Style="{StaticResource PmEditor}"
+                                        AutoSize="TextChanges"
+                                        Placeholder="Contexto da prova, conteúdos, observações..." />
+                            </VerticalStackLayout>
+                        </Border>
 
-                                <VerticalStackLayout Grid.Column="1"
-                                                     Spacing="8"
-                                                     VerticalOptions="Center">
-                                    <Button Text="Selecionar capa"
+                        <!-- QUIZ -->
+                        <Border Style="{StaticResource PmField}">
+                            <VerticalStackLayout Spacing="10">
+
+                                <Label x:Name="QuizStatusLabel"
+                                       Text="Nenhum quiz anexado ainda."
+                                       TextColor="{StaticResource PmMuted}"
+                                       FontSize="12" />
+
+                                <Grid x:Name="QuizActionsRow"
+                                      ColumnDefinitions="*,*"
+                                      ColumnSpacing="10"
+                                      IsVisible="False">
+
+                                    <Button x:Name="BtnOpenQuiz"
+                                            Text="Abrir / editar"
                                             Style="{StaticResource PmBtnDark}"
-                                            Clicked="OnPickThumb" />
-                                    <Button Text="Remover capa"
+                                            Clicked="OnOpenQuiz" />
+
+                                    <Button x:Name="BtnDeleteQuiz"
+                                            Grid.Column="1"
+                                            Text="Excluir"
                                             Style="{StaticResource PmBtnDanger}"
-                                            Clicked="OnRemoveThumb" />
-                                </VerticalStackLayout>
+                                            Clicked="OnDeleteQuiz" />
+                                </Grid>
 
-                            </Grid>
-                        </VerticalStackLayout>
-                    </Border>
+                                <Button x:Name="BtnCreateQuiz"
+                                        Text="Gerar quiz"
+                                        Style="{StaticResource PmBtnPrimary}"
+                                        Clicked="OnGeneratePlaceholder" />
 
-                    <!-- Descrição -->
-                    <Border Style="{StaticResource PmField}">
-                        <VerticalStackLayout Spacing="6">
-                            <Label Text="Descrição"
-                                   FontSize="10"
-                                   TextColor="{StaticResource PmMuted}" />
-                            <Editor x:Name="DescEditor"
-                                    Style="{StaticResource PmEditor}"
-                                    AutoSize="TextChanges"
-                                    Placeholder="Contexto da prova, conteúdos, observações..." />
-                        </VerticalStackLayout>
-                    </Border>
+                            </VerticalStackLayout>
+                        </Border>
 
-                    <!-- QUIZ -->
-                    <Border Style="{StaticResource PmField}">
-                        <VerticalStackLayout Spacing="10">
+                    </VerticalStackLayout>
+                </Border>
 
-                            <!-- STATUS -->
-                            <Label x:Name="QuizStatusLabel"
-                                   Text="Nenhum quiz anexado ainda."
-                                   TextColor="{StaticResource PmMuted}"
-                                   FontSize="12" />
+            </VerticalStackLayout>
+        </ScrollView>
 
-                            <!-- AÇÕES (só quando existir quiz) -->
-                            <Grid x:Name="QuizActionsRow"
-                                  ColumnDefinitions="*,*"
-                                  ColumnSpacing="10"
-                                  IsVisible="False">
+        <!-- BOTTOM ACTIONS -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10">
+            <Button x:Name="LeftActionBtn"
+                    Text="Cancelar"
+                    Style="{StaticResource PmBtnDanger}"
+                    Clicked="OnCancel" />
 
-                                <Button x:Name="BtnOpenQuiz"
-                                        Text="Abrir / editar"
-                                        Style="{StaticResource PmBtnDark}"
-                                        Clicked="OnOpenQuiz" />
+            <Button Grid.Column="1"
+                    Text="Salvar"
+                    Style="{StaticResource PmBtnPrimary}"
+                    Clicked="OnSave" />
+        </Grid>
 
-                                <Button x:Name="BtnDeleteQuiz"
-                                        Grid.Column="1"
-                                        Text="Excluir"
-                                        Style="{StaticResource PmBtnDanger}"
-                                        Clicked="OnDeleteQuiz" />
-                            </Grid>
-
-                            <!-- BOTÃO PRINCIPAL -->
-                            <Button x:Name="BtnCreateQuiz"
-                                    Text="Gerar quiz"
-                                    Style="{StaticResource PmBtnPrimary}"
-                                    Clicked="OnGeneratePlaceholder" />
-
-                        </VerticalStackLayout>
-                    </Border>
-
-                </VerticalStackLayout>
-            </Border>
-
-            <!-- AÇÕES -->
-            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                <Button Text="Cancelar"
-                        Style="{StaticResource PmBtnDanger}"
-                        Clicked="OnCancel" />
-                <Button Grid.Column="1"
-                        Text="Salvar"
-                        Style="{StaticResource PmBtnPrimary}"
-                        Clicked="OnSave" />
-            </Grid>
-
-        </VerticalStackLayout>
-    </ScrollView>
+    </Grid>
 </ContentPage>
