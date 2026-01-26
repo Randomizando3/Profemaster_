@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.Tools.CalendarToolPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#FFFFFF"
+    Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+        <Color x:Key="PmSoft">#F2F2F2</Color>
+
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="PmBtnPrimary" TargetType="Button">
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="Background" Value="{StaticResource PmGradient}" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="HeightRequest" Value="46" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid Padding="18" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+            <Border BackgroundColor="#FFFFFF"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Button Text="Voltar"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource PmText}"
+                        FontAttributes="Bold"
+                        FontSize="12"
+                        Padding="4,0"
+                        Clicked="OnBack"/>
+            </Border>
+
+            <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                <Label Text="Calendário"
+                       FontAttributes="Bold"
+                       FontSize="16"
+                       TextColor="{StaticResource PmText}"/>
+                <Label Text="Abrir calendário do dispositivo / Google Calendar."
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}"/>
+            </VerticalStackLayout>
+
+            <Border Grid.Column="2"
+                    BackgroundColor="{StaticResource PmSoft}"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Label Text="Cal" FontSize="11" TextColor="{StaticResource PmMuted}"/>
+            </Border>
+        </Grid>
+
+        <VerticalStackLayout Grid.Row="1" Spacing="12">
+
+            <Border BackgroundColor="#FFFFFF"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 18"
+                    Padding="14">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="O app vai tentar abrir o calendário nativo. Se não for possível, abre no navegador."
+                           FontSize="12"
+                           TextColor="{StaticResource PmText}"/>
+
+                    <Button Text="Abrir Calendário"
+                            Style="{StaticResource PmBtnPrimary}"
+                            Clicked="OnOpenCalendar"/>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>

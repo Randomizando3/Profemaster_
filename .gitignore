@@ -25,6 +25,10 @@ ProfeMaster/Services/FirebaseStorageService.cs
 ProfeMaster/Services/FirebaseStorageService.cs
 ProfeMaster/Services/GroqQuizService.cs
 
+*.keystore
+*.jks
+*.pem
+
 # --- Arquivos de Sistema Operacional ---
 .DS_Store
 Thumbs.db

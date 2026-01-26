@@ -43,6 +43,9 @@ public partial class EventEditorPage : ContentPage
         BuildSlots(start, end, silent: true);
         RebuildSlotsUi();
 
+        // ? capa
+        RefreshThumbPreview();
+
         _isLoadingUi = false;
     }
 
@@ -59,6 +62,97 @@ public partial class EventEditorPage : ContentPage
 
         _uid = session.Uid;
         _token = session.IdToken;
+    }
+
+    // =========================
+    // ? CAPA (ThumbLocalPath / ThumbUrl)
+    // =========================
+    private void RefreshThumbPreview()
+    {
+        try
+        {
+            var local = (_event.ThumbLocalPath ?? "").Trim();
+            var url = (_event.ThumbUrl ?? "").Trim();
+
+            ImageSource? src = null;
+
+            if (!string.IsNullOrWhiteSpace(local) && File.Exists(local))
+                src = ImageSource.FromFile(local);
+            else if (!string.IsNullOrWhiteSpace(url))
+                src = ImageSource.FromUri(new Uri(url));
+
+            ThumbPreview.Source = src;
+            ThumbPlaceholder.IsVisible = (src == null);
+        }
+        catch
+        {
+            ThumbPreview.Source = null;
+            ThumbPlaceholder.IsVisible = true;
+        }
+    }
+
+    private async void OnPickThumb(object sender, EventArgs e)
+    {
+        try
+        {
+            // Preferir galeria, simples e funciona bem em Android/Windows
+            var result = await MediaPicker.Default.PickPhotoAsync(new MediaPickerOptions
+            {
+                Title = "Selecione uma capa"
+            });
+
+            if (result == null)
+                return;
+
+            // Copia para AppDataDirectory para garantir acesso posterior
+            var ext = Path.GetExtension(result.FileName);
+            if (string.IsNullOrWhiteSpace(ext)) ext = ".jpg";
+
+            var fileName = $"event_thumb_{_event.Id}_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}{ext}";
+            var destPath = Path.Combine(FileSystem.AppDataDirectory, fileName);
+
+            await using (var srcStream = await result.OpenReadAsync())
+            await using (var destStream = File.Open(destPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                await srcStream.CopyToAsync(destStream);
+            }
+
+            _event.ThumbLocalPath = destPath;
+
+            // Se você já tiver ThumbUrl de algum fluxo externo, mantém.
+            RefreshThumbPreview();
+
+            // salva automático (sem exigir fechar)
+            QueueAutoSave();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Erro", $"Não foi possível selecionar a capa.\n{ex.Message}", "OK");
+        }
+    }
+
+    private async void OnRemoveThumb(object sender, EventArgs e)
+    {
+        try
+        {
+            // remove referência
+            var old = (_event.ThumbLocalPath ?? "").Trim();
+            _event.ThumbLocalPath = "";
+            _event.ThumbUrl = "";
+
+            RefreshThumbPreview();
+            QueueAutoSave();
+
+            // opcional: tentar apagar arquivo local
+            if (!string.IsNullOrWhiteSpace(old) && File.Exists(old))
+            {
+                try { File.Delete(old); } catch { /* ignora */ }
+            }
+        }
+        catch
+        {
+            // sem alert para não incomodar
+        }
     }
 
     private void UpdateSlotsInfo()
@@ -222,6 +316,9 @@ public partial class EventEditorPage : ContentPage
             }
         }
 
+        // garante atualização visual no Android (label hh:mm)
+        RebuildSlotsUi();
+
         QueueAutoSave();
     }
 
@@ -240,6 +337,7 @@ public partial class EventEditorPage : ContentPage
         _event.Slots ??= new();
         _event.EnsureSlotsMigrated();
 
+        // ? ThumbLocalPath / ThumbUrl já estão no _event e vão junto no Upsert
         await _db.UpsertEventAsync(_uid, _token, _event);
     }
 
@@ -274,9 +372,13 @@ public partial class EventEditorPage : ContentPage
     private async void OnCancel(object sender, EventArgs e)
         => await Navigation.PopModalAsync();
 
+    // Botão X (topo) fecha sem salvar (mantido conforme seu último ajuste)
     private async void OnClose(object sender, EventArgs e)
+        => await Navigation.PopModalAsync();
+
+    // Botão gradiente "Fechar" salva e fecha
+    private async void OnClosePrimary(object sender, EventArgs e)
     {
-        // valida mínimo para não criar “lixo”
         var title = (TitleEntry.Text ?? "").Trim();
         if (string.IsNullOrWhiteSpace(title))
         {
@@ -294,7 +396,6 @@ public partial class EventEditorPage : ContentPage
         public EventDaySlot Slot { get; }
         public string DateLabel { get; }
 
-        // UI template usa Items (com day reference)
         public List<EventAttractionVm> Items { get; } = new();
 
         public EventDayVm(EventDaySlot slot)
@@ -309,33 +410,57 @@ public partial class EventEditorPage : ContentPage
         }
     }
 
-    private sealed class EventAttractionVm
+    private sealed class EventAttractionVm : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
         public EventDayVm Day { get; }
         public EventAttractionItem Item { get; }
 
         public string Title
         {
             get => Item.Title;
-            set => Item.Title = value ?? "";
+            set
+            {
+                var v = value ?? "";
+                if (Item.Title == v) return;
+                Item.Title = v;
+                OnPropertyChanged(nameof(Title));
+            }
         }
 
         public TimeSpan StartTime
         {
             get => Item.StartTime;
-            set => Item.StartTime = value;
+            set
+            {
+                if (Item.StartTime == value) return;
+                Item.StartTime = value;
+                OnPropertyChanged(nameof(StartTime));
+            }
         }
 
         public TimeSpan EndTime
         {
             get => Item.EndTime;
-            set => Item.EndTime = value;
+            set
+            {
+                if (Item.EndTime == value) return;
+                Item.EndTime = value;
+                OnPropertyChanged(nameof(EndTime));
+            }
         }
 
         public string Notes
         {
             get => Item.Notes;
-            set => Item.Notes = value ?? "";
+            set
+            {
+                var v = value ?? "";
+                if (Item.Notes == v) return;
+                Item.Notes = v;
+                OnPropertyChanged(nameof(Notes));
+            }
         }
 
         public EventAttractionVm(EventDayVm day, EventAttractionItem item)
@@ -343,5 +468,8 @@ public partial class EventEditorPage : ContentPage
             Day = day;
             Item = item;
         }
+
+        private void OnPropertyChanged(string name)
+            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

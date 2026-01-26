@@ -41,6 +41,16 @@ public partial class HomePage : ContentPage
     private async void OnLessons(object sender, EventArgs e)
         => await Shell.Current.GoToAsync("///tabs/lessons");
 
+    private async void OnGoTools(object sender, EventArgs e)
+    => await Shell.Current.GoToAsync("tools");
+
+    private async void OnGoHelp(object sender, EventArgs e)
+        => await Shell.Current.GoToAsync("help");
+
+    private async void OnGoUpgrade(object sender, EventArgs e)
+    => await Shell.Current.GoToAsync("upgrade");
+
+
     private async void OnLogoutClicked(object sender, EventArgs e)
     {
         await _store.ClearSessionAsync();

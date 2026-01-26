@@ -150,6 +150,7 @@
                                         HeightRequest="56"
                                         Stroke="{StaticResource PmStroke}"
                                         StrokeThickness="2"
+                                        Margin="0,25,0,0"
                                         StrokeShape="RoundRectangle 14"
                                         BackgroundColor="#FFFFFF"
                                         VerticalOptions="Start">

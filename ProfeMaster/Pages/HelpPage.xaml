@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.HelpPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#FFFFFF"
+    Title=""
+    Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+        <Color x:Key="PmSoft">#F2F2F2</Color>
+
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="PmCard" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+            <Setter Property="Padding" Value="14" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid Padding="18" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP BAR -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+
+            <Border BackgroundColor="#FFFFFF"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Button Text="Voltar"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource PmText}"
+                        FontAttributes="Bold"
+                        FontSize="12"
+                        Padding="4,0"
+                        Clicked="OnBack"/>
+            </Border>
+
+            <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                <Label Text="Ajuda"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource PmText}" />
+                <Label Text="Tutoriais, dúvidas e suporte."
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}" />
+            </VerticalStackLayout>
+
+            <Border Grid.Column="2"
+                    BackgroundColor="{StaticResource PmSoft}"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Label Text="Help"
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}"
+                       VerticalOptions="Center"/>
+            </Border>
+        </Grid>
+
+        <!-- CONTENT -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12">
+
+                <Border Style="{StaticResource PmCard}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border WidthRequest="42" HeightRequest="42"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16"
+                                Background="{StaticResource PmGradient}"
+                                VerticalOptions="Center">
+                            <Label Text="🎬"
+                                   FontSize="18"
+                                   TextColor="#FFFFFF"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"/>
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Text="Tutoriais"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource PmText}"/>
+                            <Label Text="Passo a passo para usar o app."
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}"/>
+                        </VerticalStackLayout>
+
+                        <Button Grid.ColumnSpan="2"
+                                BackgroundColor="Transparent"
+                                Clicked="OnGoTutorials"/>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource PmCard}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border WidthRequest="42" HeightRequest="42"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#F3E8FF"
+                                VerticalOptions="Center">
+                            <Label Text="❓"
+                                   FontSize="18"
+                                   TextColor="{StaticResource PmText}"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"/>
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Text="FAQs"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource PmText}"/>
+                            <Label Text="Respostas rápidas para dúvidas comuns."
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}"/>
+                        </VerticalStackLayout>
+
+                        <Button Grid.ColumnSpan="2"
+                                BackgroundColor="Transparent"
+                                Clicked="OnGoFaqs"/>
+                    </Grid>
+                </Border>
+
+                <Border Style="{StaticResource PmCard}">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                        <Border WidthRequest="42" HeightRequest="42"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#EAF7FF"
+                                VerticalOptions="Center">
+                            <Label Text="✉️"
+                                   FontSize="18"
+                                   TextColor="{StaticResource PmText}"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"/>
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="2">
+                            <Label Text="Contato"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource PmText}"/>
+                            <Label Text="Sugestões e dúvidas viram ticket."
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}"/>
+                        </VerticalStackLayout>
+
+                        <Button Grid.ColumnSpan="2"
+                                BackgroundColor="Transparent"
+                                Clicked="OnGoContact"/>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

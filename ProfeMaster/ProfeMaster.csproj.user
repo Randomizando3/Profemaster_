@@ -3,9 +3,9 @@
   <PropertyGroup>
     <IsFirstTimeProjectOpen>False</IsFirstTimeProjectOpen>
     <ActiveDebugFramework>net9.0-android</ActiveDebugFramework>
-    <ActiveDebugProfile>Nexus 5X - API 35 (Android 15.0 – API 35)</ActiveDebugProfile>
+    <ActiveDebugProfile>Pixel 6 Pro - API 35 (Android 15.0 – API 35)</ActiveDebugProfile>
     <SelectedPlatformGroup>Emulator</SelectedPlatformGroup>
-    <DefaultDevice>nexus_5x_-_api_35</DefaultDevice>
+    <DefaultDevice>pixel_6_pro_-_api_35</DefaultDevice>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
     <DebuggerFlavor>ProjectDebugger</DebuggerFlavor>

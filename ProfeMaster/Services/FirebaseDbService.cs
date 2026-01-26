@@ -367,4 +367,49 @@ public sealed class FirebaseDbService
 
     public Task<bool> DeleteLessonByClassAsync(string uid, string institutionId, string classId, string token, string lessonId)
         => DeleteAsync($"users/{uid}/lessons/byClass/{institutionId}/{classId}/{lessonId}", token);
+
+
+    // ===== USER PROFILE / PREMIUM =====
+    public async Task<UserPremiumState?> GetUserPremiumAsync(string uid, string? idToken)
+    {
+        var url = $"{BaseUrl}/users/{uid}/profile/premium.json{AuthParam(idToken)}";
+        try
+        {
+            return await _http.GetFromJsonAsync<UserPremiumState>(url);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<bool> SetUserPremiumAsync(string uid, string? idToken, UserPremiumState state)
+    {
+        state.UpdatedAt = DateTimeOffset.UtcNow;
+        var url = $"{BaseUrl}/users/{uid}/profile/premium.json{AuthParam(idToken)}";
+        var resp = await _http.PutAsJsonAsync(url, state);
+        return resp.IsSuccessStatusCode;
+    }
+
+
+    public async Task<bool> CreateSupportTicketAsync(string uid, string? idToken, SupportTicket t)
+    {
+        t.Id = string.IsNullOrWhiteSpace(t.Id) ? Guid.NewGuid().ToString("N") : t.Id;
+        t.Uid = string.IsNullOrWhiteSpace(t.Uid) ? uid : t.Uid;
+        t.CreatedAt = t.CreatedAt == default ? DateTimeOffset.UtcNow : t.CreatedAt;
+
+        // Salva por usuário (organizado)
+        var url = $"{BaseUrl}/users/{uid}/supportTickets/{t.Id}.json{AuthParam(idToken)}";
+        var resp = await _http.PutAsJsonAsync(url, t);
+        return resp.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> PutRawAsync<T>(string relativePath, string? idToken, T payload)
+    {
+        var url = $"{BaseUrl}/{relativePath}.json{AuthParam(idToken)}";
+        var resp = await _http.PutAsJsonAsync(url, payload);
+        return resp.IsSuccessStatusCode;
+    }
+
+
 }

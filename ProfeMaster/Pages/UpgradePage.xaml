@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.UpgradePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#FFFFFF"
+    Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+        <Color x:Key="PmSoft">#F2F2F2</Color>
+
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="PmCard" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 20" />
+            <Setter Property="Padding" Value="14" />
+        </Style>
+
+        <Style x:Key="PmBtnPrimary" TargetType="Button">
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="Background" Value="{StaticResource PmGradient}" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="HeightRequest" Value="46" />
+        </Style>
+
+        <Style x:Key="PmBtnSoft" TargetType="Button">
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="BackgroundColor" Value="{StaticResource PmSoft}" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="HeightRequest" Value="46" />
+        </Style>
+
+        <Style x:Key="PmBadge" TargetType="Border">
+            <Setter Property="StrokeThickness" Value="0"/>
+            <Setter Property="StrokeShape" Value="RoundRectangle 14"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="BackgroundColor" Value="{StaticResource PmSoft}"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid Padding="18" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP BAR -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+
+            <Border BackgroundColor="#FFFFFF"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Button Text="Voltar"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource PmText}"
+                        FontAttributes="Bold"
+                        FontSize="12"
+                        Padding="4,0"
+                        Clicked="OnBack"/>
+            </Border>
+
+            <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                <Label Text="Upgrade"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource PmText}" />
+                <Label Text="Escolha Grátis ou Premium (sem anúncios)."
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}" />
+            </VerticalStackLayout>
+
+            <Border Grid.Column="2"
+                    BackgroundColor="{StaticResource PmSoft}"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Label x:Name="StatusBadgeLabel"
+                       Text="Status"
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}"
+                       VerticalOptions="Center"/>
+            </Border>
+        </Grid>
+
+        <!-- CONTENT -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12">
+
+                <!-- HERO -->
+                <Border StrokeThickness="0"
+                        StrokeShape="RoundRectangle 20"
+                        Padding="16">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#B66AF4" Offset="0" />
+                            <GradientStop Color="#7E97D9" Offset="1" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" RowDefinitions="Auto">
+                        <VerticalStackLayout Spacing="6">
+                            <Label Text="Premium = sem anúncios"
+                                   FontAttributes="Bold"
+                                   FontSize="16"
+                                   TextColor="#FFFFFF"/>
+                        </VerticalStackLayout>
+
+                        <Border Grid.Column="1"
+                                WidthRequest="46" HeightRequest="46"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#FFFFFF"
+                                Opacity="0.95"
+                                VerticalOptions="Center">
+                            <Label Text="★"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"
+                                   TextColor="#8B2CE2" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <!-- FREE -->
+                <Border Style="{StaticResource PmCard}">
+                    <VerticalStackLayout Spacing="10">
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border WidthRequest="44" HeightRequest="44"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 16"
+                                    BackgroundColor="#EAF7FF"
+                                    VerticalOptions="Center">
+                                <Label Text="🙂"
+                                       FontSize="18"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{StaticResource PmText}"/>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="Grátis"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmText}"/>
+                                <Label Text="Versão padrão com anúncios."
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}"/>
+                            </VerticalStackLayout>
+
+                            <Border Grid.Column="2" Style="{StaticResource PmBadge}" VerticalOptions="Center">
+                                <Label x:Name="FreeTagLabel" Text="Selecionado"
+                                       FontSize="11" TextColor="{StaticResource PmMuted}"/>
+                            </Border>
+                        </Grid>
+
+                        <Button Text="Usar Grátis"
+                                Style="{StaticResource PmBtnSoft}"
+                                Clicked="OnSetFree"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- PREMIUM -->
+                <Border Style="{StaticResource PmCard}">
+                    <VerticalStackLayout Spacing="10">
+
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border WidthRequest="44" HeightRequest="44"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 16"
+                                    BackgroundColor="#EFEAFE"
+                                    VerticalOptions="Center">
+                                <Label Text="👑"
+                                       FontSize="18"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{StaticResource PmText}"/>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="Premium"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmText}"/>
+                                <Label Text="Sem anúncios. (Billing entra depois.)"
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}"/>
+                            </VerticalStackLayout>
+
+                            <Border Grid.Column="2" Style="{StaticResource PmBadge}" VerticalOptions="Center">
+                                <Label x:Name="PremiumTagLabel" Text="Ativo"
+                                       FontSize="11" TextColor="{StaticResource PmMuted}"/>
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Text="Premium 30 dias"
+                                    Style="{StaticResource PmBtnPrimary}"
+                                    Clicked="OnSetPremium30"/>
+
+                            <Button Grid.Column="1"
+                                    Text="Premium 1 ano"
+                                    Style="{StaticResource PmBtnPrimary}"
+                                    Clicked="OnSetPremiumYear"/>
+                        </Grid>
+
+                        <Label x:Name="PremiumUntilLabel"
+                               Text=""
+                               FontSize="10"
+                               TextColor="{StaticResource PmMuted}"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!--<Label Text="Observação: no futuro o Google Billing apenas atualizará IsPremium/IsPremiumUntil."
+                       FontSize="10"
+                       TextColor="{StaticResource PmMuted}"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,4,0,10"/>-->
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- BOTTOM -->
+        <Grid Grid.Row="2" ColumnDefinitions="*">
+            <Button Text="Fechar"
+                    Style="{StaticResource PmBtnSoft}"
+                    Clicked="OnBack"/>
+        </Grid>
+
+    </Grid>
+</ContentPage>

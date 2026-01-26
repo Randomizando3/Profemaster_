@@ -28,15 +28,15 @@
         <!-- TOP BAR -->
         <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
 
-            <Border BackgroundColor="#FFFFFF"
-                    Stroke="{StaticResource PmStroke}"
-                    StrokeThickness="2"
+            <Border StrokeThickness="0"
                     StrokeShape="RoundRectangle 16"
                     Padding="10,8"
-                    VerticalOptions="Center">
-                <Button Text="Voltar"
+                    VerticalOptions="Center"
+                    Background="{StaticResource PmGradient}">
+
+                <Button Text="Salvar"
                         BackgroundColor="Transparent"
-                        TextColor="{StaticResource PmText}"
+                        TextColor="#FFFFFF"
                         FontAttributes="Bold"
                         FontSize="12"
                         Padding="4,0"
@@ -100,15 +100,17 @@
                                            VerticalTextAlignment="Center"
                                            FontSize="12"/>
 
-                                    <Grid.GestureRecognizers>
-                                        <TapGestureRecognizer Tapped="OnModeTap"/>
-                                    </Grid.GestureRecognizers>
-
                                     <Picker x:Name="ModePicker"
                                             Opacity="0.01"
                                             HeightRequest="1"
                                             IsVisible="True"
                                             SelectedIndexChanged="OnModeChanged"/>
+
+                                    <!-- ✅ MOVIDO PARA O FINAL (corrige XLS0509) -->
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="OnModeTap"/>
+                                    </Grid.GestureRecognizers>
+
                                 </Grid>
                             </Border>
 
@@ -281,14 +283,16 @@
                                        VerticalTextAlignment="Center"
                                        FontSize="12"/>
 
-                                <Grid.GestureRecognizers>
-                                    <TapGestureRecognizer Tapped="OnDifficultyTap"/>
-                                </Grid.GestureRecognizers>
-
                                 <Picker x:Name="DifficultyPicker"
                                         Opacity="0.01"
                                         HeightRequest="1"
                                         IsVisible="True"/>
+
+                                <!-- ✅ MOVIDO PARA O FINAL (corrige XLS0509) -->
+                                <Grid.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnDifficultyTap"/>
+                                </Grid.GestureRecognizers>
+
                             </Grid>
                         </Border>
 

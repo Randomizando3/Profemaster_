@@ -239,16 +239,34 @@ public partial class LessonEditorPage : ContentPage
 
         try
         {
-            var file = await FilePicker.Default.PickAsync(new PickOptions { PickerTitle = "Selecione um arquivo" });
+            // Garante Id antes de montar o path
+            _lesson.Id = string.IsNullOrWhiteSpace(_lesson.Id) ? Guid.NewGuid().ToString("N") : _lesson.Id;
+
+            // Aceita qualquer arquivo
+            var file = await FilePicker.Default.PickAsync(new PickOptions
+            {
+                PickerTitle = "Selecione um arquivo",
+                FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+                {
+                    { DevicePlatform.Android, new[] { "*/*" } },
+                    { DevicePlatform.iOS, new[] { "public.item" } },
+                    { DevicePlatform.MacCatalyst, new[] { "public.item" } },
+                    { DevicePlatform.WinUI, new[] { "*" } }
+                })
+            });
+
             if (file == null) return;
 
-            await using var stream = await file.OpenReadAsync();
+            // Copia para MemoryStream para evitar instabilidades de stream no Android
+            await using var src = await file.OpenReadAsync();
+            using var ms = new MemoryStream();
+            await src.CopyToAsync(ms);
+            ms.Position = 0;
 
-            // separa por lessonId (coerente com planos)
             var storagePath = $"users/{_uid}/lessons/{_lesson.Id}/{file.FileName}";
-            var contentType = file.ContentType ?? "application/octet-stream";
+            var contentType = string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType;
 
-            var (ok, dl, path, err) = await _storage.UploadAsync(_token, storagePath, file.FileName, contentType, stream);
+            var (ok, dl, path, err) = await _storage.UploadAsync(_token, storagePath, file.FileName, contentType, ms);
             if (!ok)
             {
                 await DisplayAlert("Erro", err, "OK");
@@ -349,7 +367,6 @@ public partial class LessonEditorPage : ContentPage
         _lesson.MaterialsV2 ??= new();
         _lesson.UpdatedAt = DateTimeOffset.UtcNow;
 
-        // Garante Id consistente antes de salvar no path all/byClass
         _lesson.Id = string.IsNullOrWhiteSpace(_lesson.Id) ? Guid.NewGuid().ToString("N") : _lesson.Id;
 
         var okAll = await _db.UpsertLessonAllAsync(_uid, _token, _lesson);

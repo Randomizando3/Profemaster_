@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.Tools.CalculatorPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#FFFFFF"
+    Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+        <Color x:Key="PmSoft">#F2F2F2</Color>
+
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="PmKey" TargetType="Button">
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="TextColor" Value="{StaticResource PmText}"/>
+            <Setter Property="BackgroundColor" Value="{StaticResource PmSoft}"/>
+            <Setter Property="HeightRequest" Value="54"/>
+        </Style>
+
+        <Style x:Key="PmKeyPrimary" TargetType="Button">
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="TextColor" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="{StaticResource PmGradient}"/>
+            <Setter Property="HeightRequest" Value="54"/>
+        </Style>
+
+        <Style x:Key="PmKeyDanger" TargetType="Button">
+            <Setter Property="CornerRadius" Value="16"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextColor" Value="#FFFFFF"/>
+            <Setter Property="BackgroundColor" Value="#3A2040"/>
+            <Setter Property="HeightRequest" Value="54"/>
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid Padding="18" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+            <Border BackgroundColor="#FFFFFF"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Button Text="Voltar"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource PmText}"
+                        FontAttributes="Bold"
+                        FontSize="12"
+                        Padding="4,0"
+                        Clicked="OnBack"/>
+            </Border>
+
+            <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                <Label Text="Calculadora" FontAttributes="Bold" FontSize="16" TextColor="{StaticResource PmText}"/>
+                <Label Text="Offline e simples." FontSize="11" TextColor="{StaticResource PmMuted}"/>
+            </VerticalStackLayout>
+
+            <Border Grid.Column="2"
+                    BackgroundColor="{StaticResource PmSoft}"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Label Text="Calc" FontSize="11" TextColor="{StaticResource PmMuted}" />
+            </Border>
+        </Grid>
+
+        <!-- DISPLAY -->
+        <Border Grid.Row="1"
+                BackgroundColor="#FFFFFF"
+                Stroke="{StaticResource PmStroke}"
+                StrokeThickness="2"
+                StrokeShape="RoundRectangle 18"
+                Padding="14">
+            <VerticalStackLayout Spacing="6">
+                <Label x:Name="ExprLabel"
+                       Text=""
+                       FontSize="14"
+                       TextColor="{StaticResource PmMuted}"
+                       LineBreakMode="TailTruncation"
+                       MaxLines="1"/>
+                <Label x:Name="ResultLabel"
+                       Text="0"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource PmText}"
+                       HorizontalTextAlignment="End"/>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- KEYPAD -->
+        <Grid Grid.Row="2" RowSpacing="10" ColumnSpacing="10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Row 0 -->
+            <Button Grid.Row="0" Grid.Column="0" Text="C" Style="{StaticResource PmKeyDanger}" Clicked="OnClear"/>
+            <Button Grid.Row="0" Grid.Column="1" Text="(" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="0" Grid.Column="2" Text=")" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="0" Grid.Column="3" Text="⌫" Style="{StaticResource PmKey}" Clicked="OnBackspace"/>
+
+            <!-- Row 1 -->
+            <Button Grid.Row="1" Grid.Column="0" Text="7" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="1" Grid.Column="1" Text="8" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="1" Grid.Column="2" Text="9" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="1" Grid.Column="3" Text="÷" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+
+            <!-- Row 2 -->
+            <Button Grid.Row="2" Grid.Column="0" Text="4" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="2" Grid.Column="1" Text="5" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="2" Grid.Column="2" Text="6" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="2" Grid.Column="3" Text="×" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+
+            <!-- Row 3 -->
+            <Button Grid.Row="3" Grid.Column="0" Text="1" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="3" Grid.Column="1" Text="2" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="3" Grid.Column="2" Text="3" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="3" Grid.Column="3" Text="−" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+
+            <!-- Row 4 -->
+            <Button Grid.Row="4" Grid.Column="0" Text="0" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="4" Grid.Column="1" Text="." Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="4" Grid.Column="2" Text="+" Style="{StaticResource PmKey}" Clicked="OnAppend"/>
+            <Button Grid.Row="4" Grid.Column="3" Text="=" Style="{StaticResource PmKeyPrimary}" Clicked="OnEquals"/>
+        </Grid>
+
+    </Grid>
+</ContentPage>

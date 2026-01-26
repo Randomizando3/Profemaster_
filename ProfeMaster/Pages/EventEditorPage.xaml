@@ -131,6 +131,53 @@
 
                     <Label Text="Dados do evento" Style="{StaticResource PmH2}"/>
 
+                    <!-- ✅ CAPA DO EVENTO -->
+                    <VerticalStackLayout Spacing="8">
+
+                        <Label Text="Capa do evento" Style="{StaticResource PmCaption}" />
+
+                        <Border Style="{StaticResource PmInnerCard}"
+                                Padding="0"
+                                StrokeShape="RoundRectangle 16"
+                                HeightRequest="170">
+
+                            <Grid>
+                                <Image x:Name="ThumbPreview"
+                                       Aspect="AspectFill" />
+
+                                <!-- placeholder sutil quando não tem imagem -->
+                                <Grid x:Name="ThumbPlaceholder"
+                                      BackgroundColor="#F5F5F5"
+                                      Opacity="1">
+                                    <VerticalStackLayout HorizontalOptions="Center"
+                                                         VerticalOptions="Center"
+                                                         Spacing="6">
+                                        <Label Text="Sem capa"
+                                               FontAttributes="Bold"
+                                               FontSize="12"
+                                               TextColor="{StaticResource PmMuted}"
+                                               HorizontalTextAlignment="Center"/>
+                                        <Label Text="Toque em 'Escolher capa'"
+                                               FontSize="10"
+                                               TextColor="{StaticResource PmMuted}"
+                                               HorizontalTextAlignment="Center"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Text="Escolher capa"
+                                    Style="{StaticResource PmBtnSoft}"
+                                    Clicked="OnPickThumb" />
+                            <Button Grid.Column="1"
+                                    Text="Remover capa"
+                                    Style="{StaticResource PmBtnDanger}"
+                                    Clicked="OnRemoveThumb" />
+                        </Grid>
+
+                    </VerticalStackLayout>
+
                     <Border Style="{StaticResource PmInnerCard}" Padding="12,10">
                         <Entry x:Name="TitleEntry"
                                Style="{StaticResource PmEntryBase}"
@@ -351,9 +398,9 @@
                         Clicked="OnCancel"/>
 
                 <Button Grid.Column="1"
-                        Text="Fechar"
+                        Text="Salvar"
                         Style="{StaticResource PmBtnPrimary}"
-                        Clicked="OnClose"/>
+                        Clicked="OnClosePrimary"/>
             </Grid>
 
         </VerticalStackLayout>

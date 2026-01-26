@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="ProfeMaster.Pages.ToolsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="#FFFFFF"
+    Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <Color x:Key="PmText">#2B2B2B</Color>
+        <Color x:Key="PmMuted">#7B7B7B</Color>
+        <Color x:Key="PmStroke">#E6E6E6</Color>
+        <Color x:Key="PmSoft">#F2F2F2</Color>
+
+        <LinearGradientBrush x:Key="PmGradient" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#B66AF4" Offset="0" />
+            <GradientStop Color="#7E97D9" Offset="1" />
+        </LinearGradientBrush>
+
+        <Style x:Key="PmCard" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+            <Setter Property="Padding" Value="14" />
+        </Style>
+
+        <Style x:Key="PmBtnSoft" TargetType="Button">
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="{StaticResource PmText}" />
+            <Setter Property="BackgroundColor" Value="{StaticResource PmSoft}" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="HeightRequest" Value="44" />
+        </Style>
+
+        <Style x:Key="PmBtnPrimary" TargetType="Button">
+            <Setter Property="CornerRadius" Value="16" />
+            <Setter Property="FontAttributes" Value="Bold" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="TextColor" Value="#FFFFFF" />
+            <Setter Property="Background" Value="{StaticResource PmGradient}" />
+            <Setter Property="Padding" Value="14,12" />
+            <Setter Property="HeightRequest" Value="44" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid Padding="18" RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP BAR -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+
+            <Border BackgroundColor="#FFFFFF"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Button Text="Voltar"
+                        BackgroundColor="Transparent"
+                        TextColor="{StaticResource PmText}"
+                        FontAttributes="Bold"
+                        FontSize="12"
+                        Padding="4,0"
+                        Clicked="OnBack"/>
+            </Border>
+
+            <VerticalStackLayout Grid.Column="1" Spacing="0" VerticalOptions="Center">
+                <Label Text="Ferramentas"
+                       FontSize="16"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource PmText}" />
+                <Label Text="Utilitários para o dia a dia."
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}" />
+            </VerticalStackLayout>
+
+            <Border Grid.Column="2"
+                    BackgroundColor="{StaticResource PmSoft}"
+                    Stroke="{StaticResource PmStroke}"
+                    StrokeThickness="2"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="10,8"
+                    VerticalOptions="Center">
+                <Label Text="Tools"
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}"
+                       VerticalOptions="Center"/>
+            </Border>
+        </Grid>
+
+        <!-- CONTENT -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="12">
+
+                <!-- Calculator -->
+                <Border Style="{StaticResource PmCard}">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="6">
+
+                        <Border WidthRequest="44" HeightRequest="44"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#EFEAFE"
+                                VerticalOptions="Center">
+                            <Label Text="🧮"
+                                   FontSize="18"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"
+                                   TextColor="{StaticResource PmText}" />
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Calculadora"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource PmText}" />
+                            <Label Text="Rápida e offline (para aparelhos sem app nativo)."
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
+                        </VerticalStackLayout>
+
+                        <Button Grid.Column="2"
+                                Text="Abrir"
+                                Style="{StaticResource PmBtnPrimary}"
+                                Clicked="OnOpenCalculator"/>
+
+                        <Button Grid.RowSpan="2" Grid.ColumnSpan="3"
+                                BackgroundColor="Transparent"
+                                Clicked="OnOpenCalculator"/>
+                    </Grid>
+                </Border>
+
+                <!-- Calendar -->
+                <Border Style="{StaticResource PmCard}">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="6">
+
+                        <Border WidthRequest="44" HeightRequest="44"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#EAF7FF"
+                                VerticalOptions="Center">
+                            <Label Text="📅"
+                                   FontSize="18"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"
+                                   TextColor="{StaticResource PmText}" />
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Calendário"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource PmText}" />
+                            <Label Text="Abre o app nativo ou o Google Calendar."
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
+                        </VerticalStackLayout>
+
+                        <Button Grid.Column="2"
+                                Text="Abrir"
+                                Style="{StaticResource PmBtnPrimary}"
+                                Clicked="OnOpenCalendarTool"/>
+
+                        <Button Grid.RowSpan="2" Grid.ColumnSpan="3"
+                                BackgroundColor="Transparent"
+                                Clicked="OnOpenCalendarTool"/>
+                    </Grid>
+                </Border>
+
+                <!-- Notes -->
+                <Border Style="{StaticResource PmCard}">
+                    <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" RowDefinitions="Auto,Auto" RowSpacing="6">
+
+                        <Border WidthRequest="44" HeightRequest="44"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#FFF7E6"
+                                VerticalOptions="Center">
+                            <Label Text="🗒️"
+                                   FontSize="18"
+                                   HorizontalTextAlignment="Center"
+                                   VerticalTextAlignment="Center"
+                                   TextColor="{StaticResource PmText}" />
+                        </Border>
+
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="Notas (Post-it)"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource PmText}" />
+                            <Label Text="Bloco rápido com post-its e salvamento local."
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
+                        </VerticalStackLayout>
+
+                        <Button Grid.Column="2"
+                                Text="Abrir"
+                                Style="{StaticResource PmBtnPrimary}"
+                                Clicked="OnOpenNotes"/>
+
+                        <Button Grid.RowSpan="2" Grid.ColumnSpan="3"
+                                BackgroundColor="Transparent"
+                                Clicked="OnOpenNotes"/>
+                    </Grid>
+                </Border>
+
+                <Label Text="Dica: as notas ficam salvas no dispositivo (AppDataDirectory)."
+                       FontSize="10"
+                       TextColor="{StaticResource PmMuted}"
+                       HorizontalTextAlignment="Center"
+                       Margin="0,6,0,10"/>
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

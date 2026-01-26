@@ -1,4 +1,6 @@
 ﻿using ProfeMaster.Pages;
+using ProfeMaster.Pages.Tools;
+using ProfeMaster.Pages.Help;
 
 namespace ProfeMaster;
 
@@ -20,5 +22,15 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("event_editor", typeof(EventEditorPage));
         Routing.RegisterRoute("event_details", typeof(EventDetailsPage));
         Routing.RegisterRoute("exam_editor", typeof(ExamEditorPage));
+        Routing.RegisterRoute("tools", typeof(ToolsPage));
+        Routing.RegisterRoute("upgrade", typeof(UpgradePage));
+        Routing.RegisterRoute("tools/calculator", typeof(CalculatorPage));
+        Routing.RegisterRoute("tools/calendar", typeof(CalendarToolPage));
+        Routing.RegisterRoute("tools/notes", typeof(NotesPostItPage));
+        Routing.RegisterRoute("help", typeof(HelpPage));
+        Routing.RegisterRoute("help_tutorials", typeof(TutorialsPage));
+        Routing.RegisterRoute("help_faqs", typeof(FaqsPage));
+        Routing.RegisterRoute("help_contact", typeof(ContactPage));
+
     }
 }
