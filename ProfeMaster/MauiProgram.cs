@@ -3,6 +3,11 @@ using ProfeMaster.Pages;
 using ProfeMaster.Services;
 using Microsoft.Maui.LifecycleEvents;
 
+using ProfeMaster.Services.Billing;
+#if ANDROID
+using ProfeMaster.Services.Billing;
+#endif
+
 
 #if WINDOWS
 using Microsoft.UI.Windowing;
@@ -25,6 +30,16 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
+
+
+        builder.Services.AddSingleton<IBillingService>(sp =>
+        {
+            #if ANDROID
+                        return new GooglePlayBillingService();
+            #else
+                return new NoBillingService();
+            #endif
+        });
 
         builder.Services.AddSingleton(new HttpClient());
 

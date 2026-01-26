@@ -4,7 +4,7 @@ using ProfeMaster.Models;
 
 namespace ProfeMaster.Services;
 
-public sealed class FirebaseDbService
+public sealed partial class FirebaseDbService
 {
     private readonly HttpClient _http;
 

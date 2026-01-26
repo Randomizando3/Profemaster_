@@ -2,6 +2,7 @@
 using ProfeMaster.Config;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
+using ProfeMaster.Services.Billing;
 
 namespace ProfeMaster.Pages;
 
@@ -9,15 +10,17 @@ public partial class UpgradePage : ContentPage
 {
     private readonly FirebaseDbService _db;
     private readonly LocalStore _store;
+    private readonly IBillingService _billing;
 
     private string _uid = "";
     private string _token = "";
 
-    public UpgradePage(FirebaseDbService db, LocalStore store)
+    public UpgradePage(FirebaseDbService db, LocalStore store, IBillingService billing)
     {
         InitializeComponent();
         _db = db;
         _store = store;
+        _billing = billing;
 
         RefreshUiFromFlags();
     }
@@ -36,14 +39,67 @@ public partial class UpgradePage : ContentPage
         _uid = session.Uid;
         _token = session.IdToken;
 
-        // Puxa do Firebase para "ficar certinho no servidor"
+        // 1) Puxa do Firebase (fonte do app)
         var remote = await _db.GetUserPremiumAsync(_uid, _token);
         if (remote != null)
-        {
             AppFlags.ApplyPremium(remote.IsPremium, remote.IsPremiumUntil);
-        }
+
+        // 2) No Android, tenta inicializar Billing e puxar preços
+        await TryInitBillingAndPrices();
+
+        // 3) Best-effort: se Billing disser que tem subs, marca premium (sem servidor)
+        await TrySyncPremiumFromBilling();
 
         RefreshUiFromFlags();
+    }
+
+    private async Task TryInitBillingAndPrices()
+    {
+        if (!_billing.IsSupported)
+        {
+            BillingHintLabel.Text = "Billing indisponível nesta plataforma (modo dev).";
+            MonthlyPriceLabel.Text = "";
+            YearlyPriceLabel.Text = "";
+            return;
+        }
+
+        try
+        {
+            BillingHintLabel.Text = "Carregando preços…";
+            await _billing.InitializeAsync();
+
+            var (m, y) = await _billing.GetPriceLabelsAsync();
+
+            MonthlyPriceLabel.Text = string.IsNullOrWhiteSpace(m) ? "" : $"Mensal: {m}";
+            YearlyPriceLabel.Text = string.IsNullOrWhiteSpace(y) ? "" : $"Anual: {y}";
+
+            BillingHintLabel.Text = "";
+        }
+        catch (Exception ex)
+        {
+            BillingHintLabel.Text = $"Billing: {ex.Message}";
+        }
+    }
+
+    private async Task TrySyncPremiumFromBilling()
+    {
+        if (!_billing.IsSupported) return;
+
+        try
+        {
+            var has = await _billing.HasActivePremiumAsync();
+            if (has && !AppFlags.HasPremiumActive())
+            {
+                // Sem servidor, não temos expiry real. Por enquanto: deixa “ativo” com 30 dias.
+                // Depois, no fluxo definitivo, você vai validar e calcular com servidor/RTDN.
+                var until = DateTimeOffset.UtcNow.AddDays(30).ToUnixTimeSeconds();
+                await ApplyPremiumAndSave(until);
+            }
+        }
+        catch
+        {
+            // best-effort: não bloqueia UI
+        }
     }
 
     private async void OnBack(object sender, EventArgs e)
@@ -65,18 +121,62 @@ public partial class UpgradePage : ContentPage
             await DisplayAlert("Aviso", "Não foi possível salvar no Firebase. Verifique conexão e tente novamente.", "OK");
     }
 
-    private async void OnSetPremium30(object sender, EventArgs e)
+    private async void OnBuyMonthly(object sender, EventArgs e)
     {
-        // 30 dias a partir de agora
-        var until = DateTimeOffset.UtcNow.AddDays(30).ToUnixTimeSeconds();
-        await ApplyPremiumAndSave(until);
+        // Android: Billing real. Outras plataformas: fallback dev (+30 dias)
+        if (!_billing.IsSupported)
+        {
+            var until = DateTimeOffset.UtcNow.AddDays(30).ToUnixTimeSeconds();
+            await ApplyPremiumAndSave(until);
+            return;
+        }
+
+        SetBusy(true);
+        try
+        {
+            var (ok, err) = await _billing.PurchaseMonthlyAsync();
+            if (!ok)
+            {
+                await DisplayAlert("Erro", err, "OK");
+                return;
+            }
+
+            // Sem servidor: até 30 dias (depois você troca para validade real)
+            var until = DateTimeOffset.UtcNow.AddDays(30).ToUnixTimeSeconds();
+            await ApplyPremiumAndSave(until);
+        }
+        finally
+        {
+            SetBusy(false);
+        }
     }
 
-    private async void OnSetPremiumYear(object sender, EventArgs e)
+    private async void OnBuyYearly(object sender, EventArgs e)
     {
-        // 365 dias a partir de agora (ano)
-        var until = DateTimeOffset.UtcNow.AddDays(365).ToUnixTimeSeconds();
-        await ApplyPremiumAndSave(until);
+        if (!_billing.IsSupported)
+        {
+            var until = DateTimeOffset.UtcNow.AddDays(365).ToUnixTimeSeconds();
+            await ApplyPremiumAndSave(until);
+            return;
+        }
+
+        SetBusy(true);
+        try
+        {
+            var (ok, err) = await _billing.PurchaseYearlyAsync();
+            if (!ok)
+            {
+                await DisplayAlert("Erro", err, "OK");
+                return;
+            }
+
+            var until = DateTimeOffset.UtcNow.AddDays(365).ToUnixTimeSeconds();
+            await ApplyPremiumAndSave(until);
+        }
+        finally
+        {
+            SetBusy(false);
+        }
     }
 
     private async Task ApplyPremiumAndSave(long untilUnix)
@@ -101,7 +201,6 @@ public partial class UpgradePage : ContentPage
 
         StatusBadgeLabel.Text = active ? "Premium" : "Grátis";
 
-        // tags
         FreeTagLabel.Text = active ? "Disponível" : "Selecionado";
         PremiumTagLabel.Text = active ? "Ativo" : "Disponível";
 
@@ -121,5 +220,15 @@ public partial class UpgradePage : ContentPage
         {
             PremiumUntilLabel.Text = "";
         }
+
+        // Desabilita compra se já está premium
+        BuyMonthlyBtn.IsEnabled = !active;
+        BuyYearlyBtn.IsEnabled = !active;
+    }
+
+    private void SetBusy(bool busy)
+    {
+        BuyMonthlyBtn.IsEnabled = !busy;
+        BuyYearlyBtn.IsEnabled = !busy;
     }
 }

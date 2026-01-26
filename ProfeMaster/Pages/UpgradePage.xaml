@@ -83,7 +83,7 @@
                        FontSize="16"
                        FontAttributes="Bold"
                        TextColor="{StaticResource PmText}" />
-                <Label Text="Escolha Grátis ou Premium (sem anúncios)."
+                <Label Text="Grátis ou Premium (sem anúncios)."
                        FontSize="11"
                        TextColor="{StaticResource PmMuted}" />
             </VerticalStackLayout>
@@ -124,6 +124,9 @@
                                    FontAttributes="Bold"
                                    FontSize="16"
                                    TextColor="#FFFFFF"/>
+                            <Label Text="Assinatura mensal ou anual via Google Play."
+                                   FontSize="11"
+                                   TextColor="#F5F3FF"/>
                         </VerticalStackLayout>
 
                         <Border Grid.Column="1"
@@ -203,40 +206,56 @@
                                        FontAttributes="Bold"
                                        FontSize="14"
                                        TextColor="{StaticResource PmText}"/>
-                                <Label Text="Sem anúncios. (Billing entra depois.)"
+                                <Label Text="Sem anúncios."
                                        FontSize="10"
                                        TextColor="{StaticResource PmMuted}"/>
                             </VerticalStackLayout>
 
                             <Border Grid.Column="2" Style="{StaticResource PmBadge}" VerticalOptions="Center">
-                                <Label x:Name="PremiumTagLabel" Text="Ativo"
+                                <Label x:Name="PremiumTagLabel" Text="Disponível"
                                        FontSize="11" TextColor="{StaticResource PmMuted}"/>
                             </Border>
                         </Grid>
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                            <Button Text="Premium 30 dias"
+                            <Button x:Name="BuyMonthlyBtn"
+                                    Text="Assinar Mensal"
                                     Style="{StaticResource PmBtnPrimary}"
-                                    Clicked="OnSetPremium30"/>
+                                    Clicked="OnBuyMonthly"/>
 
-                            <Button Grid.Column="1"
-                                    Text="Premium 1 ano"
+                            <Button x:Name="BuyYearlyBtn"
+                                    Grid.Column="1"
+                                    Text="Assinar Anual"
                                     Style="{StaticResource PmBtnPrimary}"
-                                    Clicked="OnSetPremiumYear"/>
+                                    Clicked="OnBuyYearly"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Label x:Name="MonthlyPriceLabel"
+                                   Text=""
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
+
+                            <Label x:Name="YearlyPriceLabel"
+                                   Grid.Column="1"
+                                   Text=""
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}"
+                                   HorizontalTextAlignment="End"/>
                         </Grid>
 
                         <Label x:Name="PremiumUntilLabel"
                                Text=""
                                FontSize="10"
                                TextColor="{StaticResource PmMuted}"/>
+
+                        <Label x:Name="BillingHintLabel"
+                               Text=""
+                               FontSize="10"
+                               TextColor="{StaticResource PmMuted}"/>
                     </VerticalStackLayout>
                 </Border>
 
-                <!--<Label Text="Observação: no futuro o Google Billing apenas atualizará IsPremium/IsPremiumUntil."
-                       FontSize="10"
-                       TextColor="{StaticResource PmMuted}"
-                       HorizontalTextAlignment="Center"
-                       Margin="0,4,0,10"/>-->
             </VerticalStackLayout>
         </ScrollView>
 
