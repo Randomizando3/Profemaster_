@@ -1,0 +1,261 @@
+﻿<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Provas — Criar e Gerenciar</title>
+
+    <style>
+        :root {
+            --text: #2B2B2B;
+            --muted: #7B7B7B;
+            --stroke: #E6E6E6;
+            --soft: #F2F2F2;
+            --purple: #7a5cff;
+            --max: 520px;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,Helvetica,sans-serif;
+            background: #fff;
+            color: var(--text);
+        }
+
+        .wrap {
+            max-width: var(--max);
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .hero {
+            border: 2px solid var(--stroke);
+            border-radius: 18px;
+            padding: 14px;
+            background: #fff;
+        }
+
+            .hero h1 {
+                margin: 0 0 6px 0;
+                font-size: 18px;
+            }
+
+            .hero p {
+                margin: 0;
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1.4;
+            }
+
+        .note {
+            margin-top: 10px;
+            background: #fafafa;
+            border: 2px dashed var(--stroke);
+            border-radius: 14px;
+            padding: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .step {
+            margin-top: 12px;
+            border: 2px solid var(--stroke);
+            border-radius: 18px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .step-head {
+            padding: 12px 14px 10px;
+            border-bottom: 1px solid var(--stroke);
+            background: linear-gradient(180deg, #fff, #fbfbfb);
+        }
+
+        .kicker {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 0 0 4px 0;
+        }
+
+        .title {
+            margin: 0;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .cmd {
+            margin: 8px 0 0 0;
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.35;
+        }
+
+            .cmd b {
+                color: var(--purple);
+            }
+
+        .step-body {
+            padding: 12px 14px 14px;
+        }
+
+        .img {
+            width: 100%;
+            border-radius: 14px;
+            border: 2px solid var(--soft);
+            background: #fff;
+            display: block;
+        }
+
+        .mini {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: var(--soft);
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .pillrow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .pill {
+            border: 1px solid var(--stroke);
+            background: #fff;
+            border-radius: 999px;
+            padding: 8px 10px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .footer {
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+
+        <div class="hero">
+            <h1>Como criar e gerenciar provas</h1>
+            <p>Siga o passo a passo abaixo para criar uma prova, adicionar capa/descrição e anexar um quiz. Cada passo mostra exatamente o que fazer.</p>
+
+            <div class="note">
+                <b>Dica:</b> você pode criar a prova sem quiz e anexar o quiz depois, quando quiser.
+            </div>
+        </div>
+
+        <!-- PASSO 1 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 1 — Acessar provas</p>
+                <h2 class="title">Abra a lista de <b>Provas</b></h2>
+                <p class="cmd">No menu, toque em <b>Provas</b> para visualizar as provas cadastradas.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/listagemdeprovas.png" alt="Listagem de provas" />
+            </div>
+        </section>
+
+        <!-- PASSO 2 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 2 — Criar prova</p>
+                <h2 class="title">Toque em <b>+ Nova</b></h2>
+                <p class="cmd">Na tela de provas, toque em <b>+ Nova</b> para criar uma nova prova.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/novaprova1.png" alt="Botão + Nova para criar prova" />
+            </div>
+        </section>
+
+        <!-- PASSO 3 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 3 — Preencher os dados</p>
+                <h2 class="title">Preencha <b>título</b>, <b>capa</b> e <b>descrição</b></h2>
+                <p class="cmd">Digite o <b>Título da prova</b>. Se quiser, selecione uma <b>Capa</b> (thumb) e escreva uma <b>Descrição</b> com contexto, conteúdos e observações.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/descricaoprovas2.png" alt="Campos da prova: título, capa e descrição" />
+                <div class="pillrow">
+                    <span class="pill">Título: obrigatório</span>
+                    <span class="pill">Capa: selecionar/remover</span>
+                    <span class="pill">Descrição: opcional</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- PASSO 4 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 4 — Anexar quiz</p>
+                <h2 class="title">Toque em <b>Gerar quiz</b> (se ainda não existir)</h2>
+                <p class="cmd">Se aparecer a mensagem de que ainda não há quiz, toque em <b>Gerar quiz</b> para criar e anexar um quiz à prova.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/gerarquiz3.png" alt="Botão Gerar quiz quando não há quiz anexado" />
+                <div class="mini">
+                    Você pode salvar a prova mesmo sem quiz. O quiz é opcional.
+                </div>
+            </div>
+        </section>
+
+        <!-- PASSO 5 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 5 — Gerar o quiz</p>
+                <h2 class="title">Escolha as opções e toque em <b>Gerar</b></h2>
+                <p class="cmd">Defina a fonte (ex.: <b>IA</b>), quantidade de perguntas, tema e nível. Se quiser, cole um texto base. Depois toque em <b>Gerar</b>.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/gerarquiz4.png" alt="Tela de geração do quiz" />
+                <div class="pillrow">
+                    <span class="pill">Perguntas: 1 a 10</span>
+                    <span class="pill">Tema/Assunto</span>
+                    <span class="pill">Nível/Dificuldade</span>
+                    <span class="pill">Texto base: opcional</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- PASSO 6 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 6 — Salvar o quiz</p>
+                <h2 class="title">Finalize tocando em <b>Salvar</b> no topo</h2>
+                <p class="cmd">Depois de gerar o quiz, toque em <b>Salvar</b> para anexar o quiz à prova e voltar para a edição.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/gerarquiz5.png" alt="Salvar quiz no topo" />
+            </div>
+        </section>
+
+    
+
+        <!-- PASSO 7 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 7 — Salvar a prova</p>
+                <h2 class="title">Finalize tocando em <b>Salvar</b></h2>
+                <p class="cmd">Revise os dados (título/capa/descrição) e toque em <b>Salvar</b> para concluir.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/gerarquiz6.png" alt="Salvar prova" />
+            </div>
+        </section>
+
+        <p class="footer">Pronto. Prova criada e gerenciada ✅</p>
+
+    </div>
+</body>
+</html>

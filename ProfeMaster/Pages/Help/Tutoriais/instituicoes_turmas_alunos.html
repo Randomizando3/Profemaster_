@@ -1,0 +1,251 @@
+﻿<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instituição, Turmas e Alunos</title>
+    <style>
+        :root {
+            --text: #2B2B2B;
+            --muted: #7B7B7B;
+            --stroke: #E6E6E6;
+            --soft: #F2F2F2;
+            --purple: #7a5cff;
+            --max: 520px;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,Helvetica,sans-serif;
+            background: #fff;
+            color: var(--text);
+        }
+
+        .wrap {
+            max-width: var(--max);
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .hero {
+            border: 2px solid var(--stroke);
+            border-radius: 18px;
+            padding: 14px;
+            background: #fff;
+        }
+
+            .hero h1 {
+                margin: 0 0 6px 0;
+                font-size: 18px;
+            }
+
+            .hero p {
+                margin: 0;
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1.4;
+            }
+
+        .note {
+            margin-top: 10px;
+            background: #fafafa;
+            border: 2px dashed var(--stroke);
+            border-radius: 14px;
+            padding: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .step {
+            margin-top: 12px;
+            border: 2px solid var(--stroke);
+            border-radius: 18px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .step-head {
+            padding: 12px 14px 10px;
+            border-bottom: 1px solid var(--stroke);
+            background: linear-gradient(180deg, #fff, #fbfbfb);
+        }
+
+        .kicker {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 0 0 4px 0;
+        }
+
+        .title {
+            margin: 0;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .cmd {
+            margin: 8px 0 0 0;
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.35;
+        }
+
+            .cmd b {
+                color: var(--purple);
+            }
+
+        .step-body {
+            padding: 12px 14px 14px;
+        }
+
+        .img {
+            width: 100%;
+            border-radius: 14px;
+            border: 2px solid var(--soft);
+            background: #fff;
+            display: block;
+        }
+
+        .mini {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: var(--soft);
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .pillrow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .pill {
+            border: 1px solid var(--stroke);
+            background: #fff;
+            border-radius: 999px;
+            padding: 8px 10px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .footer {
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="hero">
+            <h1>Como cadastrar: Instituição → Turmas → Alunos</h1>
+            <p>Siga a ordem abaixo. Cada passo é <b>ação direta</b> e logo em seguida a <b>imagem</b> do que você deve ver.</p>
+
+            <div class="note">
+                <b>Dica rápida:</b> sempre toque em <b>+ Nova / + Novo</b> para criar. Use <b>Atualizar</b> quando precisar recarregar a lista.
+            </div>
+        </div>
+
+        <!-- PASSO 1 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 1 — Criar instituição</p>
+                <h2 class="title">Toque em <b>+ Nova</b> na tela de Instituições</h2>
+                <p class="cmd">Abra a aba <b>Instituição</b> e toque em <b>+ Nova</b> para cadastrar uma escola/instituição.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/nova_instituicao1.png" alt="Botão + Nova em Instituições" />
+            </div>
+        </section>
+
+        <!-- PASSO 2 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 2 — Preencher e salvar</p>
+                <h2 class="title">Preencha os campos e toque em <b>Salvar</b></h2>
+                <p class="cmd">Digite o <b>Nome da instituição</b>, escolha o tipo (ex.: <b>Pública</b>) e finalize em <b>Salvar</b>.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/nova_instituicao2.png" alt="Formulário Nova instituição: nome, tipo e salvar" />
+                <div class="mini">
+                    Se quiser, deixe <b>Observação</b> em branco (é opcional).
+                </div>
+            </div>
+        </section>
+
+        <!-- PASSO 3 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 3 — Entrar em Turmas</p>
+                <h2 class="title">Abra as <b>Turmas</b> da instituição</h2>
+                <p class="cmd">Na lista de instituições, toque em <b>Turmas</b> para gerenciar as classes dessa escola.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/nova_turma1.png" alt="Tela de Turmas: botão + Nova" />
+            </div>
+        </section>
+
+        <!-- PASSO 4 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 4 — Criar turma</p>
+                <h2 class="title">Toque em <b>+ Nova</b> e salve a turma</h2>
+                <p class="cmd">Informe o <b>Nome da turma</b>, selecione o <b>Período</b>, (opcional) <b>Sala</b> e toque em <b>Salvar</b>.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/nova_turma2.png" alt="Formulário Nova turma: nome, período, sala e salvar" />
+                <div class="pillrow">
+                    <span class="pill">Período: manhã/tarde/noite</span>
+                    <span class="pill">Sala e Observação: opcional</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- PASSO 5 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 5 — Entrar em Alunos</p>
+                <h2 class="title">Abra a lista de <b>Alunos</b> da turma</h2>
+                <p class="cmd">Na turma criada, toque em <b>Alunos</b> para gerenciar os contatos/estudantes.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/novos_alunos1.png" alt="Tela de turmas com botão Alunos" />
+            </div>
+        </section>
+
+        <!-- PASSO 6 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 6 — Criar aluno/contato</p>
+                <h2 class="title">Toque em <b>+ Novo</b> na tela Alunos/Contatos</h2>
+                <p class="cmd">Dentro de <b>Alunos/Contatos</b>, toque em <b>+ Novo</b> para cadastrar um aluno.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/novos_alunos2.png" alt="Tela Alunos/Contatos com botão + Novo" />
+            </div>
+        </section>
+
+        <!-- PASSO 7 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 7 — Preencher e salvar aluno</p>
+                <h2 class="title">Digite o nome e toque em <b>Salvar</b></h2>
+                <p class="cmd">Informe o <b>Nome</b> do aluno e (opcional) WhatsApp/Telefone e E-mail. Finalize em <b>Salvar</b>.</p>
+            </div>
+            <div class="step-body">
+                <img class="img" src="file:///android_asset/tutorials/novos_alunos3.png" alt="Formulário Novo aluno/contato: nome, telefone, email e salvar" />
+                <div class="mini">
+                    Repita os passos <b>6</b> e <b>7</b> para adicionar mais alunos na mesma turma.
+                </div>
+            </div>
+        </section>
+
+        <p class="footer">Pronto. Instituição, turma e alunos cadastrados ✅</p>
+    </div>
+</body>
+</html>

@@ -25,6 +25,15 @@
             <Setter Property="StrokeShape" Value="RoundRectangle 18" />
             <Setter Property="Padding" Value="14" />
         </Style>
+
+        <!-- Botão-card clicável -->
+        <Style x:Key="PmTutorialButton" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="{StaticResource PmStroke}" />
+            <Setter Property="StrokeThickness" Value="2" />
+            <Setter Property="StrokeShape" Value="RoundRectangle 18" />
+            <Setter Property="Padding" Value="14" />
+        </Style>
     </ContentPage.Resources>
 
     <Grid Padding="18" RowSpacing="12">
@@ -55,7 +64,7 @@
                        FontSize="16"
                        FontAttributes="Bold"
                        TextColor="{StaticResource PmText}" />
-                <Label Text="Guias rápidos. (Conteúdo será preenchido depois.)"
+                <Label Text="Selecione um tópico para abrir o guia."
                        FontSize="11"
                        TextColor="{StaticResource PmMuted}" />
             </VerticalStackLayout>
@@ -77,29 +86,181 @@
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Spacing="12">
 
+                <!-- Intro --><!--
                 <Border Style="{StaticResource PmCard}">
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Em breve"
+                        <Label Text="Central de tutoriais"
                                FontAttributes="Bold"
                                FontSize="13"
                                TextColor="{StaticResource PmText}"/>
-                        <Label Text="Aqui você terá tutoriais com imagens e passo a passo."
+                        <Label Text="Cada botão abre uma página com passo a passo e imagens. Você vai criar essas páginas depois em Pages/Help/Tutoriais."
                                FontSize="11"
                                TextColor="{StaticResource PmMuted}"/>
                     </VerticalStackLayout>
+                </Border>-->
+
+                <!-- 1 -->
+                <Border Style="{StaticResource PmTutorialButton}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnOpenTutorial" CommandParameter="instituicoes_turmas_alunos.html"/>
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Como adicionar uma instituição, turmas e alunos?"
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource PmText}"/>
+                            <Label Text="Cadastro inicial para organizar o app."
+                                   FontSize="11"
+                                   TextColor="{StaticResource PmMuted}"/>
+                        </VerticalStackLayout>
+
+                        <Label Grid.Column="1"
+                               Text="›"
+                               FontSize="18"
+                               TextColor="{StaticResource PmMuted}"
+                               VerticalOptions="Center"/>
+                    </Grid>
                 </Border>
 
-                <Border Style="{StaticResource PmCard}">
+                <!-- 2 -->
+                <Border Style="{StaticResource PmTutorialButton}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnOpenTutorial" CommandParameter="agenda_como_utilizar.html"/>
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Como utilizar a agenda?"
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource PmText}"/>
+                            <Label Text="Como adicionar planos de aulas, aulas, provas e eventos."
+                                   FontSize="11"
+                                   TextColor="{StaticResource PmMuted}"/>
+                        </VerticalStackLayout>
+
+                        <Label Grid.Column="1"
+                               Text="›"
+                               FontSize="18"
+                               TextColor="{StaticResource PmMuted}"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 3 -->
+                <Border Style="{StaticResource PmTutorialButton}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnOpenTutorial" CommandParameter="aulas_criar_gerenciar.html"/>
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Como criar e gerenciar aulas?"
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource PmText}"/>
+                            <Label Text="Criação, edição, anexos, histórico e organização."
+                                   FontSize="11"
+                                   TextColor="{StaticResource PmMuted}"/>
+                        </VerticalStackLayout>
+
+                        <Label Grid.Column="1"
+                               Text="›"
+                               FontSize="18"
+                               TextColor="{StaticResource PmMuted}"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 4 -->
+                <Border Style="{StaticResource PmTutorialButton}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnOpenTutorial" CommandParameter="planos_criar_gerenciar.html"/>
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Como criar e gerenciar planos de aulas?"
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource PmText}"/>
+                            <Label Text="Planejamento, etapas, objetivos e vinculação."
+                                   FontSize="11"
+                                   TextColor="{StaticResource PmMuted}"/>
+                        </VerticalStackLayout>
+
+                        <Label Grid.Column="1"
+                               Text="›"
+                               FontSize="18"
+                               TextColor="{StaticResource PmMuted}"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 5 -->
+                <Border Style="{StaticResource PmTutorialButton}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnOpenTutorial" CommandParameter="eventos_criar_gerenciar.html"/>
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Como criar e gerenciar eventos?"
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource PmText}"/>
+                            <Label Text="Eventos na agenda e lembretes."
+                                   FontSize="11"
+                                   TextColor="{StaticResource PmMuted}"/>
+                        </VerticalStackLayout>
+
+                        <Label Grid.Column="1"
+                               Text="›"
+                               FontSize="18"
+                               TextColor="{StaticResource PmMuted}"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- 6 -->
+                <Border Style="{StaticResource PmTutorialButton}">
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnOpenTutorial" CommandParameter="provas_criar_gerenciar.html"/>
+                    </Border.GestureRecognizers>
+
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="Como criar e gerenciar provas?"
+                                   FontAttributes="Bold"
+                                   FontSize="13"
+                                   TextColor="{StaticResource PmText}"/>
+                            <Label Text="Provas, questões, gabarito e organização."
+                                   FontSize="11"
+                                   TextColor="{StaticResource PmMuted}"/>
+                        </VerticalStackLayout>
+
+                        <Label Grid.Column="1"
+                               Text="›"
+                               FontSize="18"
+                               TextColor="{StaticResource PmMuted}"
+                               VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+                <!-- Rodapé -->
+                <!--<Border Style="{StaticResource PmCard}">
                     <VerticalStackLayout Spacing="6">
-                        <Label Text="Sugestão"
+                        <Label Text="Dica"
                                FontAttributes="Bold"
                                FontSize="13"
                                TextColor="{StaticResource PmText}"/>
-                        <Label Text="Enquanto isso, use a tela de Contato para pedir um tutorial específico."
+                        <Label Text="Você pode começar criando arquivos HTML simples e depois ir enriquecendo com imagens e passo a passo."
                                FontSize="11"
                                TextColor="{StaticResource PmMuted}"/>
                     </VerticalStackLayout>
-                </Border>
+                </Border>-->
 
             </VerticalStackLayout>
         </ScrollView>

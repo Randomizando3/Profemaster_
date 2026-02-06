@@ -43,6 +43,12 @@
 
 
 	<ItemGroup>
+		<MauiAsset Include="Resources\Raw\tutorials\**\*.png" />
+		<MauiAsset Include="Pages\Help\Tutoriais\**\*.html" />
+	</ItemGroup>
+
+
+	<ItemGroup>
 		<!-- App Icon -->
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
 
@@ -153,6 +159,9 @@
 	  <MauiXaml Update="Pages\Help\FaqsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="Pages\Help\Tutoriais\TutorialModalPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Pages\Help\TutorialsPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
@@ -221,6 +230,43 @@
   <AndroidSigningKeyAlias>profemaster</AndroidSigningKeyAlias>
   <AndroidSigningKeyPass>sist2016</AndroidSigningKeyPass>
   <AndroidSigningStorePass>sist2016</AndroidSigningStorePass>
+  <ApplicationVersion>4</ApplicationVersion>
+  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
+  <ApplicationVersion>4</ApplicationVersion>
+  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
+  <ApplicationVersion>4</ApplicationVersion>
+  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-maccatalyst|AnyCPU'">
+  <ApplicationVersion>4</ApplicationVersion>
+  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-windows10.0.19041.0|AnyCPU'">
+  <ApplicationVersion>4</ApplicationVersion>
+  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
+  <ApplicationVersion>4</ApplicationVersion>
+  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-maccatalyst|AnyCPU'">
+  <ApplicationVersion>4</ApplicationVersion>
+  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+</PropertyGroup>
+
+<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
+  <ApplicationVersion>4</ApplicationVersion>
+  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
 </PropertyGroup>
 
 

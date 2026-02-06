@@ -1,0 +1,228 @@
+﻿<!doctype html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Planos de Aula</title>
+    <style>
+        :root {
+            --text: #2B2B2B;
+            --muted: #7B7B7B;
+            --stroke: #E6E6E6;
+            --soft: #F2F2F2;
+            --purple: #7a5cff;
+            --max: 520px;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,Helvetica,sans-serif;
+            background: #fff;
+            color: var(--text);
+        }
+
+        .wrap {
+            max-width: var(--max);
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .hero {
+            border: 2px solid var(--stroke);
+            border-radius: 18px;
+            padding: 14px;
+            background: #fff;
+        }
+
+            .hero h1 {
+                margin: 0 0 6px 0;
+                font-size: 18px;
+            }
+
+            .hero p {
+                margin: 0;
+                color: var(--muted);
+                font-size: 13px;
+                line-height: 1.4;
+            }
+
+        .note {
+            margin-top: 10px;
+            background: #fafafa;
+            border: 2px dashed var(--stroke);
+            border-radius: 14px;
+            padding: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .step {
+            margin-top: 12px;
+            border: 2px solid var(--stroke);
+            border-radius: 18px;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .step-head {
+            padding: 12px 14px 10px;
+            border-bottom: 1px solid var(--stroke);
+            background: linear-gradient(180deg,#fff,#fbfbfb);
+        }
+
+        .kicker {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 0 0 4px 0;
+        }
+
+        .title {
+            margin: 0;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .cmd {
+            margin: 8px 0 0 0;
+            font-size: 13px;
+            color: var(--text);
+            line-height: 1.35;
+        }
+
+            .cmd b {
+                color: var(--purple);
+            }
+
+        .step-body {
+            padding: 12px 14px 14px;
+        }
+
+        .img {
+            width: 100%;
+            border-radius: 14px;
+            border: 2px solid var(--soft);
+            background: #fff;
+            display: block;
+        }
+
+        .mini {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            background: var(--soft);
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .footer {
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+
+        <div class="hero">
+            <h1>Como criar um Plano de Aulas</h1>
+            <p>Siga os passos abaixo para criar, configurar e salvar um plano de aulas.</p>
+            <div class="note">
+                <b>Dica:</b> primeiro crie o plano, depois adicione as aulas por dia (slots).
+            </div>
+        </div>
+
+        <!-- PASSO 1 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 1 — Listagem</p>
+                <h2 class="title">Abra a tela de <b>Planos de Aula</b></h2>
+                <p class="cmd">
+                    Acesse a aba <b>Planos</b>. Aqui você vê todos os planos cadastrados.
+                </p>
+            </div>
+            <div class="step-body">
+                <img class="img"
+                     src="file:///android_asset/tutorials/listagemdeplanos.png"
+                     alt="Listagem de planos de aula" />
+            </div>
+        </section>
+
+        <!-- PASSO 2 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 2 — Novo plano</p>
+                <h2 class="title">Toque em <b>+ Novo</b></h2>
+                <p class="cmd">
+                    Na tela de listagem, toque em <b>+ Novo</b> para criar um novo plano.
+                </p>
+            </div>
+            <div class="step-body">
+                <img class="img"
+                     src="file:///android_asset/tutorials/criarplanosdeaula1.png"
+                     alt="Criar novo plano de aulas" />
+            </div>
+        </section>
+
+        <!-- PASSO 3 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 3 — Dados do plano</p>
+                <h2 class="title">Preencha os dados principais</h2>
+                <p class="cmd">
+                    Defina o <b>título</b>, o <b>intervalo de datas</b> e, se quiser, uma <b>capa</b> e <b>observações</b>.
+                </p>
+            </div>
+            <div class="step-body">
+                <img class="img"
+                     src="file:///android_asset/tutorials/criarplanosdeaula2.png"
+                     alt="Dados do plano de aulas" />
+                <div class="mini">
+                    A capa e as observações são opcionais.
+                </div>
+            </div>
+        </section>
+
+        <!-- PASSO 4 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 4 — Aulas por dia</p>
+                <h2 class="title">Adicione aulas (slots)</h2>
+                <p class="cmd">
+                    Em <b>Aulas por dia</b>, toque em <b>+ Aula</b> para definir horários e vincular aulas.
+                </p>
+            </div>
+            <div class="step-body">
+                <img class="img"
+                     src="file:///android_asset/tutorials/criarplanosdeaula3.png"
+                     alt="Adicionar aulas por dia no plano" />
+                <div class="mini">
+                    Você pode adicionar várias aulas no mesmo dia.
+                </div>
+            </div>
+        </section>
+
+        <!-- PASSO 5 -->
+        <section class="step">
+            <div class="step-head">
+                <p class="kicker">Passo 5 — Salvar</p>
+                <h2 class="title">Finalize em <b>Salvar Plano</b></h2>
+                <p class="cmd">
+                    Após configurar tudo, toque em <b>Salvar Plano</b> para concluir.
+                </p>
+            </div>
+            <div class="step-body">
+                <img class="img"
+                     src="file:///android_asset/tutorials/criarplanosdeaula4.png"
+                     alt="Salvar plano de aulas" />
+            </div>
+        </section>
+
+        <p class="footer">Pronto. Plano de aulas criado com sucesso ✅</p>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,255 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tutorial • Agenda</title>
+
+    <style>
+        :root {
+            --bg: #F5F6F8;
+            --card: #FFFFFF;
+            --text: #111827;
+            --muted: #6B7280;
+            --line: #E5E7EB;
+            --shadow: 0 10px 28px rgba(17,24,39,.08);
+            --radius: 18px;
+            /* roxinho do app */
+            --purple: #7A5CFF;
+            --purple-soft: rgba(122,92,255,.12);
+            --max: 820px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", Helvetica;
+            line-height: 1.35;
+        }
+
+        .wrap {
+            max-width: var(--max);
+            margin: 0 auto;
+            padding: 18px 14px 28px;
+        }
+
+        .top {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: .2px;
+        }
+
+        .subtitle {
+            margin: 6px 0 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .section {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            margin: 14px 0;
+        }
+
+            .section h2 {
+                margin: 0 0 10px;
+                font-size: 16px;
+                font-weight: 900;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 26px;
+            height: 26px;
+            padding: 0 9px;
+            border-radius: 999px;
+            background: var(--purple-soft);
+            color: var(--purple);
+            font-weight: 800;
+            font-size: 12px;
+        }
+
+        .step {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 14px;
+            margin: 12px 0;
+            background: #fff;
+        }
+
+            .step h3 {
+                margin: 0 0 6px;
+                font-size: 14px;
+                font-weight: 900;
+            }
+
+            .step p {
+                margin: 0 0 10px;
+                color: var(--muted);
+                font-size: 13px;
+            }
+
+        .img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: #fff;
+        }
+
+        .note {
+            margin-top: 10px;
+            padding: 12px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(122,92,255,.25);
+            background: rgba(122,92,255,.08);
+            color: #4B5563;
+            font-size: 13px;
+        }
+
+        .foot {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 10px;
+            text-align: left;
+        }
+
+        code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+
+        <div class="top">
+            <h1 class="title">Agenda</h1>
+            <p class="subtitle">
+                Passo a passo para criar e visualizar itens na sua agenda.
+            </p>
+        </div>
+
+        <div class="section">
+            <h2><span class="badge">1</span> Abrir a Agenda</h2>
+
+            <div class="step">
+                <h3>1. Entre na aba Agenda</h3>
+                <p>
+                    Na barra inferior, toque em <b>Agenda</b>. Você verá a tela principal com os filtros e a área de listagem.
+                </p>
+                <img class="img" src="file:///android_asset/tutorials/listagemagenda.png" alt="Tela principal da Agenda" />
+            </div>
+
+            <div class="step">
+                <h3>2. Criar um novo item</h3>
+                <p>
+                    Toque no botão flutuante <b>+</b> no canto inferior direito para abrir a criação de um novo item.
+                </p>
+                <img class="img" src="file:///android_asset/tutorials/criaritemnaagenda1.png" alt="Botão flutuante para criar item" />
+            </div>
+
+            <div class="note">
+                Dica: se você estiver em <b>Por turma</b>, confira se a turma correta está selecionada antes de criar.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="badge">2</span> Preencher o novo item</h2>
+
+            <div class="step">
+                <h3>3. Selecione o tipo do item</h3>
+                <p>
+                    Na tela <b>Novo item</b>, escolha o tipo (ex.: <b>Aula</b>, <b>Plano de Aulas</b>, <b>Evento</b> ou <b>Prova</b>).
+                    A tela ajusta os campos conforme o tipo selecionado.
+                </p>
+                <img class="img" src="file:///android_asset/tutorials/novoitemaula2.png" alt="Exemplo de novo item do tipo Aula" />
+            </div>
+
+            <div class="step">
+                <h3>4. Se quiser, vincule um conteúdo existente</h3>
+                <p>
+                    Você pode selecionar um item já cadastrado (quando disponível) ou manter <b>Sem vínculo</b>.
+                    Isso ajuda a reaproveitar conteúdos que você já criou.
+                </p>
+                <img class="img" src="file:///android_asset/tutorials/novoitemplanodeaula3.png" alt="Exemplo de novo item do tipo Plano de Aulas" />
+            </div>
+
+            <div class="step">
+                <h3>5. Preencha nome e descrição</h3>
+                <p>
+                    Informe um <b>nome</b> claro (por exemplo, “Aula de Matemática”) e, se quiser, adicione uma <b>descrição</b>.
+                </p>
+                <img class="img" src="file:///android_asset/tutorials/novoitemevento5.png" alt="Exemplo de novo item do tipo Evento" />
+            </div>
+
+            <div class="step">
+                <h3>6. Prova também segue o mesmo fluxo</h3>
+                <p>
+                    Para <b>Prova</b>, o preenchimento é semelhante: escolha (ou não) um vínculo, defina nome/descrição e siga para data e horário.
+                </p>
+                <img class="img" src="file:///android_asset/tutorials/novoitemprova6.png" alt="Exemplo de novo item do tipo Prova" />
+            </div>
+        </div>
+
+        <div class="section">
+            <h2><span class="badge">3</span> Definir horário e salvar</h2>
+
+            <div class="step">
+                <h3>7. Ajuste data e horário</h3>
+                <p>
+                    Em <b>Data e horário</b>, defina <b>Início</b> e <b>Fim</b> (data e hora). Depois toque em <b>Salvar</b>.
+                </p>
+                <img class="img" src="file:///android_asset/tutorials/salvaritens7.png" alt="Definir data e horário e salvar" />
+            </div>
+
+            <div class="step">
+                <h3>8. Confira na listagem</h3>
+                <p>
+                    Após salvar, o item aparece na agenda do dia, exibindo <b>nome</b> e <b>horário</b>.
+                </p>
+                <img class="img" src="file:///android_asset/tutorials/listagemagenda.png" alt="Item aparecendo na listagem da Agenda" />
+            </div>
+
+            <div class="note">
+                Fluxo rápido: <b>Agenda</b> → <b>+</b> → escolher tipo → preencher dados → definir data/horário → <b>Salvar</b>.
+            </div>
+        </div>
+
+        <!--<div class="foot">
+            Se alguma imagem não carregar, confirme se ela existe em
+            <code>android_asset/tutorials/</code> com o mesmo nome usado no <code>src</code>.
+        </div>-->
+
+    </div>
+</body>
+</html>
