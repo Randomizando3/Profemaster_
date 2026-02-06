@@ -166,9 +166,9 @@
 
                             </VerticalStackLayout>
 
-                            <!-- AÇÕES: ✏️ e X -->
+                            <!-- AÇÕES: ✏️, Whats, X -->
                             <Grid Grid.Column="1"
-                                  ColumnDefinitions="Auto,Auto"
+                                  ColumnDefinitions="Auto,Auto,Auto"
                                   ColumnSpacing="8"
                                   VerticalOptions="Center"
                                   HorizontalOptions="End">
@@ -184,7 +184,20 @@
                                         FontSize="14"
                                         Clicked="OnEditClicked"/>
 
+                                <!-- Whats -->
                                 <Button Grid.Column="1"
+                                        HeightRequest="36"
+                                        WidthRequest="44"
+                                        Padding="0"
+                                        CornerRadius="12"
+                                        BackgroundColor="#22C55E"
+                                        Clicked="OnWhatsClicked">
+                                    <Button.ImageSource>
+                                        <FileImageSource File="whats.png" />
+                                    </Button.ImageSource>
+                                </Button>
+
+                                <Button Grid.Column="2"
                                         Text="X"
                                         HeightRequest="36"
                                         WidthRequest="44"
@@ -341,6 +354,121 @@
                                         FontSize="12"
                                         Clicked="OnEditorSave"/>
                             </Border>
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- OVERLAY WHATS -->
+        <Grid x:Name="WhatsOverlay"
+              IsVisible="False"
+              BackgroundColor="#80000000"
+              Grid.RowSpan="2"
+              Padding="18,0">
+
+            <Grid VerticalOptions="Center"
+                  HorizontalOptions="Center"
+                  WidthRequest="380"
+                  MaximumWidthRequest="420">
+
+                <Border BackgroundColor="#FFFFFF"
+                        Stroke="#E5E7EB"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 22">
+
+                    <VerticalStackLayout Padding="16" Spacing="14">
+
+                        <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="Enviar WhatsApp"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="#111827"/>
+                                <Label x:Name="WhatsToLabel"
+                                       Text="Para: -"
+                                       FontSize="12"
+                                       TextColor="#6B7280"/>
+                            </VerticalStackLayout>
+
+                            <Button Grid.Column="1"
+                                    Text="X"
+                                    HeightRequest="34"
+                                    WidthRequest="44"
+                                    Padding="0"
+                                    CornerRadius="12"
+                                    BackgroundColor="#F2F2F2"
+                                    TextColor="#111827"
+                                    Clicked="OnWhatsCancel"/>
+                        </Grid>
+
+                        <!-- Assunto -->
+                        <Border Stroke="#E5E7EB"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#FFFFFF"
+                                Padding="14,0"
+                                HeightRequest="54">
+                            <Grid VerticalOptions="Center">
+                                <Entry x:Name="WhatsSubjectEntry"
+                                       Placeholder="Assunto"
+                                       TextColor="#111827"
+                                       PlaceholderColor="#9CA3AF"
+                                       BackgroundColor="Transparent"
+                                       VerticalTextAlignment="Center"
+                                       HeightRequest="54"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Aula -->
+                        <Border Stroke="#E5E7EB"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#FFFFFF"
+                                Padding="14,0"
+                                HeightRequest="54">
+                            <Grid VerticalOptions="Center">
+                                <Picker x:Name="WhatsLessonPicker"
+                                        Title="Selecione a aula"
+                                        TextColor="#111827"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Mensagem -->
+                        <Border Stroke="#E5E7EB"
+                                StrokeThickness="2"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="#FFFFFF"
+                                Padding="14,12">
+                            <Editor x:Name="WhatsMessageEditor"
+                                    Placeholder="Mensagem para o aluno"
+                                    AutoSize="TextChanges"
+                                    BackgroundColor="Transparent"
+                                    TextColor="#111827"
+                                    PlaceholderColor="#9CA3AF"
+                                    HeightRequest="120"/>
+                        </Border>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="12" Margin="0,4,0,0">
+                            <Button Text="Cancelar"
+                                    HeightRequest="46"
+                                    CornerRadius="16"
+                                    BackgroundColor="#F2F2F2"
+                                    TextColor="#111827"
+                                    FontAttributes="Bold"
+                                    FontSize="12"
+                                    Clicked="OnWhatsCancel"/>
+
+                            <Button Grid.Column="1"
+                                    Text="Enviar"
+                                    HeightRequest="46"
+                                    CornerRadius="16"
+                                    BackgroundColor="#22C55E"
+                                    TextColor="#FFFFFF"
+                                    FontAttributes="Bold"
+                                    FontSize="12"
+                                    Clicked="OnWhatsSend"/>
                         </Grid>
 
                     </VerticalStackLayout>

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text;
 using ProfeMaster.Config;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
@@ -27,6 +28,11 @@ public partial class StudentsPage : ContentPage
     // Editor state
     private bool _editorIsEdit = false;
     private StudentContact? _editing;
+
+    // Whats state
+    private StudentContact? _whatsTarget;
+    private List<Lesson> _lessons = new();
+    private bool _lessonsLoaded = false;
 
     public StudentsPage(LocalStore store, FirebaseDbService db)
     {
@@ -170,9 +176,7 @@ public partial class StudentsPage : ContentPage
 
     private async void OnAddClicked(object sender, EventArgs e)
     {
-        // LIMITE: antes de abrir editor
         if (!await EnsureCanCreateStudentAsync()) return;
-
         OpenEditor(isEdit: false, st: null);
     }
 
@@ -200,7 +204,6 @@ public partial class StudentsPage : ContentPage
         StudentContact st;
         var isEdit = _editorIsEdit && _editing != null;
 
-        // LIMITE: valida também no salvar (anti-bypass)
         if (!isEdit)
         {
             if (!await EnsureCanCreateStudentAsync())
@@ -274,5 +277,157 @@ public partial class StudentsPage : ContentPage
 
         Students.Remove(st);
         await _store.SaveStudentsCacheAsync(InstitutionId, ClassId, Students.ToList());
+    }
+
+    // =========================================================
+    // WHATSAPP (NOVO) - modal + montagem da mensagem + abrir url
+    // =========================================================
+    private async Task EnsureLessonsLoadedAsync()
+    {
+        if (_lessonsLoaded) return;
+
+        try
+        {
+            _lessons = await _db.GetLessonsAllAsync(_uid, _token);
+            _lessons = _lessons
+                .OrderByDescending(x => x.UpdatedAt)
+                .ThenByDescending(x => x.CreatedAt)
+                .ToList();
+        }
+        catch
+        {
+            _lessons = new();
+        }
+
+        WhatsLessonPicker.ItemsSource = _lessons.Select(x => x.Title ?? "").ToList();
+        WhatsLessonPicker.SelectedIndex = _lessons.Count > 0 ? 0 : -1;
+
+        _lessonsLoaded = true;
+    }
+
+    private static string NormalizeBrPhone(string? raw)
+    {
+        var digits = new string((raw ?? "").Where(char.IsDigit).ToArray());
+        if (string.IsNullOrWhiteSpace(digits)) return "";
+
+        // usuário normalmente cadastra 11999999999
+        // regra: colocar 55 no início por padrão
+        if (digits.StartsWith("55")) return digits;
+
+        return "55" + digits;
+    }
+
+    private void OpenWhats(StudentContact st)
+    {
+        _whatsTarget = st;
+
+        WhatsToLabel.Text = $"Para: {st.Name ?? "-"}";
+        WhatsSubjectEntry.Text = "";
+        WhatsMessageEditor.Text = "";
+
+        // não fecha o editor de aluno; são overlays independentes
+        WhatsOverlay.IsVisible = true;
+
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            await Task.Delay(60);
+            WhatsSubjectEntry.Focus();
+        });
+    }
+
+    private void CloseWhats()
+    {
+        WhatsOverlay.IsVisible = false;
+        _whatsTarget = null;
+    }
+
+    private async void OnWhatsClicked(object sender, EventArgs e)
+    {
+        if (sender is not Button btn) return;
+        if (btn.BindingContext is not StudentContact st) return;
+
+        var phone = NormalizeBrPhone(st.Phone);
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            await DisplayAlert("WhatsApp", "Esse aluno não tem telefone cadastrado.", "OK");
+            return;
+        }
+
+        await EnsureLessonsLoadedAsync();
+        OpenWhats(st);
+    }
+
+    private void OnWhatsCancel(object sender, EventArgs e) => CloseWhats();
+
+    private async void OnWhatsSend(object sender, EventArgs e)
+    {
+        if (_whatsTarget == null)
+        {
+            CloseWhats();
+            return;
+        }
+
+        var phone = NormalizeBrPhone(_whatsTarget.Phone);
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            await DisplayAlert("WhatsApp", "Telefone inválido/vazio.", "OK");
+            return;
+        }
+
+        var subject = (WhatsSubjectEntry.Text ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(subject))
+        {
+            await DisplayAlert("WhatsApp", "Informe o assunto.", "OK");
+            return;
+        }
+
+        Lesson? lesson = null;
+        if (WhatsLessonPicker.SelectedIndex >= 0 && WhatsLessonPicker.SelectedIndex < _lessons.Count)
+            lesson = _lessons[WhatsLessonPicker.SelectedIndex];
+
+        var lessonTitle = (lesson?.Title ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(lessonTitle))
+        {
+            await DisplayAlert("WhatsApp", "Selecione uma aula.", "OK");
+            return;
+        }
+
+        var msg = (WhatsMessageEditor.Text ?? "").Trim();
+
+        // Materiais: pega links (Kind=Link) e arquivos (Kind=StorageFile) do MaterialsV2
+        var links = new List<string>();
+        try
+        {
+            if (lesson?.MaterialsV2 != null && lesson.MaterialsV2.Count > 0)
+            {
+                foreach (var m in lesson.MaterialsV2)
+                {
+                    if (!string.IsNullOrWhiteSpace(m?.Url))
+                        links.Add(m.Url!.Trim());
+                }
+            }
+        }
+        catch
+        {
+            // ignora
+        }
+
+        var materials = links.Count == 0 ? "—" : string.Join(" | ", links);
+
+        var finalText = $"Assunto: {subject} - Aula: {lessonTitle} - Materiais: {materials} - Mensagem: {msg}";
+        var encoded = Uri.EscapeDataString(finalText);
+
+        // api.whatsapp.com
+        var url = $"https://api.whatsapp.com/send?phone={phone}&text={encoded}";
+
+        try
+        {
+            await Launcher.Default.OpenAsync(url);
+            CloseWhats();
+        }
+        catch
+        {
+            await DisplayAlert("Erro", "Não foi possível abrir o WhatsApp.", "OK");
+        }
     }
 }
