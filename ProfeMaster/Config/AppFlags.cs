@@ -29,8 +29,8 @@ public static class AppFlags
     // Coloque aqui seus 3 UIDs e o plano que quer forçar.
     private static readonly Dictionary<string, PlanTier> DevUidOverrides = new()
     {
-        // ["UID_1"] = PlanTier.Premium,
-        // ["UID_2"] = PlanTier.SuperPremium,
+         ["yrUwBLc2UfhaRhYBwq7IlyPCCUO2"] = PlanTier.Premium,
+         ["fDt5W45OYxb1CRlQkEF2RAJZYy62"] = PlanTier.SuperPremium,
         // ["UID_3"] = PlanTier.Premium,
     };
 

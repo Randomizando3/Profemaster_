@@ -74,10 +74,10 @@
                         Padding="14">
                     <VerticalStackLayout Spacing="12">
 
-                        <!-- HEADER: Modo (agora ocupa o espaço) + Gerar -->
+                        <!-- HEADER: Modo + Gerar -->
                         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
 
-                            <!-- MODO (mais largo e bonito) -->
+                            <!-- MODO -->
                             <Border Grid.Column="0"
                                     BackgroundColor="{StaticResource PmSoft}"
                                     Stroke="{StaticResource PmStroke}"
@@ -106,7 +106,6 @@
                                             IsVisible="True"
                                             SelectedIndexChanged="OnModeChanged"/>
 
-                                    <!-- ✅ MOVIDO PARA O FINAL (corrige XLS0509) -->
                                     <Grid.GestureRecognizers>
                                         <TapGestureRecognizer Tapped="OnModeTap"/>
                                     </Grid.GestureRecognizers>
@@ -126,7 +125,7 @@
                                     Clicked="OnGenerate"/>
                         </Grid>
 
-                        <!-- Painel OFFLINE (Banco + Importar + Baixar exemplo) -->
+                        <!-- OFFLINE PANEL -->
                         <Border x:Name="OfflinePanel"
                                 BackgroundColor="#FAFAFF"
                                 Stroke="{StaticResource PmStroke}"
@@ -146,7 +145,6 @@
                                        TextColor="{StaticResource PmMuted}"
                                        FontSize="11"/>
 
-                                <!-- Importar + Baixar exemplo -->
                                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
 
                                     <Button Text="Importar perguntas"
@@ -169,7 +167,7 @@
                                             Clicked="OnDownloadOfflineBankExample"/>
                                 </Grid>
 
-                                <Label Text="Dica: ao gerar no modo online ou preencher perguntas personalizadas, o app salva automaticamente no banco offline (offline_bank.json)."
+                                <Label Text="Dica: ao gerar online ou preencher personalizado, o app salva automaticamente no banco offline (offline_bank.json)."
                                        TextColor="{StaticResource PmMuted}"
                                        FontSize="10"/>
                             </VerticalStackLayout>
@@ -288,7 +286,6 @@
                                         HeightRequest="1"
                                         IsVisible="True"/>
 
-                                <!-- ✅ MOVIDO PARA O FINAL (corrige XLS0509) -->
                                 <Grid.GestureRecognizers>
                                     <TapGestureRecognizer Tapped="OnDifficultyTap"/>
                                 </Grid.GestureRecognizers>
@@ -481,7 +478,7 @@
                                             </Grid>
 
                                             <Button Text="Remover pergunta"
-                                                    BackgroundColor="Red"
+                                                    BackgroundColor="#3A2040"
                                                     TextColor="White"
                                                     CornerRadius="14"
                                                     HeightRequest="40"

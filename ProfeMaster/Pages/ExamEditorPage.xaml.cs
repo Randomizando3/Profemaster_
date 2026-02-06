@@ -1,3 +1,5 @@
+using System.Text.Json;
+using ProfeMaster.Config;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
 
@@ -15,6 +17,8 @@ public partial class ExamEditorPage : ContentPage
     private string _uid = "";
     private string _token = "";
 
+    private const string UpgradeRoute = "upgrade"; // ajuste se sua rota for "//upgrade"
+
     public ExamEditorPage(FirebaseDbService db, LocalStore store, GroqQuizService quizSvc, ExamItem item)
     {
         InitializeComponent();
@@ -24,8 +28,6 @@ public partial class ExamEditorPage : ContentPage
         _quizSvc = quizSvc;
         _item = item;
 
-        // Heurística: se veio da lista, normalmente tem CreatedAt antigo e/ou conteúdo.
-        // Se você cria um ExamItem() novo, ele vem vazio (Title/Description) e CreatedAt "agora".
         _isExisting = LooksExisting(_item);
 
         TitleEntry.Text = _item.Title;
@@ -54,17 +56,36 @@ public partial class ExamEditorPage : ContentPage
         RefreshPrimaryActionsUI();
     }
 
+    private static int GetPlanMaxQuestions()
+    {
+        return AppFlags.CurrentPlan switch
+        {
+            PlanTier.Free => 5,
+            PlanTier.Premium => 10,
+            PlanTier.SuperPremium => 10,
+            _ => 5
+        };
+    }
+
+    private static string GetPlanLabel()
+    {
+        return AppFlags.CurrentPlan switch
+        {
+            PlanTier.SuperPremium => "SuperPremium",
+            PlanTier.Premium => "Premium",
+            _ => "Free"
+        };
+    }
+
     private static bool LooksExisting(ExamItem it)
     {
         if (it == null) return false;
 
-        // Se já tem conteúdo, tratamos como existente
         if (!string.IsNullOrWhiteSpace(it.Title)) return true;
         if (!string.IsNullOrWhiteSpace(it.Description)) return true;
         if (!string.IsNullOrWhiteSpace(it.ThumbLocalPath)) return true;
         if (!string.IsNullOrWhiteSpace(it.ThumbUrl)) return true;
 
-        // Se tiver QuizJson (caso você já adicionou no model)
         var quizProp = it.GetType().GetProperty("QuizJson");
         if (quizProp != null)
         {
@@ -72,8 +93,6 @@ public partial class ExamEditorPage : ContentPage
             if (!string.IsNullOrWhiteSpace(v)) return true;
         }
 
-        // Se não tem nada, mas CreatedAt não é "agora", pode ser existente
-        // (tolerância de 2 minutos)
         try
         {
             var diff = DateTimeOffset.UtcNow - it.CreatedAt;
@@ -87,7 +106,6 @@ public partial class ExamEditorPage : ContentPage
 
     private void RefreshPrimaryActionsUI()
     {
-        // LeftActionBtn: Cancelar (novo) OU Excluir (existente)
         if (_isExisting)
         {
             LeftActionBtn.Text = "Excluir prova";
@@ -124,9 +142,31 @@ public partial class ExamEditorPage : ContentPage
         var quizJson = GetQuizJson(_item);
         var hasQuiz = !string.IsNullOrWhiteSpace(quizJson);
 
-        QuizStatusLabel.Text = hasQuiz
-            ? "Quiz já criado e anexado a esta prova."
-            : "Nenhum quiz anexado ainda.";
+        var maxQ = GetPlanMaxQuestions();
+        var plan = GetPlanLabel();
+
+        // tenta extrair contagem (sem quebrar)
+        var qCount = TryGetQuizQuestionCount(quizJson);
+
+        if (hasQuiz)
+        {
+            if (qCount > maxQ && qCount > 0)
+            {
+                QuizStatusLabel.Text = $"Quiz anexado ({qCount} perguntas). Seu plano {plan} permite até {maxQ}.";
+            }
+            else if (qCount > 0)
+            {
+                QuizStatusLabel.Text = $"Quiz anexado ({qCount} perguntas).";
+            }
+            else
+            {
+                QuizStatusLabel.Text = "Quiz já criado e anexado a esta prova.";
+            }
+        }
+        else
+        {
+            QuizStatusLabel.Text = $"Nenhum quiz anexado ainda. Plano {plan}: até {maxQ} perguntas por quiz.";
+        }
 
         QuizActionsRow.IsVisible = hasQuiz;
 
@@ -136,7 +176,25 @@ public partial class ExamEditorPage : ContentPage
         BtnDeleteQuiz.IsVisible = hasQuiz;
     }
 
-    // ===== Helpers para QuizJson (sem quebrar build se você ainda não atualizou o model em todos lugares)
+    private static int TryGetQuizQuestionCount(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return 0;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind == JsonValueKind.Object &&
+                doc.RootElement.TryGetProperty("questions", out var arr) &&
+                arr.ValueKind == JsonValueKind.Array)
+            {
+                return arr.GetArrayLength();
+            }
+        }
+        catch { }
+        return 0;
+    }
+
+    // ===== Helpers para QuizJson
     private static string GetQuizJson(ExamItem it)
     {
         try
@@ -201,6 +259,10 @@ public partial class ExamEditorPage : ContentPage
         if (!EnsureSession())
             return;
 
+        // >>> só informativo aqui: limite é aplicado dentro do QuizGeneratorPage
+        var maxQ = GetPlanMaxQuestions();
+        var plan = GetPlanLabel();
+
         var currentQuiz = GetQuizJson(_item);
         var hasQuiz = !string.IsNullOrWhiteSpace(currentQuiz);
 
@@ -221,14 +283,34 @@ public partial class ExamEditorPage : ContentPage
             if (string.IsNullOrWhiteSpace(json))
                 return;
 
+            // segurança: se vier acima do limite, bloqueia e manda pro upgrade
+            var qCount = TryGetQuizQuestionCount(json);
+            if (qCount > maxQ)
+            {
+                var go = await DisplayAlert(
+                    "Limite do plano",
+                    $"Seu plano {plan} permite até {maxQ} pergunta(s) por quiz. Esse quiz veio com {qCount}.",
+                    "Upgrade",
+                    "OK"
+                );
+
+                if (go)
+                {
+                    try { await Shell.Current.GoToAsync(UpgradeRoute); } catch { }
+                }
+                return;
+            }
+
             SetQuizJson(_item, json);
 
             MainThread.BeginInvokeOnMainThread(RefreshQuizUI);
             await TryAutoSaveExamAsync();
         });
 
-        // Novo quiz = inicia vazio
         await Navigation.PushModalAsync(page);
+
+        // feedback leve
+        await DisplayAlert("Plano", $"Plano {plan}: até {maxQ} pergunta(s) por quiz.", "OK");
     }
 
     private async void OnOpenQuiz(object sender, EventArgs e)
@@ -245,10 +327,30 @@ public partial class ExamEditorPage : ContentPage
             return;
         }
 
+        var maxQ = GetPlanMaxQuestions();
+        var plan = GetPlanLabel();
+
         var page = new QuizGeneratorPage(_quizSvc, async (json) =>
         {
             if (string.IsNullOrWhiteSpace(json))
                 return;
+
+            var qCount = TryGetQuizQuestionCount(json);
+            if (qCount > maxQ)
+            {
+                var go = await DisplayAlert(
+                    "Limite do plano",
+                    $"Seu plano {plan} permite até {maxQ} pergunta(s) por quiz. Esse quiz veio com {qCount}.",
+                    "Upgrade",
+                    "OK"
+                );
+
+                if (go)
+                {
+                    try { await Shell.Current.GoToAsync(UpgradeRoute); } catch { }
+                }
+                return;
+            }
 
             SetQuizJson(_item, json);
 
@@ -303,7 +405,6 @@ public partial class ExamEditorPage : ContentPage
             var title = (TitleEntry.Text ?? "").Trim();
             if (string.IsNullOrWhiteSpace(title))
             {
-                // não salva sem título
                 return;
             }
 
@@ -363,6 +464,31 @@ public partial class ExamEditorPage : ContentPage
 
         if (!EnsureSession())
             return;
+
+        // segurança: se o quiz anexado estiver acima do limite, bloqueia salvar (evita “burlar”)
+        var quizJson = GetQuizJson(_item);
+        if (!string.IsNullOrWhiteSpace(quizJson))
+        {
+            var maxQ = GetPlanMaxQuestions();
+            var plan = GetPlanLabel();
+            var qCount = TryGetQuizQuestionCount(quizJson);
+
+            if (qCount > maxQ)
+            {
+                var go = await DisplayAlert(
+                    "Limite do plano",
+                    $"Seu plano {plan} permite até {maxQ} pergunta(s) por quiz. Esse quiz tem {qCount}.",
+                    "Upgrade",
+                    "OK"
+                );
+
+                if (go)
+                {
+                    try { await Shell.Current.GoToAsync(UpgradeRoute); } catch { }
+                }
+                return;
+            }
+        }
 
         _item.Title = title;
         _item.Description = (DescEditor.Text ?? "").Trim();

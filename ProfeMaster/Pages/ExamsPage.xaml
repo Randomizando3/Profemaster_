@@ -101,12 +101,14 @@
                                     StrokeShape="RoundRectangle 14"
                                     BackgroundColor="#0f172a">
 
+                                <!-- Importante: bind só no que existe no ExamItem -->
                                 <Image Aspect="AspectFill"
                                        Source="{Binding ThumbLocalPath}" />
                             </Border>
 
                             <!-- Infos -->
-                            <VerticalStackLayout Grid.Column="1" Spacing="4"
+                            <VerticalStackLayout Grid.Column="1"
+                                                 Spacing="4"
                                                  VerticalOptions="Center">
 
                                 <Label Text="{Binding Title}"
@@ -114,13 +116,16 @@
                                        FontSize="16"
                                        TextColor="{StaticResource PmText}"/>
 
-                                <Label Text="{Binding Start, StringFormat='{0:dd/MM/yyyy HH:mm}'}"
+                                <!-- Ajustado: Start/InstitutionName não existem no model padrão -->
+                                <Label Text="{Binding CreatedAt, StringFormat='Criada em {0:dd/MM/yyyy HH:mm}'}"
                                        TextColor="{StaticResource PmMuted}"
                                        FontSize="12"/>
 
-                                <Label Text="{Binding InstitutionName}"
+                                <Label Text="{Binding Description}"
                                        TextColor="{StaticResource PmMuted}"
-                                       FontSize="12"/>
+                                       FontSize="12"
+                                       LineBreakMode="TailTruncation"
+                                       MaxLines="2"/>
 
                             </VerticalStackLayout>
 

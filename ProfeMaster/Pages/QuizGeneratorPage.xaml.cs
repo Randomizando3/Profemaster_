@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using PdfSharpCore.Drawing;
 using PdfSharpCore.Pdf;
+using ProfeMaster.Config;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
 
@@ -71,13 +72,8 @@ public partial class QuizGeneratorPage : ContentPage
     }
 
     // ===== Banco Offline (JSON local) =====
-    // Arquivo real salvo localmente no app (AppDataDirectory).
-    // Android: /data/data/<pkg>/files/offline_bank.json
-    // Windows: ...\LocalState\offline_bank.json
     private string OfflineBankPath => Path.Combine(FileSystem.AppDataDirectory, "offline_bank.json");
 
-    // Estrutura do banco offline:
-    // { "version": 1, "questions": [ ... ] }
     private sealed class OfflineBankRoot
     {
         public int Version { get; set; } = 1;
@@ -93,11 +89,38 @@ public partial class QuizGeneratorPage : ContentPage
         public string D { get; set; } = "";
         public string Answer { get; set; } = "A";
 
-        // Metadados simples (ajuda MUITO no offline)
         public string Theme { get; set; } = "";
         public string Difficulty { get; set; } = "Ensino Médio";
         public string Source { get; set; } = "online"; // online | custom | import
         public DateTimeOffset AddedAt { get; set; } = DateTimeOffset.UtcNow;
+    }
+
+    // =========================
+    // LIMITES POR PLANO (PROVAS)
+    // Free: até 5 perguntas
+    // Premium: até 10 perguntas
+    // SuperPremium: até 10 perguntas (virtualmente ilimitado em provas, mas perguntas = 10)
+    // =========================
+    private static int GetPlanMaxQuestions()
+    {
+        // AppFlags.ApplyPlan já derruba plano expirado para Free.
+        return AppFlags.CurrentPlan switch
+        {
+            PlanTier.Free => 5,
+            PlanTier.Premium => 10,
+            PlanTier.SuperPremium => 10,
+            _ => 5
+        };
+    }
+
+    private static string GetPlanLabel()
+    {
+        return AppFlags.CurrentPlan switch
+        {
+            PlanTier.SuperPremium => "SuperPremium",
+            PlanTier.Premium => "Premium",
+            _ => "Free"
+        };
     }
 
     public QuizGeneratorPage(GroqQuizService svc, Action<string?>? onDone = null)
@@ -130,10 +153,18 @@ public partial class QuizGeneratorPage : ContentPage
         ApplyModeUI();
 
         QuestionsList.ItemsSource = _doc.Questions;
+
+        // >>> AQUI: garante limite já na abertura
+        var maxQ = GetPlanMaxQuestions();
+        if (_count > maxQ) _count = maxQ;
         SetCount(_count, updateStatus: false);
 
         _ = UpdateNetworkLabelAsync();
         UpdateEmpty();
+
+        // Mensagem discreta de limite no status (sem mexer no XAML por enquanto)
+        if (StatusLabel != null)
+            StatusLabel.Text = $"Plano {GetPlanLabel()}: até {maxQ} pergunta(s) por quiz.";
     }
 
     protected override async void OnAppearing()
@@ -142,6 +173,11 @@ public partial class QuizGeneratorPage : ContentPage
         await UpdateNetworkLabelAsync();
         SyncDifficultyLabel();
         SyncModeLabel();
+
+        // Re-valida limite quando volta (caso plano mudou)
+        var maxQ = GetPlanMaxQuestions();
+        if (_count > maxQ)
+            SetCount(maxQ, updateStatus: true);
     }
 
     // =========================
@@ -188,15 +224,19 @@ public partial class QuizGeneratorPage : ContentPage
             };
         }
 
-        // Se você tiver OfflinePanel no XAML, ele aparece só no OfflineData
         if (OfflinePanel != null)
             OfflinePanel.IsVisible = _mode == GenMode.OfflineData;
     }
 
     private void SetCount(int value, bool updateStatus)
     {
+        var maxPlan = GetPlanMaxQuestions();
+
         if (value < 1) value = 1;
-        if (value > 10) value = 10;
+
+        // trava no limite do plano (e no limite absoluto 10 do app)
+        var hardMax = Math.Min(10, maxPlan);
+        if (value > hardMax) value = hardMax;
 
         _count = value;
 
@@ -204,7 +244,7 @@ public partial class QuizGeneratorPage : ContentPage
             CountLabel.Text = _count.ToString();
 
         if (updateStatus && StatusLabel != null)
-            StatusLabel.Text = $"Quantidade: {_count}";
+            StatusLabel.Text = $"Quantidade: {_count} (máx: {hardMax} no {GetPlanLabel()})";
     }
 
     private void UpdateEmpty()
@@ -237,7 +277,6 @@ public partial class QuizGeneratorPage : ContentPage
 
         _modeTag = ModeToTag(_mode);
 
-        // Se existir OfflineStatusLabel no seu XAML, você pode atualizar algo aqui
         if (_mode == GenMode.OfflineData && OfflineStatusLabel != null)
         {
             var count = await GetOfflineBankCountAsync();
@@ -311,6 +350,14 @@ public partial class QuizGeneratorPage : ContentPage
                 }
             }
 
+            // >>> LIMITE POR PLANO ao abrir quiz existente
+            var maxQ = GetPlanMaxQuestions();
+            if (_doc.Questions.Count > maxQ)
+            {
+                _doc.Questions = _doc.Questions.Take(maxQ).ToList();
+                StatusLabel.Text = $"Seu plano {GetPlanLabel()} permite até {maxQ} pergunta(s). O quiz foi ajustado.";
+            }
+
             ReNumber();
             UpdateEmpty();
 
@@ -330,12 +377,14 @@ public partial class QuizGeneratorPage : ContentPage
 
             var cnt = _doc.Questions.Count;
             if (cnt < 1) cnt = 1;
-            if (cnt > 10) cnt = 10;
+
+            // aqui SetCount já clampa pelo plano
             SetCount(cnt, updateStatus: false);
 
-            StatusLabel.Text = _doc.Questions.Count > 0
-                ? $"Quiz carregado: {_doc.Questions.Count} pergunta(s)."
-                : "Quiz carregado, mas sem perguntas.";
+            if (_doc.Questions.Count > 0 && string.IsNullOrWhiteSpace(StatusLabel.Text))
+            {
+                StatusLabel.Text = $"Quiz carregado: {_doc.Questions.Count} pergunta(s).";
+            }
         }
         catch
         {
@@ -352,9 +401,17 @@ public partial class QuizGeneratorPage : ContentPage
         SetCount(_count - 1, updateStatus: true);
     }
 
-    private void OnCountPlus(object sender, EventArgs e)
+    private async void OnCountPlus(object sender, EventArgs e)
     {
         if (_busy) return;
+
+        var max = GetPlanMaxQuestions();
+        if (_count >= max)
+        {
+            await DisplayAlert("Limite do plano", $"Seu plano {GetPlanLabel()} permite até {max} pergunta(s) por quiz.", "OK");
+            return;
+        }
+
         SetCount(_count + 1, updateStatus: true);
     }
 
@@ -364,6 +421,15 @@ public partial class QuizGeneratorPage : ContentPage
     private async void OnGenerate(object sender, EventArgs e)
     {
         if (_busy) return;
+
+        // >>> garante clamp antes de gerar
+        var max = GetPlanMaxQuestions();
+        if (_count > max)
+        {
+            SetCount(max, updateStatus: true);
+            await DisplayAlert("Limite do plano", $"Seu plano {GetPlanLabel()} permite até {max} pergunta(s) por quiz.", "OK");
+            return;
+        }
 
         var theme = (ThemeEntry.Text ?? "").Trim();
         var baseText = (BaseEditor.Text ?? "").Trim();
@@ -389,7 +455,6 @@ public partial class QuizGeneratorPage : ContentPage
 
             if (_mode == GenMode.Custom)
             {
-                // cria template vazio
                 for (int i = 1; i <= _count; i++)
                 {
                     _doc.Questions.Add(new QuizQuestion
@@ -407,15 +472,11 @@ public partial class QuizGeneratorPage : ContentPage
                 ReNumber();
                 UpdateEmpty();
                 StatusLabel.Text = $"Template criado: {_doc.Questions.Count} pergunta(s).";
-
-                // Não grava no banco aqui porque ainda está vazio.
-                // Vai gravar no OnClose (somente perguntas válidas preenchidas).
                 return;
             }
 
             if (_mode == GenMode.OfflineData)
             {
-                // Offline: usa banco local (offline_bank.json)
                 var result = await GenerateOfflineFromBankAsync(_count, theme, difficulty);
 
                 int n = 1;
@@ -487,7 +548,6 @@ public partial class QuizGeneratorPage : ContentPage
 
             if (_doc.Questions.Count > 0)
             {
-                // >>> AJUSTE PRINCIPAL: salva as perguntas geradas online no banco offline
                 await AddQuestionsToOfflineBankAsync(
                     questions: _doc.Questions,
                     theme: theme,
@@ -512,7 +572,7 @@ public partial class QuizGeneratorPage : ContentPage
     }
 
     // =========================
-    // OFFLINE: gerar a partir do banco local (offline_bank.json)
+    // OFFLINE: gerar a partir do banco local
     // =========================
     private async Task<List<QuizQuestion>> GenerateOfflineFromBankAsync(int count, string theme, string difficulty)
     {
@@ -522,18 +582,13 @@ public partial class QuizGeneratorPage : ContentPage
         if (all.Count == 0)
             return new List<QuizQuestion>();
 
-        // Filtro simples por tema (matching por palavras) + fallback se não achar nada.
         var themed = FilterByTheme(all, theme);
-
-        // Se nada bater com o tema, usa tudo mesmo (pra não voltar vazio sempre)
         var src = themed.Count > 0 ? themed : all;
 
-        // Opcional: prioriza dificuldade igual (sem excluir)
         var exactDiff = src.Where(x => string.Equals((x.Difficulty ?? "").Trim(), difficulty.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
         if (exactDiff.Count > 0)
             src = exactDiff;
 
-        // Embaralha e pega N
         var rnd = new Random();
         src = src.OrderBy(_ => rnd.Next()).ToList();
 
@@ -568,7 +623,6 @@ public partial class QuizGeneratorPage : ContentPage
 
         if (tokens.Count == 0) return new List<OfflineBankQuestion>();
 
-        // score simples: quantos tokens aparecem no prompt/alternativas
         var scored = new List<(OfflineBankQuestion q, int score)>();
 
         foreach (var q in all)
@@ -589,7 +643,7 @@ public partial class QuizGeneratorPage : ContentPage
     }
 
     // =========================
-    // Offline bank: load/save/add (sem "serviço separado")
+    // Offline bank: load/save/add
     // =========================
     private async Task<int> GetOfflineBankCountAsync()
     {
@@ -617,7 +671,6 @@ public partial class QuizGeneratorPage : ContentPage
         }
         catch
         {
-            // Se corromper, não quebra o app: retorna vazio
             return new OfflineBankRoot();
         }
     }
@@ -642,7 +695,6 @@ public partial class QuizGeneratorPage : ContentPage
             var root = await LoadOfflineBankAsync();
             root.Questions ??= new List<OfflineBankQuestion>();
 
-            // Dedup por prompt normalizado
             var existing = new HashSet<string>(
                 root.Questions.Select(x => Normalize(x.Prompt ?? "")),
                 StringComparer.OrdinalIgnoreCase
@@ -689,7 +741,6 @@ public partial class QuizGeneratorPage : ContentPage
 
     private static bool IsValidForBank(QuizQuestion q)
     {
-        // Só salva perguntas "de verdade" no banco
         if (q == null) return false;
 
         var p = (q.Prompt ?? "").Trim();
@@ -712,12 +763,12 @@ public partial class QuizGeneratorPage : ContentPage
         try
         {
             var customFileType = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
-        {
-            { DevicePlatform.Android, new[] { "application/json", "text/plain" } },
-            { DevicePlatform.iOS, new[] { "public.json", "public.text" } },
-            { DevicePlatform.WinUI, new[] { ".json", ".txt" } },
-            { DevicePlatform.MacCatalyst, new[] { "public.json", "public.text" } }
-        });
+            {
+                { DevicePlatform.Android, new[] { "application/json", "text/plain" } },
+                { DevicePlatform.iOS, new[] { "public.json", "public.text" } },
+                { DevicePlatform.WinUI, new[] { ".json", ".txt" } },
+                { DevicePlatform.MacCatalyst, new[] { "public.json", "public.text" } }
+            });
 
             var result = await FilePicker.PickAsync(new PickOptions
             {
@@ -752,18 +803,10 @@ public partial class QuizGeneratorPage : ContentPage
         }
         catch (Exception ex)
         {
-            await DisplayAlert(
-                "Erro",
-                "Falha ao importar:\n" + ex.Message,
-                "OK"
-            );
+            await DisplayAlert("Erro", "Falha ao importar:\n" + ex.Message, "OK");
         }
     }
 
-
-    // Aceita 2 formatos (pra facilitar sua vida e a do usuário):
-    // 1) Root: { "questions": [ {prompt,a,b,c,d,answer, theme?, difficulty?} ] }
-    // 2) Array direto: [ {prompt,a,b,c,d,answer, theme?, difficulty?} ]
     private async Task<int> ImportOfflineBankJsonAsync(string json)
     {
         if (string.IsNullOrWhiteSpace(json)) return 0;
@@ -807,7 +850,6 @@ public partial class QuizGeneratorPage : ContentPage
             if (string.IsNullOrWhiteSpace(key)) continue;
             if (existing.Contains(key)) continue;
 
-            // valida mínimo
             if (it.Prompt.Trim().Length < 10) continue;
             if (string.IsNullOrWhiteSpace(it.A) || string.IsNullOrWhiteSpace(it.B) ||
                 string.IsNullOrWhiteSpace(it.C) || string.IsNullOrWhiteSpace(it.D))
@@ -856,7 +898,6 @@ public partial class QuizGeneratorPage : ContentPage
                 Source = s("source")
             };
 
-            // também aceita chaves em maiúsculo (caso o usuário exporte de outro lugar)
             if (string.IsNullOrWhiteSpace(q.Prompt)) q.Prompt = s("Prompt");
             if (string.IsNullOrWhiteSpace(q.A)) q.A = s("A");
             if (string.IsNullOrWhiteSpace(q.B)) q.B = s("B");
@@ -1072,6 +1113,14 @@ public partial class QuizGeneratorPage : ContentPage
     {
         if (_doc.Questions.Count == 0) return null;
 
+        // >>> trava por segurança no build do JSON também
+        var max = GetPlanMaxQuestions();
+        if (_doc.Questions.Count > max)
+        {
+            _doc.Questions = _doc.Questions.Take(max).ToList();
+            ReNumber();
+        }
+
         EnsureValidAnswers(_doc);
 
         _modeTag = ModeToTag(_mode);
@@ -1103,9 +1152,6 @@ public partial class QuizGeneratorPage : ContentPage
 
     private async void OnClose(object sender, EventArgs e)
     {
-        // >>> AJUSTE PRINCIPAL 2: ao fechar, salva no banco offline também (online e custom)
-        // - Online já salva após gerar, mas salvar de novo não duplica (dedup por prompt).
-        // - Custom: aqui é onde entram as perguntas preenchidas pelo usuário.
         try
         {
             var theme = (_doc.Theme ?? "").Trim();
@@ -1174,35 +1220,35 @@ public partial class QuizGeneratorPage : ContentPage
         try
         {
             var example = new List<QuizQuestion>
-        {
-            new QuizQuestion
             {
-                Prompt = "Qual é a capital do Brasil?",
-                A = "Rio de Janeiro",
-                B = "Brasília",
-                C = "São Paulo",
-                D = "Belo Horizonte",
-                Answer = "B"
-            },
-            new QuizQuestion
-            {
-                Prompt = "Qual planeta é conhecido como o Planeta Vermelho?",
-                A = "Terra",
-                B = "Júpiter",
-                C = "Marte",
-                D = "Vênus",
-                Answer = "C"
-            },
-            new QuizQuestion
-            {
-                Prompt = "Quem escreveu Dom Casmurro?",
-                A = "José de Alencar",
-                B = "Machado de Assis",
-                C = "Clarice Lispector",
-                D = "Graciliano Ramos",
-                Answer = "B"
-            }
-        };
+                new QuizQuestion
+                {
+                    Prompt = "Qual é a capital do Brasil?",
+                    A = "Rio de Janeiro",
+                    B = "Brasília",
+                    C = "São Paulo",
+                    D = "Belo Horizonte",
+                    Answer = "B"
+                },
+                new QuizQuestion
+                {
+                    Prompt = "Qual planeta é conhecido como o Planeta Vermelho?",
+                    A = "Terra",
+                    B = "Júpiter",
+                    C = "Marte",
+                    D = "Vênus",
+                    Answer = "C"
+                },
+                new QuizQuestion
+                {
+                    Prompt = "Quem escreveu Dom Casmurro?",
+                    A = "José de Alencar",
+                    B = "Machado de Assis",
+                    C = "Clarice Lispector",
+                    D = "Graciliano Ramos",
+                    Answer = "B"
+                }
+            };
 
             var json = JsonSerializer.Serialize(example, new JsonSerializerOptions
             {
@@ -1231,5 +1277,4 @@ public partial class QuizGeneratorPage : ContentPage
             );
         }
     }
-
 }

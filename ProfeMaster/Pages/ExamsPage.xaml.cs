@@ -1,3 +1,4 @@
+using ProfeMaster.Config;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
 
@@ -12,6 +13,8 @@ public partial class ExamsPage : ContentPage
     private string _uid = "";
     private string _token = "";
     private List<ExamItem> _items = new();
+
+    private const string UpgradeRoute = "upgrade"; // ajuste se sua rota for "//upgrade"
 
     public ExamsPage(LocalStore store, FirebaseDbService db, GroqQuizService quizSvc)
     {
@@ -38,6 +41,27 @@ public partial class ExamsPage : ContentPage
         await LoadAsync();
     }
 
+    private static int GetPlanMaxExams()
+    {
+        return AppFlags.CurrentPlan switch
+        {
+            PlanTier.Free => 5,
+            PlanTier.Premium => 50,
+            PlanTier.SuperPremium => 100,
+            _ => 5
+        };
+    }
+
+    private static string GetPlanLabel()
+    {
+        return AppFlags.CurrentPlan switch
+        {
+            PlanTier.SuperPremium => "SuperPremium",
+            PlanTier.Premium => "Premium",
+            _ => "Free"
+        };
+    }
+
     private async Task LoadAsync()
     {
         try
@@ -59,6 +83,26 @@ public partial class ExamsPage : ContentPage
 
     private async void OnAdd(object sender, EventArgs e)
     {
+        // >>> LIMITE DE PROVAS POR PLANO
+        var max = GetPlanMaxExams();
+        if (_items.Count >= max)
+        {
+            var plan = GetPlanLabel();
+
+            var go = await DisplayAlert(
+                "Limite atingido",
+                $"Seu plano {plan} permite até {max} prova(s). Para criar mais, faça upgrade.",
+                "Upgrade",
+                "Cancelar"
+            );
+
+            if (go)
+            {
+                try { await Shell.Current.GoToAsync(UpgradeRoute); } catch { }
+            }
+            return;
+        }
+
         var item = new ExamItem();
         await Navigation.PushModalAsync(new ExamEditorPage(_db, _store, _quizSvc, item));
         await LoadAsync();
