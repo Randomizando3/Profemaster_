@@ -16,7 +16,11 @@ public partial class LessonEditorPage : ContentPage
 
     private readonly List<Institution> _institutions = new();
     private readonly List<Classroom> _classes = new();
+
     private const string CreateNewClassLabel = "+ Criar nova turma...";
+
+    // Ajuste se sua rota tiver outro nome
+    private const string UpgradeRoute = "upgrade";
 
     public LessonEditorPage(FirebaseDbService db, LocalStore store, FirebaseStorageService storage, Lesson lesson)
     {
@@ -26,8 +30,6 @@ public partial class LessonEditorPage : ContentPage
         _storage = storage;
         _lesson = lesson;
 
-        UploadBtn.IsVisible = AppFlags.EnableStorageUploads;
-
         TitleEntry.Text = _lesson.Title ?? "";
         DescEditor.Text = _lesson.Description ?? "";
         DurationEntry.Text = (_lesson.DurationMinutes <= 0 ? 50 : _lesson.DurationMinutes).ToString();
@@ -36,6 +38,10 @@ public partial class LessonEditorPage : ContentPage
         RenderMaterials();
 
         RefreshThumbPreview();
+
+        // OBS: aqui ainda não sabemos o plano/uid (session vem no OnAppearing),
+        // então aplicamos de novo depois no ApplyPlanUi().
+        ApplyPlanUi();
     }
 
     protected override async void OnAppearing()
@@ -52,9 +58,58 @@ public partial class LessonEditorPage : ContentPage
         _uid = session.Uid;
         _token = session.IdToken;
 
+        // Reaplica UI agora que o plano já deve estar carregado pelo seu fluxo
+        ApplyPlanUi();
+
         await LoadInstitutionsAsync(selectExisting: true);
     }
 
+    // =========================
+    // Plano ? UI
+    // =========================
+    private bool CanUploadFiles()
+    {
+        // flag global + plano Premium+ ativo
+        if (!AppFlags.EnableStorageUploads) return false;
+        return AppFlags.HasPlan(PlanTier.Premium);
+    }
+
+    private void ApplyPlanUi()
+    {
+        var canUpload = CanUploadFiles();
+
+        if (UploadBtn != null)
+            UploadBtn.IsVisible = canUpload;
+
+        if (MaterialsHintLabel != null)
+        {
+            MaterialsHintLabel.Text = canUpload
+                ? "Links e arquivos de apoio para esta aula."
+                : "No plano Free, você pode adicionar apenas links. Faça upgrade para enviar arquivos.";
+        }
+    }
+
+    private async Task GuardUploadOrRedirectAsync()
+    {
+        if (CanUploadFiles()) return;
+
+        await DisplayAlert("Limite do plano",
+            "Envio de arquivos está disponível apenas no Premium/Super Premium. No Free, use links.",
+            "Fazer upgrade");
+
+        try
+        {
+            await Shell.Current.GoToAsync(UpgradeRoute);
+        }
+        catch
+        {
+            // fallback: se a rota ainda não existir, não quebra a UI
+        }
+    }
+
+    // =========================
+    // Render / Thumb
+    // =========================
     private void RenderMaterials()
     {
         _lesson.MaterialsV2 ??= new();
@@ -77,6 +132,9 @@ public partial class LessonEditorPage : ContentPage
         }
     }
 
+    // =========================
+    // Load Instituições/Turmas
+    // =========================
     private async Task LoadInstitutionsAsync(bool selectExisting)
     {
         try
@@ -166,10 +224,15 @@ public partial class LessonEditorPage : ContentPage
         if (items[ClassPicker.SelectedIndex] == CreateNewClassLabel)
         {
             ClassPicker.SelectedIndex = _classes.Count > 0 ? 0 : -1;
+
+            // Mantive seu comportamento. Se sua rota precisa institutionId, ajustamos depois.
             await Shell.Current.GoToAsync("classes");
         }
     }
 
+    // =========================
+    // Thumb
+    // =========================
     private async void OnPickThumb(object sender, EventArgs e)
     {
         try
@@ -208,8 +271,9 @@ public partial class LessonEditorPage : ContentPage
     private async void OnCancel(object sender, EventArgs e)
         => await Navigation.PopModalAsync();
 
-    // ===== Materiais =====
-
+    // =========================
+    // Materiais
+    // =========================
     private async void OnAddLink(object sender, EventArgs e)
     {
         var title = await DisplayPromptAsync("Novo link", "Título:", "Salvar", "Cancelar", "Ex: Vídeo aula");
@@ -223,7 +287,8 @@ public partial class LessonEditorPage : ContentPage
         {
             Kind = MaterialKind.Link,
             Title = title.Trim(),
-            Url = url.Trim()
+            Url = url.Trim(),
+            CreatedAt = DateTimeOffset.UtcNow
         });
 
         RenderMaterials();
@@ -231,9 +296,10 @@ public partial class LessonEditorPage : ContentPage
 
     private async void OnUpload(object sender, EventArgs e)
     {
-        if (!AppFlags.EnableStorageUploads)
+        // ? trava por plano
+        if (!CanUploadFiles())
         {
-            await DisplayAlert("Info", "Uploads desabilitados por flag. Use links.", "OK");
+            await GuardUploadOrRedirectAsync();
             return;
         }
 
@@ -280,7 +346,8 @@ public partial class LessonEditorPage : ContentPage
                 Title = file.FileName,
                 Url = dl,
                 StoragePath = path,
-                ContentType = contentType
+                ContentType = contentType,
+                CreatedAt = DateTimeOffset.UtcNow
             });
 
             RenderMaterials();
@@ -326,8 +393,9 @@ public partial class LessonEditorPage : ContentPage
         RenderMaterials();
     }
 
-    // ===== Save =====
-
+    // =========================
+    // Save
+    // =========================
     private async void OnSave(object sender, EventArgs e)
     {
         var title = (TitleEntry.Text ?? "").Trim();

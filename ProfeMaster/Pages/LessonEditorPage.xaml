@@ -131,7 +131,7 @@
                         <Label Text="Dados da aula" Style="{StaticResource SectionTitle}" />
                         <Label Text="Defina vínculo (opcional), título, duração e descrição." Style="{StaticResource SectionHint}" />
 
-                        <!-- Instituição / Turma (pickers custom = display visível + overlay) -->
+                        <!-- Instituição / Turma -->
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
 
                             <!-- Instituição -->
@@ -290,7 +290,8 @@
                         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="10">
                             <VerticalStackLayout Spacing="2">
                                 <Label Text="Materiais" Style="{StaticResource SectionTitle}" />
-                                <Label Text="Links e arquivos de apoio para esta aula."
+                                <Label x:Name="MaterialsHintLabel"
+                                       Text="Links e arquivos de apoio para esta aula."
                                        Style="{StaticResource SectionHint}" />
                             </VerticalStackLayout>
 
@@ -360,7 +361,7 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- ===== BOTTOM ACTIONS (redundante, mas útil quando teclado cobre) ===== -->
+        <!-- ===== BOTTOM ACTIONS ===== -->
         <Grid Grid.Row="2" ColumnDefinitions="*,*" ColumnSpacing="10" Padding="0,8,0,0">
             <Button Text="Cancelar"
                     Style="{StaticResource PmBtnDanger}"
