@@ -1,5 +1,5 @@
-// Pages/Tools/NotesPostItPage.xaml.cs
 using System.Text.Json;
+using ProfeMaster.Config;
 
 namespace ProfeMaster.Pages.Tools;
 
@@ -7,6 +7,9 @@ public partial class NotesPostItPage : ContentPage
 {
     private const string FileName = "notes_postit.json";
     private readonly List<NoteItem> _notes = new();
+
+    private const int FreeLimit = 5;
+    private const int PremiumLimit = 20;
 
     public NotesPostItPage()
     {
@@ -30,7 +33,7 @@ public partial class NotesPostItPage : ContentPage
             var path = GetPath();
             if (!File.Exists(path))
             {
-                Render();
+                MainThread.BeginInvokeOnMainThread(Render);
                 return;
             }
 
@@ -66,6 +69,8 @@ public partial class NotesPostItPage : ContentPage
     {
         NotesList.ItemsSource = null;
         NotesList.ItemsSource = _notes.OrderByDescending(x => x.CreatedAt).ToList();
+
+        UpdateLimitUi();
     }
 
     private static string GetPath()
@@ -74,8 +79,74 @@ public partial class NotesPostItPage : ContentPage
     private void OnClearNew(object sender, EventArgs e)
         => NewNoteEditor.Text = "";
 
+    // =========================
+    // LIMITES POR PLANO
+    // =========================
+    private int? GetMaxNotesForPlan()
+    {
+        // SuperPremium = ilimitado
+        if (AppFlags.CurrentPlan == PlanTier.SuperPremium && AppFlags.HasPlanActive())
+            return null;
+
+        // Premium
+        if (AppFlags.CurrentPlan == PlanTier.Premium && AppFlags.HasPlanActive())
+            return PremiumLimit;
+
+        // Free (default)
+        return FreeLimit;
+    }
+
+    private void UpdateLimitUi()
+    {
+        try
+        {
+            var max = GetMaxNotesForPlan();
+            CountBadge.Text = max == null
+                ? $"Notas: {_notes.Count}/?"
+                : $"Notas: {_notes.Count}/{max.Value}";
+
+            // opcional: desabilita botão quando bateu o limite
+            AddBtn.IsEnabled = max == null || _notes.Count < max.Value;
+        }
+        catch
+        {
+            // não quebra UI
+        }
+    }
+
+    private async Task<bool> EnsureCanAddNoteAsync()
+    {
+        var max = GetMaxNotesForPlan();
+        if (max == null) return true;
+
+        if (_notes.Count < max.Value) return true;
+
+        await DisplayAlert(
+            "Limite atingido",
+            $"Seu plano permite até {max.Value} notas. Faça upgrade para continuar.",
+            "Ver planos"
+        );
+
+        await GoToUpgradeAsync();
+        return false;
+    }
+
+    private static async Task GoToUpgradeAsync()
+    {
+        // tenta as rotas mais prováveis, sem quebrar se não existir
+        try { await Shell.Current.GoToAsync("upgrade"); return; } catch { }
+        try { await Shell.Current.GoToAsync("plans"); return; } catch { }
+        try { await Shell.Current.GoToAsync("//plans"); } catch { }
+    }
+
+    // =========================
+    // AÇÕES
+    // =========================
     private async void OnAddNote(object sender, EventArgs e)
     {
+        if (!await EnsureCanAddNoteAsync())
+            return;
+
         var text = (NewNoteEditor.Text ?? "").Trim();
         if (string.IsNullOrWhiteSpace(text))
         {

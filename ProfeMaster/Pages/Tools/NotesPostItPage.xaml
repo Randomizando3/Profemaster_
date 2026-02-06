@@ -72,6 +72,7 @@
                        TextColor="{StaticResource PmMuted}"/>
             </VerticalStackLayout>
 
+            <!-- Badge contador/limite -->
             <Border Grid.Column="2"
                     BackgroundColor="{StaticResource PmSoft}"
                     Stroke="{StaticResource PmStroke}"
@@ -79,7 +80,10 @@
                     StrokeShape="RoundRectangle 16"
                     Padding="10,8"
                     VerticalOptions="Center">
-                <Label Text="Notas" FontSize="11" TextColor="{StaticResource PmMuted}"/>
+                <Label x:Name="CountBadge"
+                       Text="Notas: 0/0"
+                       FontSize="11"
+                       TextColor="{StaticResource PmMuted}"/>
             </Border>
         </Grid>
 
@@ -116,6 +120,7 @@
                             Style="{StaticResource PmBtnSoft}"
                             Clicked="OnClearNew"/>
                     <Button Grid.Column="1"
+                            x:Name="AddBtn"
                             Text="Adicionar"
                             Style="{StaticResource PmBtnPrimary}"
                             Clicked="OnAddNote"/>
