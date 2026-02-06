@@ -1,4 +1,6 @@
 ﻿// Services/Billing/IBillingService.cs
+using ProfeMaster.Config;
+
 namespace ProfeMaster.Services.Billing;
 
 public interface IBillingService
@@ -7,13 +9,13 @@ public interface IBillingService
 
     Task InitializeAsync(CancellationToken ct = default);
 
-    // Retorna preços amigáveis, se disponível
-    Task<(string monthly, string yearly)> GetPriceLabelsAsync(CancellationToken ct = default);
+    // Preços amigáveis por plano
+    Task<(string monthly, string yearly)> GetPriceLabelsAsync(PlanTier tier, CancellationToken ct = default);
 
-    // Dispara a compra (monthly/yearly)
-    Task<(bool ok, string err)> PurchaseMonthlyAsync(CancellationToken ct = default);
-    Task<(bool ok, string err)> PurchaseYearlyAsync(CancellationToken ct = default);
+    // Compra mensal/anual por plano
+    Task<(bool ok, string err)> PurchaseMonthlyAsync(PlanTier tier, CancellationToken ct = default);
+    Task<(bool ok, string err)> PurchaseYearlyAsync(PlanTier tier, CancellationToken ct = default);
 
-    // Consulta se tem premium ativo (best-effort, sem servidor)
-    Task<bool> HasActivePremiumAsync(CancellationToken ct = default);
+    // Best-effort
+    Task<bool> HasActivePlanAsync(PlanTier tier, CancellationToken ct = default);
 }

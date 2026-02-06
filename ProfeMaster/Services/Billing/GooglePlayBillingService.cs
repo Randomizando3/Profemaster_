@@ -1,6 +1,7 @@
 ﻿#if ANDROID
 using Android.BillingClient.Api;
 using Microsoft.Maui.ApplicationModel;
+using ProfeMaster.Config;
 
 using AndroidApp = Android.App.Application;
 
@@ -8,15 +9,17 @@ namespace ProfeMaster.Services.Billing;
 
 public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService, IPurchasesUpdatedListener
 {
-    // Recomendação: crie 2 subscriptions no Play Console:
-    // premium_monthly e premium_yearly
-    private const string SkuMonthly = "premium_monthly";
-    private const string SkuYearly = "premium_yearly";
+    // ===== SKUs (Play Console) =====
+    private const string PremiumMonthly = "premium_monthly";
+    private const string PremiumYearly  = "premium_yearly";
+
+    private const string SuperMonthly   = "superpremium_monthly";
+    private const string SuperYearly    = "superpremium_yearly";
 
     private BillingClient? _client;
 
-    private SkuDetails? _skuMonthly;
-    private SkuDetails? _skuYearly;
+    // Cache por SKU (mensal/anual de cada plano)
+    private readonly Dictionary<string, SkuDetails> _skuCache = new(StringComparer.OrdinalIgnoreCase);
 
     private TaskCompletionSource<(bool ok, string err)>? _purchaseTcs;
 
@@ -25,7 +28,6 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
     // 0 = OK (BillingResponseCode.OK). Usamos int para evitar incompatibilidades.
     private static bool IsOk(BillingResult r) => r != null && r.ResponseCode == 0;
 
-    // PurchaseState é enum no seu binding.
     private static bool IsPurchased(Purchase p) => p != null && p.PurchaseState == PurchaseState.Purchased;
 
     public async Task InitializeAsync(CancellationToken ct = default)
@@ -51,33 +53,57 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
         await tcs.Task;
     }
 
-    // Como seu binding está variando as APIs de query, retornamos labels vazios por enquanto.
-    // No Upgrade, você mostra "Ver preço no Google Play" e só compra ao clicar.
-    public Task<(string monthly, string yearly)> GetPriceLabelsAsync(CancellationToken ct = default)
-        => Task.FromResult(("", ""));
+    // ===== Interface =====
 
-    public async Task<(bool ok, string err)> PurchaseMonthlyAsync(CancellationToken ct = default)
+    public async Task<(string monthly, string yearly)> GetPriceLabelsAsync(PlanTier tier, CancellationToken ct = default)
+    {
+        // Best-effort: pode retornar "" se o binding não suportar query corretamente.
+        await InitializeAsync(ct);
+
+        var skuM = GetSkuId(tier, yearly: false);
+        var skuY = GetSkuId(tier, yearly: true);
+
+        var dM = await GetSkuDetailsSafeAsync(skuM);
+        var dY = await GetSkuDetailsSafeAsync(skuY);
+
+        // Alguns bindings têm Price, outros PriceAmountMicros/CurrencyCode etc.
+        // Para não quebrar, tentamos Price via reflection.
+        return (TryGetPriceString(dM), TryGetPriceString(dY));
+    }
+
+    public async Task<(bool ok, string err)> PurchaseMonthlyAsync(PlanTier tier, CancellationToken ct = default)
     {
         await InitializeAsync(ct);
-        var sku = await GetSkuDetailsSafeAsync(SkuMonthly);
-        if (sku == null) return (false, "SKU mensal não encontrado no Google Play.");
+
+        var skuId = GetSkuId(tier, yearly: false);
+        var sku = await GetSkuDetailsSafeAsync(skuId);
+
+        if (sku == null)
+            return (false, $"SKU mensal não encontrado no Google Play: {skuId}");
+
         return await LaunchPurchaseAsync(sku);
     }
 
-    public async Task<(bool ok, string err)> PurchaseYearlyAsync(CancellationToken ct = default)
+    public async Task<(bool ok, string err)> PurchaseYearlyAsync(PlanTier tier, CancellationToken ct = default)
     {
         await InitializeAsync(ct);
-        var sku = await GetSkuDetailsSafeAsync(SkuYearly);
-        if (sku == null) return (false, "SKU anual não encontrado no Google Play.");
+
+        var skuId = GetSkuId(tier, yearly: true);
+        var sku = await GetSkuDetailsSafeAsync(skuId);
+
+        if (sku == null)
+            return (false, $"SKU anual não encontrado no Google Play: {skuId}");
+
         return await LaunchPurchaseAsync(sku);
     }
 
-    // Neste momento, deixe o "restore" como false (você já controla Premium pelo Firebase).
-    // Quando migrar para Billing v5+ ou um binding mais completo, fazemos restore de verdade.
-    public Task<bool> HasActivePremiumAsync(CancellationToken ct = default)
+    // Por enquanto mantém “restore” falso (seu controle é por Firebase).
+    // Depois dá pra implementar queryPurchases e mapear pro tier correto.
+    public Task<bool> HasActivePlanAsync(PlanTier tier, CancellationToken ct = default)
         => Task.FromResult(false);
 
     // ===== PurchasesUpdatedListener =====
+
     public void OnPurchasesUpdated(BillingResult billingResult, IList<Purchase>? purchases)
     {
         if (!IsOk(billingResult))
@@ -105,6 +131,7 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
             {
                 if (!IsPurchased(p)) continue;
 
+                // Acknowledge é obrigatório para compra ser concluída (evita reembolso automático).
                 if (!p.IsAcknowledged)
                 {
                     var ackParams = AcknowledgePurchaseParams.NewBuilder()
@@ -166,33 +193,33 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
     }
 
     /// <summary>
-    /// QuerySkuDetails no binding 6.2.1 varia. Para compilar SEM depender de overloads,
-    /// usamos o ISkuDetailsResponseListener "clássico", mas chamamos o método síncrono se existir,
-    /// ou usamos reflexão para chamar QuerySkuDetailsAsync corretamente.
+    /// QuerySkuDetails no binding varia. Para compilar SEM depender de overloads,
+    /// tentamos a assinatura (SkuDetailsParams, ISkuDetailsResponseListener) via reflection.
     /// </summary>
     private async Task<SkuDetails?> GetSkuDetailsSafeAsync(string skuId)
     {
-        // Cache
-        if (string.Equals(skuId, SkuMonthly, StringComparison.OrdinalIgnoreCase) && _skuMonthly != null) return _skuMonthly;
-        if (string.Equals(skuId, SkuYearly, StringComparison.OrdinalIgnoreCase) && _skuYearly != null) return _skuYearly;
+        if (string.IsNullOrWhiteSpace(skuId))
+            return null;
+
+        if (_skuCache.TryGetValue(skuId, out var cached))
+            return cached;
 
         await InitializeAsync();
 
-        var skus = new List<string> { skuId };
-
         var skuParams = SkuDetailsParams.NewBuilder()
-            .SetSkusList(skus)
+            .SetSkusList(new List<string> { skuId })
             .SetType(BillingClient.SkuType.Subs)
             .Build();
 
-        // Tenta chamar QuerySkuDetailsAsync(SkuDetailsParams, ISkuDetailsResponseListener)
-        // ou QuerySkuDetailsAsync(SkuDetailsParams) dependendo do binding.
         var tcs = new TaskCompletionSource<SkuDetails?>();
 
         try
         {
-            // 1) Tentativa: assinatura com 2 args
-            var mi2 = _client!.GetType().GetMethod("QuerySkuDetailsAsync", new[] { typeof(SkuDetailsParams), typeof(ISkuDetailsResponseListener) });
+            var mi2 = _client!.GetType().GetMethod(
+                "QuerySkuDetailsAsync",
+                new[] { typeof(SkuDetailsParams), typeof(ISkuDetailsResponseListener) }
+            );
+
             if (mi2 != null)
             {
                 mi2.Invoke(_client, new object[]
@@ -200,28 +227,22 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
                     skuParams,
                     new SkuDetailsListener((result, list) =>
                     {
-                        if (!IsOk(result) || list == null || list.Count == 0) { tcs.TrySetResult(null); return; }
+                        if (!IsOk(result) || list == null || list.Count == 0)
+                        {
+                            tcs.TrySetResult(null);
+                            return;
+                        }
+
                         tcs.TrySetResult(list[0]);
                     })
                 });
 
                 var got = await tcs.Task;
-
-                CacheSku(skuId, got);
+                if (got != null) _skuCache[skuId] = got;
                 return got;
             }
 
-            // 2) Tentativa: assinatura com 1 arg (e retorno void, mas callback interno do binding)
-            var mi1 = _client!.GetType().GetMethod("QuerySkuDetailsAsync", new[] { typeof(SkuDetailsParams) });
-            if (mi1 != null)
-            {
-                // Alguns bindings retornam void e disparam evento interno; outros retornam Task-like.
-                // Aqui não temos hook, então retornamos null para não quebrar.
-                mi1.Invoke(_client, new object[] { skuParams });
-                return null;
-            }
-
-            // 3) Sem método -> não dá para buscar detalhes de preço nesse binding atual.
+            // Se não existir método compatível, não quebramos o app — só não mostramos preço.
             return null;
         }
         catch
@@ -230,12 +251,30 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
         }
     }
 
-    private void CacheSku(string skuId, SkuDetails? got)
+    private static string TryGetPriceString(SkuDetails? d)
     {
-        if (got == null) return;
+        if (d == null) return "";
 
-        if (string.Equals(skuId, SkuMonthly, StringComparison.OrdinalIgnoreCase)) _skuMonthly = got;
-        if (string.Equals(skuId, SkuYearly, StringComparison.OrdinalIgnoreCase)) _skuYearly = got;
+        // Tentativa direta (alguns bindings expõem Price)
+        try
+        {
+            var prop = d.GetType().GetProperty("Price");
+            var val = prop?.GetValue(d) as string;
+            if (!string.IsNullOrWhiteSpace(val)) return val;
+        }
+        catch { }
+
+        return "";
+    }
+
+    private static string GetSkuId(PlanTier tier, bool yearly)
+    {
+        return tier switch
+        {
+            PlanTier.SuperPremium => yearly ? SuperYearly : SuperMonthly,
+            PlanTier.Premium => yearly ? PremiumYearly : PremiumMonthly,
+            _ => yearly ? PremiumYearly : PremiumMonthly // Free não compra; fallback seguro
+        };
     }
 
     // ===== Wrappers =====

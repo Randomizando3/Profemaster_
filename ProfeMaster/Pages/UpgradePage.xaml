@@ -83,7 +83,7 @@
                        FontSize="16"
                        FontAttributes="Bold"
                        TextColor="{StaticResource PmText}" />
-                <Label Text="Grátis ou Premium (sem anúncios)."
+                <Label Text="Grátis / Premium / SuperPremium"
                        FontSize="11"
                        TextColor="{StaticResource PmMuted}" />
             </VerticalStackLayout>
@@ -120,7 +120,7 @@
 
                     <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" RowDefinitions="Auto">
                         <VerticalStackLayout Spacing="6">
-                            <Label Text="Premium = sem anúncios"
+                            <Label Text="Desbloqueie recursos do ProfeMaster"
                                    FontAttributes="Bold"
                                    FontSize="16"
                                    TextColor="#FFFFFF"/>
@@ -167,7 +167,7 @@
                                        FontAttributes="Bold"
                                        FontSize="14"
                                        TextColor="{StaticResource PmText}"/>
-                                <Label Text="Versão padrão com anúncios."
+                                <Label Text="Versão padrão (com limitações)."
                                        FontSize="10"
                                        TextColor="{StaticResource PmMuted}"/>
                             </VerticalStackLayout>
@@ -206,7 +206,7 @@
                                        FontAttributes="Bold"
                                        FontSize="14"
                                        TextColor="{StaticResource PmText}"/>
-                                <Label Text="Sem anúncios."
+                                <Label Text="Sem anúncios + mais limites."
                                        FontSize="10"
                                        TextColor="{StaticResource PmMuted}"/>
                             </VerticalStackLayout>
@@ -218,25 +218,87 @@
                         </Grid>
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                            <Button x:Name="BuyMonthlyBtn"
-                                    Text="Assinar Mensal"
+                            <Button x:Name="BuyPremiumMonthlyBtn"
+                                    Text="Premium Mensal"
                                     Style="{StaticResource PmBtnPrimary}"
-                                    Clicked="OnBuyMonthly"/>
+                                    Clicked="OnBuyPremiumMonthly"/>
 
-                            <Button x:Name="BuyYearlyBtn"
+                            <Button x:Name="BuyPremiumYearlyBtn"
                                     Grid.Column="1"
-                                    Text="Assinar Anual"
+                                    Text="Premium Anual"
                                     Style="{StaticResource PmBtnPrimary}"
-                                    Clicked="OnBuyYearly"/>
+                                    Clicked="OnBuyPremiumYearly"/>
                         </Grid>
 
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
-                            <Label x:Name="MonthlyPriceLabel"
+                            <Label x:Name="PremiumMonthlyPriceLabel"
                                    Text=""
                                    FontSize="10"
                                    TextColor="{StaticResource PmMuted}" />
 
-                            <Label x:Name="YearlyPriceLabel"
+                            <Label x:Name="PremiumYearlyPriceLabel"
+                                   Grid.Column="1"
+                                   Text=""
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}"
+                                   HorizontalTextAlignment="End"/>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- SUPER PREMIUM -->
+                <Border Style="{StaticResource PmCard}">
+                    <VerticalStackLayout Spacing="10">
+
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                            <Border WidthRequest="44" HeightRequest="44"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 16"
+                                    BackgroundColor="#FFF2D6"
+                                    VerticalOptions="Center">
+                                <Label Text="🚀"
+                                       FontSize="18"
+                                       HorizontalTextAlignment="Center"
+                                       VerticalTextAlignment="Center"
+                                       TextColor="{StaticResource PmText}"/>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                <Label Text="SuperPremium"
+                                       FontAttributes="Bold"
+                                       FontSize="14"
+                                       TextColor="{StaticResource PmText}"/>
+                                <Label Text="Tudo do Premium + recursos avançados."
+                                       FontSize="10"
+                                       TextColor="{StaticResource PmMuted}"/>
+                            </VerticalStackLayout>
+
+                            <Border Grid.Column="2" Style="{StaticResource PmBadge}" VerticalOptions="Center">
+                                <Label x:Name="SuperTagLabel" Text="Disponível"
+                                       FontSize="11" TextColor="{StaticResource PmMuted}"/>
+                            </Border>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button x:Name="BuySuperMonthlyBtn"
+                                    Text="Super Mensal"
+                                    Style="{StaticResource PmBtnPrimary}"
+                                    Clicked="OnBuySuperMonthly"/>
+
+                            <Button x:Name="BuySuperYearlyBtn"
+                                    Grid.Column="1"
+                                    Text="Super Anual"
+                                    Style="{StaticResource PmBtnPrimary}"
+                                    Clicked="OnBuySuperYearly"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Label x:Name="SuperMonthlyPriceLabel"
+                                   Text=""
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
+
+                            <Label x:Name="SuperYearlyPriceLabel"
                                    Grid.Column="1"
                                    Text=""
                                    FontSize="10"
@@ -244,17 +306,18 @@
                                    HorizontalTextAlignment="End"/>
                         </Grid>
 
-                        <Label x:Name="PremiumUntilLabel"
-                               Text=""
-                               FontSize="10"
-                               TextColor="{StaticResource PmMuted}"/>
-
-                        <Label x:Name="BillingHintLabel"
-                               Text=""
-                               FontSize="10"
-                               TextColor="{StaticResource PmMuted}"/>
                     </VerticalStackLayout>
                 </Border>
+
+                <Label x:Name="PlanUntilLabel"
+                       Text=""
+                       FontSize="10"
+                       TextColor="{StaticResource PmMuted}"/>
+
+                <Label x:Name="BillingHintLabel"
+                       Text=""
+                       FontSize="10"
+                       TextColor="{StaticResource PmMuted}"/>
 
             </VerticalStackLayout>
         </ScrollView>

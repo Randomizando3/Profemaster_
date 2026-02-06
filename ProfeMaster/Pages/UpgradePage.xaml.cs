@@ -1,4 +1,3 @@
-// Pages/UpgradePage.xaml.cs
 using ProfeMaster.Config;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
@@ -39,16 +38,29 @@ public partial class UpgradePage : ContentPage
         _uid = session.Uid;
         _token = session.IdToken;
 
-        // 1) Puxa do Firebase (fonte do app)
-        var remote = await _db.GetUserPremiumAsync(_uid, _token);
-        if (remote != null)
-            AppFlags.ApplyPremium(remote.IsPremium, remote.IsPremiumUntil);
+        // 0) DEV override (3 UIDs de teste) - se bater, não precisa Firebase
+        var forced = AppFlags.TryApplyDevOverride(_uid);
 
-        // 2) No Android, tenta inicializar Billing e puxar preços
+        // 1) Firebase (fonte do app) - só se não foi forçado por UID
+        if (!forced)
+        {
+            var remote = await _db.GetUserPremiumAsync(_uid, _token);
+            if (remote != null)
+            {
+                var (tier, until) = remote.ToPlan();
+                AppFlags.ApplyPlan(tier, until);
+            }
+            else
+            {
+                AppFlags.ApplyPlan(PlanTier.Free, 0);
+            }
+        }
+
+        // 2) Billing init e preços
         await TryInitBillingAndPrices();
 
-        // 3) Best-effort: se Billing disser que tem subs, marca premium (sem servidor)
-        await TrySyncPremiumFromBilling();
+        // 3) (Opcional) restore best-effort - por enquanto mantém off
+        // await TrySyncFromBilling();
 
         RefreshUiFromFlags();
     }
@@ -58,8 +70,10 @@ public partial class UpgradePage : ContentPage
         if (!_billing.IsSupported)
         {
             BillingHintLabel.Text = "Billing indisponível nesta plataforma (modo dev).";
-            MonthlyPriceLabel.Text = "";
-            YearlyPriceLabel.Text = "";
+            PremiumMonthlyPriceLabel.Text = "";
+            PremiumYearlyPriceLabel.Text = "";
+            SuperMonthlyPriceLabel.Text = "";
+            SuperYearlyPriceLabel.Text = "";
             return;
         }
 
@@ -68,12 +82,24 @@ public partial class UpgradePage : ContentPage
             BillingHintLabel.Text = "Carregando preços…";
             await _billing.InitializeAsync();
 
-            var (m, y) = await _billing.GetPriceLabelsAsync();
+            var (pm, py) = await _billing.GetPriceLabelsAsync(PlanTier.Premium);
+            PremiumMonthlyPriceLabel.Text = string.IsNullOrWhiteSpace(pm) ? "" : $"Mensal: {pm}";
+            PremiumYearlyPriceLabel.Text = string.IsNullOrWhiteSpace(py) ? "" : $"Anual: {py}";
 
-            MonthlyPriceLabel.Text = string.IsNullOrWhiteSpace(m) ? "" : $"Mensal: {m}";
-            YearlyPriceLabel.Text = string.IsNullOrWhiteSpace(y) ? "" : $"Anual: {y}";
+            var (sm, sy) = await _billing.GetPriceLabelsAsync(PlanTier.SuperPremium);
+            SuperMonthlyPriceLabel.Text = string.IsNullOrWhiteSpace(sm) ? "" : $"Mensal: {sm}";
+            SuperYearlyPriceLabel.Text = string.IsNullOrWhiteSpace(sy) ? "" : $"Anual: {sy}";
 
-            BillingHintLabel.Text = "";
+            // Se o binding não conseguiu preço, deixa uma dica
+            if (string.IsNullOrWhiteSpace(pm) && string.IsNullOrWhiteSpace(py) &&
+                string.IsNullOrWhiteSpace(sm) && string.IsNullOrWhiteSpace(sy))
+            {
+                BillingHintLabel.Text = "Os preços podem aparecer apenas na tela do Google Play ao confirmar a compra.";
+            }
+            else
+            {
+                BillingHintLabel.Text = "";
+            }
         }
         catch (Exception ex)
         {
@@ -81,69 +107,63 @@ public partial class UpgradePage : ContentPage
         }
     }
 
-    private async Task TrySyncPremiumFromBilling()
-    {
-        if (!_billing.IsSupported) return;
-
-        try
-        {
-            var has = await _billing.HasActivePremiumAsync();
-            if (has && !AppFlags.HasPremiumActive())
-            {
-                // Sem servidor, não temos expiry real. Por enquanto: deixa “ativo” com 30 dias.
-                // Depois, no fluxo definitivo, você vai validar e calcular com servidor/RTDN.
-                var until = DateTimeOffset.UtcNow.AddDays(30).ToUnixTimeSeconds();
-                await ApplyPremiumAndSave(until);
-            }
-        }
-        catch
-        {
-            // best-effort: não bloqueia UI
-        }
-    }
-
     private async void OnBack(object sender, EventArgs e)
         => await Shell.Current.GoToAsync("..");
 
+    // ===== FREE =====
     private async void OnSetFree(object sender, EventArgs e)
     {
-        AppFlags.ApplyPremium(false, 0);
-
-        var ok = await _db.SetUserPremiumAsync(_uid, _token, new UserPremiumState
-        {
-            IsPremium = false,
-            IsPremiumUntil = 0
-        });
-
-        RefreshUiFromFlags();
-
-        if (!ok)
-            await DisplayAlert("Aviso", "Não foi possível salvar no Firebase. Verifique conexão e tente novamente.", "OK");
+        await ApplyPlanAndSave(PlanTier.Free, 0);
     }
 
-    private async void OnBuyMonthly(object sender, EventArgs e)
+    // ===== PREMIUM =====
+    private async void OnBuyPremiumMonthly(object sender, EventArgs e)
+        => await BuyAndApplyAsync(PlanTier.Premium, days: 30);
+
+    private async void OnBuyPremiumYearly(object sender, EventArgs e)
+        => await BuyAndApplyAsync(PlanTier.Premium, days: 365);
+
+    // ===== SUPER =====
+    private async void OnBuySuperMonthly(object sender, EventArgs e)
+        => await BuyAndApplyAsync(PlanTier.SuperPremium, days: 30);
+
+    private async void OnBuySuperYearly(object sender, EventArgs e)
+        => await BuyAndApplyAsync(PlanTier.SuperPremium, days: 365);
+
+    private async Task BuyAndApplyAsync(PlanTier tier, int days)
     {
-        // Android: Billing real. Outras plataformas: fallback dev (+30 dias)
+        // Se forçou por UID, não deixa comprar (evita confusão de teste)
+        if (AppFlags.TryApplyDevOverride(_uid))
+        {
+            RefreshUiFromFlags();
+            await DisplayAlert("Modo teste", "Este usuário está com plano forçado por UID (dev override).", "OK");
+            return;
+        }
+
+        // Outras plataformas: fallback dev
         if (!_billing.IsSupported)
         {
-            var until = DateTimeOffset.UtcNow.AddDays(30).ToUnixTimeSeconds();
-            await ApplyPremiumAndSave(until);
+            var untilDev = DateTimeOffset.UtcNow.AddDays(days).ToUnixTimeSeconds();
+            await ApplyPlanAndSave(tier, untilDev);
             return;
         }
 
         SetBusy(true);
         try
         {
-            var (ok, err) = await _billing.PurchaseMonthlyAsync();
+            var (ok, err) = days >= 365
+                ? await _billing.PurchaseYearlyAsync(tier)
+                : await _billing.PurchaseMonthlyAsync(tier);
+
             if (!ok)
             {
                 await DisplayAlert("Erro", err, "OK");
                 return;
             }
 
-            // Sem servidor: até 30 dias (depois você troca para validade real)
-            var until = DateTimeOffset.UtcNow.AddDays(30).ToUnixTimeSeconds();
-            await ApplyPremiumAndSave(until);
+            // Sem validação server-side: grava “até +X dias”
+            var until = DateTimeOffset.UtcNow.AddDays(days).ToUnixTimeSeconds();
+            await ApplyPlanAndSave(tier, until);
         }
         finally
         {
@@ -151,43 +171,12 @@ public partial class UpgradePage : ContentPage
         }
     }
 
-    private async void OnBuyYearly(object sender, EventArgs e)
+    private async Task ApplyPlanAndSave(PlanTier tier, long untilUnixSeconds)
     {
-        if (!_billing.IsSupported)
-        {
-            var until = DateTimeOffset.UtcNow.AddDays(365).ToUnixTimeSeconds();
-            await ApplyPremiumAndSave(until);
-            return;
-        }
+        AppFlags.ApplyPlan(tier, untilUnixSeconds);
 
-        SetBusy(true);
-        try
-        {
-            var (ok, err) = await _billing.PurchaseYearlyAsync();
-            if (!ok)
-            {
-                await DisplayAlert("Erro", err, "OK");
-                return;
-            }
-
-            var until = DateTimeOffset.UtcNow.AddDays(365).ToUnixTimeSeconds();
-            await ApplyPremiumAndSave(until);
-        }
-        finally
-        {
-            SetBusy(false);
-        }
-    }
-
-    private async Task ApplyPremiumAndSave(long untilUnix)
-    {
-        AppFlags.ApplyPremium(true, untilUnix);
-
-        var ok = await _db.SetUserPremiumAsync(_uid, _token, new UserPremiumState
-        {
-            IsPremium = true,
-            IsPremiumUntil = untilUnix
-        });
+        var state = UserPremiumState.FromPlan(tier, untilUnixSeconds);
+        var ok = await _db.SetUserPremiumAsync(_uid, _token, state);
 
         RefreshUiFromFlags();
 
@@ -197,38 +186,52 @@ public partial class UpgradePage : ContentPage
 
     private void RefreshUiFromFlags()
     {
-        var active = AppFlags.HasPremiumActive();
+        var plan = AppFlags.CurrentPlan;
+        var active = AppFlags.HasPlanActive();
 
-        StatusBadgeLabel.Text = active ? "Premium" : "Grátis";
-
-        FreeTagLabel.Text = active ? "Disponível" : "Selecionado";
-        PremiumTagLabel.Text = active ? "Ativo" : "Disponível";
-
-        if (active)
+        StatusBadgeLabel.Text = plan switch
         {
-            if (AppFlags.IsPremiumUntil > 0)
+            PlanTier.SuperPremium => "SuperPremium",
+            PlanTier.Premium => "Premium",
+            _ => "Grátis"
+        };
+
+        FreeTagLabel.Text = plan == PlanTier.Free ? "Selecionado" : "Disponível";
+        PremiumTagLabel.Text = plan == PlanTier.Premium ? "Ativo" : "Disponível";
+        SuperTagLabel.Text = plan == PlanTier.SuperPremium ? "Ativo" : "Disponível";
+
+        if (plan != PlanTier.Free && active)
+        {
+            if (AppFlags.PlanUntil > 0)
             {
-                var dt = DateTimeOffset.FromUnixTimeSeconds(AppFlags.IsPremiumUntil).ToLocalTime();
-                PremiumUntilLabel.Text = $"Válido até: {dt:dd/MM/yyyy HH:mm}";
+                var dt = DateTimeOffset.FromUnixTimeSeconds(AppFlags.PlanUntil).ToLocalTime();
+                PlanUntilLabel.Text = $"Válido até: {dt:dd/MM/yyyy HH:mm}";
             }
             else
             {
-                PremiumUntilLabel.Text = "Válido: sem expiração (modo dev).";
+                PlanUntilLabel.Text = "Válido: sem expiração (modo dev).";
             }
         }
         else
         {
-            PremiumUntilLabel.Text = "";
+            PlanUntilLabel.Text = "";
         }
 
-        // Desabilita compra se já está premium
-        BuyMonthlyBtn.IsEnabled = !active;
-        BuyYearlyBtn.IsEnabled = !active;
+        // Compras:
+        BuyPremiumMonthlyBtn.IsEnabled = plan == PlanTier.Free;
+        BuyPremiumYearlyBtn.IsEnabled = plan == PlanTier.Free;
+
+        // SuperPremium: permite upgrade de Free/Premium
+        BuySuperMonthlyBtn.IsEnabled = plan != PlanTier.SuperPremium;
+        BuySuperYearlyBtn.IsEnabled = plan != PlanTier.SuperPremium;
     }
 
     private void SetBusy(bool busy)
     {
-        BuyMonthlyBtn.IsEnabled = !busy;
-        BuyYearlyBtn.IsEnabled = !busy;
+        BuyPremiumMonthlyBtn.IsEnabled = !busy && AppFlags.CurrentPlan == PlanTier.Free;
+        BuyPremiumYearlyBtn.IsEnabled = !busy && AppFlags.CurrentPlan == PlanTier.Free;
+
+        BuySuperMonthlyBtn.IsEnabled = !busy && AppFlags.CurrentPlan != PlanTier.SuperPremium;
+        BuySuperYearlyBtn.IsEnabled = !busy && AppFlags.CurrentPlan != PlanTier.SuperPremium;
     }
 }
