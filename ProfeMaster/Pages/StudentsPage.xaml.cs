@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using ProfeMaster.Config;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
 
@@ -55,6 +56,9 @@ public partial class StudentsPage : ContentPage
         _uid = session.Uid;
         _token = session.IdToken;
 
+        // aplica override dev (se você configurou no AppFlags)
+        AppFlags.TryApplyDevOverride(_uid);
+
         // cache primeiro
         if (!string.IsNullOrWhiteSpace(InstitutionId) && !string.IsNullOrWhiteSpace(ClassId))
         {
@@ -91,6 +95,35 @@ public partial class StudentsPage : ContentPage
             await Navigation.PopModalAsync();
         else
             await Shell.Current.GoToAsync("..");
+    }
+
+    // =========================
+    // LIMITES (Alunos por turma)
+    // =========================
+    private static int GetStudentsPerClassLimit(PlanTier tier) => tier switch
+    {
+        PlanTier.SuperPremium => int.MaxValue,
+        PlanTier.Premium => 50,
+        _ => 5
+    };
+
+    private async Task<bool> EnsureCanCreateStudentAsync()
+    {
+        var limit = GetStudentsPerClassLimit(AppFlags.CurrentPlan);
+        if (limit == int.MaxValue) return true;
+
+        if (Students.Count + 1 <= limit) return true;
+
+        var planName = AppFlags.CurrentPlan == PlanTier.Free ? "Grátis" : "Premium";
+        var msg = $"Você atingiu o limite do plano {planName}.\n\n" +
+                  $"• Limite atual: {limit} alunos por turma\n" +
+                  $"• Para adicionar mais, faça upgrade.";
+
+        var go = await DisplayAlert("Limite atingido", msg, "Ver planos", "Cancelar");
+        if (go)
+            await Shell.Current.GoToAsync("upgrade");
+
+        return false;
     }
 
     // =========================
@@ -135,8 +168,11 @@ public partial class StudentsPage : ContentPage
     private void OnEditorClose(object sender, EventArgs e) => CloseEditor();
     private void OnEditorCancel(object sender, EventArgs e) => CloseEditor();
 
-    private void OnAddClicked(object sender, EventArgs e)
+    private async void OnAddClicked(object sender, EventArgs e)
     {
+        // LIMITE: antes de abrir editor
+        if (!await EnsureCanCreateStudentAsync()) return;
+
         OpenEditor(isEdit: false, st: null);
     }
 
@@ -163,6 +199,13 @@ public partial class StudentsPage : ContentPage
 
         StudentContact st;
         var isEdit = _editorIsEdit && _editing != null;
+
+        // LIMITE: valida também no salvar (anti-bypass)
+        if (!isEdit)
+        {
+            if (!await EnsureCanCreateStudentAsync())
+                return;
+        }
 
         if (isEdit)
         {

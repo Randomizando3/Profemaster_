@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using ProfeMaster.Config;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
 
@@ -58,6 +59,9 @@ public partial class ClassesPage : ContentPage
         _uid = session.Uid;
         _token = session.IdToken;
 
+        // aplica override dev (se você configurou no AppFlags)
+        AppFlags.TryApplyDevOverride(_uid);
+
         if (!string.IsNullOrWhiteSpace(InstitutionId))
         {
             var cached = await _store.LoadClassesCacheAsync(InstitutionId);
@@ -89,11 +93,40 @@ public partial class ClassesPage : ContentPage
 
     private async void OnCloseClicked(object sender, EventArgs e)
     {
-        // volta para página anterior (normalmente Institutions)
         if (Navigation.ModalStack.Count > 0)
             await Navigation.PopModalAsync();
         else
             await Shell.Current.GoToAsync("..");
+    }
+
+    // =========================
+    // LIMITES (Turmas por instituição)
+    // Free: 5 | Premium: 20 | Super: ilimitado
+    // =========================
+    private static int GetClassesPerInstitutionLimit(PlanTier tier) => tier switch
+    {
+        PlanTier.SuperPremium => int.MaxValue,
+        PlanTier.Premium => 20,
+        _ => 5
+    };
+
+    private async Task<bool> EnsureCanCreateClassAsync()
+    {
+        var limit = GetClassesPerInstitutionLimit(AppFlags.CurrentPlan);
+        if (limit == int.MaxValue) return true;
+
+        if (Classes.Count + 1 <= limit) return true;
+
+        var planName = AppFlags.CurrentPlan == PlanTier.Free ? "Grátis" : "Premium";
+        var msg = $"Você atingiu o limite do plano {planName}.\n\n" +
+                  $"• Limite atual: {limit} turmas por instituição\n" +
+                  $"• Para criar mais, faça upgrade.";
+
+        var go = await DisplayAlert("Limite atingido", msg, "Ver planos", "Cancelar");
+        if (go)
+            await Shell.Current.GoToAsync("upgrade");
+
+        return false;
     }
 
     // =========================
@@ -112,7 +145,6 @@ public partial class ClassesPage : ContentPage
             RoomEntry.Text = cls.Room ?? "";
             NotesEditor.Text = cls.Notes ?? "";
 
-            // period -> index
             var p = (cls.Period ?? "").Trim();
             var idx = _periods.FindIndex(x => string.Equals(x, p, StringComparison.OrdinalIgnoreCase));
             PeriodPicker.SelectedIndex = idx >= 0 ? idx : -1;
@@ -142,8 +174,11 @@ public partial class ClassesPage : ContentPage
     private void OnEditorClose(object sender, EventArgs e) => CloseEditor();
     private void OnEditorCancel(object sender, EventArgs e) => CloseEditor();
 
-    private void OnAddClicked(object sender, EventArgs e)
+    private async void OnAddClicked(object sender, EventArgs e)
     {
+        // LIMITE: antes de abrir editor
+        if (!await EnsureCanCreateClassAsync()) return;
+
         OpenEditor(isEdit: false, cls: null);
     }
 
@@ -173,6 +208,13 @@ public partial class ClassesPage : ContentPage
 
         Classroom cls;
         var isEdit = _editorIsEdit && _editing != null;
+
+        // LIMITE: valida também no salvar (anti-bypass)
+        if (!isEdit)
+        {
+            if (!await EnsureCanCreateClassAsync())
+                return;
+        }
 
         if (isEdit)
         {

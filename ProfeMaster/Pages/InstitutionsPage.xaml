@@ -244,7 +244,7 @@
                             </Grid>
                         </Border>
 
-                        <!-- Tipo (Picker) - corrige “1px” e mantém visual consistente -->
+                        <!-- Tipo (Picker) -->
                         <Border Stroke="#E5E7EB"
                                 StrokeThickness="2"
                                 StrokeShape="RoundRectangle 16"
@@ -254,7 +254,6 @@
                             <Grid ColumnDefinitions="*,Auto"
                                   VerticalOptions="Center">
 
-                                <!-- Picker ocupa a área toda -->
                                 <Picker x:Name="TypePicker"
                                         Title="Tipo"
                                         BackgroundColor="Transparent"
@@ -263,7 +262,6 @@
                                         HeightRequest="54"
                                         VerticalOptions="Center" />
 
-                                <!-- Seta desenhada, para não depender do estilo do Windows -->
                                 <Label Grid.Column="1"
                                        Text="▾"
                                        FontSize="16"

@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using ProfeMaster.Config;
 using ProfeMaster.Models;
 using ProfeMaster.Services;
 
@@ -54,6 +55,9 @@ public partial class InstitutionsPage : ContentPage
         _uid = session.Uid;
         _token = session.IdToken;
 
+        // aplica override dev (se você configurou no AppFlags)
+        AppFlags.TryApplyDevOverride(_uid);
+
         // mostra cache instantâneo
         var cached = await _store.LoadInstitutionsCacheAsync();
         if (cached != null && cached.Count > 0 && Institutions.Count == 0)
@@ -82,12 +86,43 @@ public partial class InstitutionsPage : ContentPage
     }
 
     private async void OnRefreshClicked(object sender, EventArgs e)
+        => await LoadFromCloudAsync();
+
+    // =========================
+    // LIMITES (Instituições)
+    // =========================
+    private static int GetInstitutionsLimit(PlanTier tier) => tier switch
     {
-        await LoadFromCloudAsync();
+        PlanTier.SuperPremium => int.MaxValue,
+        PlanTier.Premium => 20,
+        _ => 5
+    };
+
+    private async Task<bool> EnsureCanCreateInstitutionAsync()
+    {
+        var limit = GetInstitutionsLimit(AppFlags.CurrentPlan);
+        if (limit == int.MaxValue) return true;
+
+        // +1 porque ele está tentando criar mais uma
+        if (Institutions.Count + 1 <= limit) return true;
+
+        var planName = AppFlags.CurrentPlan == PlanTier.Free ? "Grátis" : "Premium";
+        var msg = $"Você atingiu o limite do plano {planName}.\n\n" +
+                  $"• Limite atual: {limit} instituições\n" +
+                  $"• Para criar mais, faça upgrade.";
+
+        var go = await DisplayAlert("Limite atingido", msg, "Ver planos", "Cancelar");
+        if (go)
+            await Shell.Current.GoToAsync("upgrade");
+
+        return false;
     }
 
-    private void OnAddClicked(object sender, EventArgs e)
+    private async void OnAddClicked(object sender, EventArgs e)
     {
+        // LIMITE: antes de abrir editor
+        if (!await EnsureCanCreateInstitutionAsync()) return;
+
         OpenEditorForNew();
     }
 
@@ -184,7 +219,16 @@ public partial class InstitutionsPage : ContentPage
 
         var notes = (NotesEditor.Text ?? "").Trim();
 
-        if (_editing == null)
+        var isNew = _editing == null;
+
+        // LIMITE: valida também no salvar, para evitar bypass
+        if (isNew)
+        {
+            if (!await EnsureCanCreateInstitutionAsync())
+                return;
+        }
+
+        if (isNew)
         {
             var inst = new Institution
             {
@@ -206,7 +250,7 @@ public partial class InstitutionsPage : ContentPage
         }
         else
         {
-            _editing.Name = name;
+            _editing!.Name = name;
             _editing.Type = type;
             _editing.Notes = notes;
 
