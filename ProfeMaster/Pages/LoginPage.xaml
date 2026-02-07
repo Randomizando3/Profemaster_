@@ -6,220 +6,206 @@
     BackgroundColor="White"
     Shell.NavBarIsVisible="False">
 
-    <!-- TELA TODA (altura e largura) -->
-    <Grid
-        HorizontalOptions="FillAndExpand"
-        VerticalOptions="FillAndExpand">
+    <!-- TELA TODA -->
+    <Grid HorizontalOptions="FillAndExpand"
+          VerticalOptions="FillAndExpand">
 
-        <!-- FUNDO (arte bglogin.png) ocupando tudo -->
-        <Image
-            Source="bglogin.png"
-            Aspect="AspectFill"
-            HorizontalOptions="FillAndExpand"
-            VerticalOptions="FillAndExpand" />
+        <!-- FUNDO -->
+        <Image Source="bglogin.png"
+               Aspect="AspectFill"
+               HorizontalOptions="FillAndExpand"
+               VerticalOptions="FillAndExpand" />
 
-        <!-- CAMADAS (logo / form / rodapé) -->
-        <Grid
-            RowDefinitions="0.15*,0.38*,0.26*"
-            ColumnDefinitions="*"
-            HorizontalOptions="FillAndExpand"
-            VerticalOptions="FillAndExpand">
+        <!-- CAMADAS -->
+        <Grid RowDefinitions="0.15*,0.38*,0.26*"
+              ColumnDefinitions="*"
+              HorizontalOptions="FillAndExpand"
+              VerticalOptions="FillAndExpand">
 
             <!-- ===== TOP: LOGO ===== -->
-            <Grid
-                Grid.Row="0"
-                HorizontalOptions="FillAndExpand"
-                VerticalOptions="FillAndExpand">
+            <Grid Grid.Row="0"
+                  HorizontalOptions="FillAndExpand"
+                  VerticalOptions="FillAndExpand">
 
-                <Image
-                    Source="logowhite.png"
-                    Aspect="AspectFit"
-                    HeightRequest="160"
-                    WidthRequest="230"
-                    HorizontalOptions="Center"
-                    VerticalOptions="Center"
-                    Margin="0,10,0,0" />
+                <Image Source="logowhite.png"
+                       Aspect="AspectFit"
+                       HeightRequest="160"
+                       WidthRequest="230"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       Margin="0,10,0,0" />
             </Grid>
 
             <!-- ===== MID: CAMPOS + LINK + LOGIN ===== -->
-            <Grid
-                Grid.Row="1"
-                HorizontalOptions="FillAndExpand"
-                VerticalOptions="FillAndExpand"
-                Padding="28,0"
-                Margin="0,0,0,0">
+            <Grid Grid.Row="1"
+                  HorizontalOptions="FillAndExpand"
+                  VerticalOptions="FillAndExpand"
+                  Padding="28,0"
+                  Margin="0,0,0,0">
 
-                <Grid
-                    RowDefinitions="Auto,Auto,Auto,Auto"
-                    RowSpacing="18"
-                    HorizontalOptions="FillAndExpand"
-                    VerticalOptions="Center">
+                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+                      RowSpacing="18"
+                      HorizontalOptions="FillAndExpand"
+                      VerticalOptions="Center">
 
                     <!-- Usuário -->
-                    <Border
-                        Grid.Row="0"
-                        BackgroundColor="White"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 24"
-                        HeightRequest="64"
-                        HorizontalOptions="FillAndExpand"
-                        VerticalOptions="Center">
-
-                        <Grid
-                            Padding="14,0"
-                            ColumnDefinitions="28,*"
-                            ColumnSpacing="10"
+                    <Border Grid.Row="0"
+                            BackgroundColor="White"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 24"
+                            HeightRequest="64"
                             HorizontalOptions="FillAndExpand"
-                            VerticalOptions="FillAndExpand">
+                            VerticalOptions="Center">
 
-                            <Image
-                                Source="user.png"
-                                WidthRequest="18"
-                                HeightRequest="18"
-                                Opacity="0.70"
-                                HorizontalOptions="Center"
-                                VerticalOptions="Center" />
+                        <Grid Padding="14,0"
+                              ColumnDefinitions="28,*"
+                              ColumnSpacing="10"
+                              HorizontalOptions="FillAndExpand"
+                              VerticalOptions="FillAndExpand">
 
-                            <Entry
-                                Grid.Column="1"
-                                x:Name="EmailEntry"
-                                Placeholder="Usuário"
-                                Keyboard="Email"
-                                BackgroundColor="Transparent"
-                                TextColor="#1F2937"
-                                PlaceholderColor="#94A3B8"
-                                FontSize="17"
-                                ClearButtonVisibility="WhileEditing"
-                                HorizontalOptions="FillAndExpand"
-                                VerticalOptions="Center" />
+                            <Image Source="user.png"
+                                   WidthRequest="18"
+                                   HeightRequest="18"
+                                   Opacity="0.70"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+
+                            <Entry Grid.Column="1"
+                                   x:Name="EmailEntry"
+                                   Placeholder="Usuário"
+                                   Keyboard="Email"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#1F2937"
+                                   PlaceholderColor="#94A3B8"
+                                   FontSize="17"
+                                   ClearButtonVisibility="WhileEditing"
+                                   HorizontalOptions="FillAndExpand"
+                                   VerticalOptions="Center" />
                         </Grid>
                     </Border>
 
                     <!-- Senha -->
-                    <Border
-                        Grid.Row="1"
-                        BackgroundColor="White"
-                        StrokeThickness="0"
-                        StrokeShape="RoundRectangle 24"
-                        HeightRequest="64"
-                        HorizontalOptions="FillAndExpand"
-                        VerticalOptions="Center">
-
-                        <Grid
-                            Padding="18,0"
-                            ColumnDefinitions="28,*"
-                            ColumnSpacing="10"
+                    <Border Grid.Row="1"
+                            BackgroundColor="White"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 24"
+                            HeightRequest="64"
                             HorizontalOptions="FillAndExpand"
-                            VerticalOptions="FillAndExpand">
+                            VerticalOptions="Center">
 
-                            <Image
-                                Source="pass.png"
-                                WidthRequest="18"
-                                HeightRequest="18"
-                                Opacity="0.70"
-                                HorizontalOptions="Center"
-                                VerticalOptions="Center" />
+                        <Grid Padding="18,0"
+                              ColumnDefinitions="28,*"
+                              ColumnSpacing="10"
+                              HorizontalOptions="FillAndExpand"
+                              VerticalOptions="FillAndExpand">
 
-                            <Entry
-                                Grid.Column="1"
-                                x:Name="PassEntry"
-                                Placeholder="Senha"
-                                IsPassword="True"
-                                BackgroundColor="Transparent"
-                                TextColor="#1F2937"
-                                PlaceholderColor="#94A3B8"
-                                FontSize="17"
-                                HorizontalOptions="FillAndExpand"
-                                VerticalOptions="Center" />
+                            <Image Source="pass.png"
+                                   WidthRequest="18"
+                                   HeightRequest="18"
+                                   Opacity="0.70"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center" />
+
+                            <Entry Grid.Column="1"
+                                   x:Name="PassEntry"
+                                   Placeholder="Senha"
+                                   IsPassword="True"
+                                   BackgroundColor="Transparent"
+                                   TextColor="#1F2937"
+                                   PlaceholderColor="#94A3B8"
+                                   FontSize="17"
+                                   HorizontalOptions="FillAndExpand"
+                                   VerticalOptions="Center" />
                         </Grid>
                     </Border>
 
                     <!-- Esqueci -->
-                    <Label
-                        Grid.Row="2"
-                        Text="Esqueceu sua senha? Clique aqui"
-                        FontSize="12"
-                        TextColor="#F2F2F2"
-                        HorizontalTextAlignment="Center"
-                        HorizontalOptions="FillAndExpand"
-                        Margin="0,-6,0,0">
+                    <Label Grid.Row="2"
+                           Text="Esqueceu sua senha? Clique aqui"
+                           FontSize="12"
+                           TextColor="#F2F2F2"
+                           HorizontalTextAlignment="Center"
+                           HorizontalOptions="FillAndExpand"
+                           Margin="0,-6,0,0">
                         <Label.GestureRecognizers>
-                            <TapGestureRecognizer />
+                            <TapGestureRecognizer Tapped="OnForgotPasswordTapped" />
                         </Label.GestureRecognizers>
                     </Label>
 
-                    <!-- Login (contornado) -->
-                    <Button
-                        Grid.Row="3"
-                        x:Name="LoginButton"
-                        Text="Login"
-                        HeightRequest="62"
-                        CornerRadius="24"
-                        BackgroundColor="Transparent"
-                        TextColor="White"
-                        BorderColor="#E7E2FF"
-                        BorderWidth="1"
-                        FontAttributes="Bold"
-                        FontSize="17"
-                        HorizontalOptions="FillAndExpand"
-                        VerticalOptions="Center"
-                        Clicked="OnLoginClicked" />
+                    <!-- Login -->
+                    <Button Grid.Row="3"
+                            x:Name="LoginButton"
+                            Text="Login"
+                            HeightRequest="62"
+                            CornerRadius="24"
+                            BackgroundColor="Transparent"
+                            TextColor="White"
+                            BorderColor="#E7E2FF"
+                            BorderWidth="1"
+                            FontAttributes="Bold"
+                            FontSize="17"
+                            HorizontalOptions="FillAndExpand"
+                            VerticalOptions="Center"
+                            Clicked="OnLoginClicked" />
+
+                    <!-- Loading discreto -->
+                    <ActivityIndicator Grid.Row="4"
+                                       x:Name="Loading"
+                                       IsVisible="False"
+                                       IsRunning="False"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"
+                                       Margin="0,-8,0,0" />
                 </Grid>
             </Grid>
 
-            <!-- ===== BOTTOM: TEXTO + REGISTRAR (colado embaixo) ===== -->
-            <Grid
-                Grid.Row="2"
-                HorizontalOptions="FillAndExpand"
-                VerticalOptions="FillAndExpand"
-                Padding="28,0,28,24">
+            <!-- ===== BOTTOM: TEXTO + REGISTRAR ===== -->
+            <Grid Grid.Row="2"
+                  HorizontalOptions="FillAndExpand"
+                  VerticalOptions="FillAndExpand"
+                  Padding="28,0,28,24">
 
-                <Grid
-                    RowDefinitions="*,Auto,Auto"
-                    RowSpacing="10"
-                    HorizontalOptions="FillAndExpand"
-                    VerticalOptions="FillAndExpand">
+                <Grid RowDefinitions="*,Auto,Auto"
+                      RowSpacing="10"
+                      HorizontalOptions="FillAndExpand"
+                      VerticalOptions="FillAndExpand">
 
-                    <!-- empurra tudo para baixo -->
                     <Grid Grid.Row="0" />
 
-                    <Label
-                        Grid.Row="1"
-                        Text="Não tem uma conta?"
-                        FontSize="13"
-                        TextColor="#6B7280"
-                        HorizontalTextAlignment="Center"
-                        HorizontalOptions="FillAndExpand"
-                        Margin="0,0,0,6" />
+                    <Label Grid.Row="1"
+                           Text="Não tem uma conta?"
+                           FontSize="13"
+                           TextColor="#6B7280"
+                           HorizontalTextAlignment="Center"
+                           HorizontalOptions="FillAndExpand"
+                           Margin="0,0,0,6" />
 
-                    <Button
-                        Grid.Row="2"
-                        Text="Registre-se"
-                        HeightRequest="62"
-                        CornerRadius="26"
-                        BackgroundColor="#9B6BFF"
-                        TextColor="White"
-                        FontAttributes="Bold"
-                        FontSize="17"
-                        HorizontalOptions="FillAndExpand"
-                        VerticalOptions="End"
-                        Clicked="OnGoRegisterClicked" />
+                    <Button Grid.Row="2"
+                            Text="Registre-se"
+                            HeightRequest="62"
+                            CornerRadius="26"
+                            BackgroundColor="#9B6BFF"
+                            TextColor="White"
+                            FontAttributes="Bold"
+                            FontSize="17"
+                            HorizontalOptions="FillAndExpand"
+                            VerticalOptions="End"
+                            Clicked="OnGoRegisterClicked" />
                 </Grid>
             </Grid>
 
         </Grid>
 
-        <!-- Status flutuante (opcional) - aparece por cima sem "empurrar" o layout -->
-        <Label
-            x:Name="StatusLabel"
-            Text=""
-            IsVisible="False"
-            FontSize="12"
-            TextColor="#FCA5A5"
-            HorizontalTextAlignment="Center"
-            HorizontalOptions="FillAndExpand"
-            VerticalOptions="Start"
-            Margin="28,14,28,0" />
+        <!-- Status flutuante -->
+        <Label x:Name="StatusLabel"
+               Text=""
+               IsVisible="False"
+               FontSize="12"
+               TextColor="#FCA5A5"
+               HorizontalTextAlignment="Center"
+               HorizontalOptions="FillAndExpand"
+               VerticalOptions="Start"
+               Margin="28,14,28,0" />
 
     </Grid>
 </ContentPage>

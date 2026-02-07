@@ -16,6 +16,9 @@ public sealed class FirebaseAuthService
     private static string SignUpUrl => $"https://identitytoolkit.googleapis.com/v1/accounts:signUp?key={FirebaseConfig.ApiKey}";
     private static string SignInUrl => $"https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key={FirebaseConfig.ApiKey}";
 
+    // ✅ NOVO: endpoint de reset
+    private static string SendOobCodeUrl => $"https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key={FirebaseConfig.ApiKey}";
+
     private sealed class AuthReq
     {
         public string email { get; set; } = "";
@@ -40,14 +43,51 @@ public sealed class FirebaseAuthService
         }
     }
 
-    public async Task<(bool ok, string message, UserSession? session)> SignInAsync(string email, string password)
+    // ✅ NOVO: request de reset
+    private sealed class SendOobReq
     {
-        return await AuthAsync(SignInUrl, email, password);
+        public string requestType { get; set; } = "PASSWORD_RESET";
+        public string email { get; set; } = "";
     }
 
+    public async Task<(bool ok, string message, UserSession? session)> SignInAsync(string email, string password)
+        => await AuthAsync(SignInUrl, email, password);
+
     public async Task<(bool ok, string message, UserSession? session)> SignUpAsync(string email, string password)
+        => await AuthAsync(SignUpUrl, email, password);
+
+    // ✅ NOVO: dispara email de recuperação (Firebase envia o e-mail)
+    public async Task<(bool ok, string message)> SendPasswordResetEmailAsync(string email)
     {
-        return await AuthAsync(SignUpUrl, email, password);
+        email = (email ?? "").Trim();
+        if (string.IsNullOrWhiteSpace(email))
+            return (false, "Informe o e-mail.");
+
+        var req = new SendOobReq { requestType = "PASSWORD_RESET", email = email };
+
+        using var resp = await _http.PostAsJsonAsync(SendOobCodeUrl, req);
+        if (resp.IsSuccessStatusCode)
+            return (true, "Se o e-mail existir, você receberá um link para redefinir a senha.");
+
+        // erro do Firebase
+        try
+        {
+            var err = await resp.Content.ReadFromJsonAsync<FirebaseErr>();
+            var msg = err?.error?.message ?? "Falha ao solicitar recuperação.";
+            msg = msg switch
+            {
+                "EMAIL_NOT_FOUND" => "Se o e-mail existir, você receberá um link para redefinir a senha.", // não “vaza” info
+                "INVALID_EMAIL" => "E-mail inválido.",
+                "USER_DISABLED" => "Usuário desabilitado.",
+                "TOO_MANY_ATTEMPTS_TRY_LATER" => "Muitas tentativas. Tente novamente mais tarde.",
+                _ => msg
+            };
+            return (false, msg);
+        }
+        catch
+        {
+            return (false, "Falha ao solicitar recuperação. Verifique sua conexão.");
+        }
     }
 
     private async Task<(bool ok, string message, UserSession? session)> AuthAsync(string url, string email, string password)
