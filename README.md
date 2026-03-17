@@ -1,7 +1,7 @@
 # ProfeMaster
 
 ## English
-ProfeMaster is a .NET MAUI app designed to support teachers with agenda management, institutions, classes, lesson plans, exams, events, and help content.
+.NET MAUI app designed to support teachers with agenda management, institutions, classes, lesson plans, exams, events, and help content.
 
 ### Modules identified
 - Agenda and events
@@ -18,26 +18,26 @@ ProfeMaster is a .NET MAUI app designed to support teachers with agenda manageme
 
 ### Run locally
 1. Open `ProfeMaster/ProfeMaster.sln` in Visual Studio 2022.
-2. Make sure the .NET MAUI workload is installed.
+2. Install the .NET MAUI workload.
 3. Restore packages and run on the selected platform.
 
-## PortuguÃªs
-ProfeMaster Ã© um app em .NET MAUI pensado para apoiar professores com agenda, instituiÃ§Ãµes, turmas, planos de aula, provas, eventos e conteÃºdo de ajuda.
+## Português
+App em .NET MAUI pensado para apoiar professores com agenda, instituições, turmas, planos de aula, provas, eventos e conteúdo de ajuda.
 
-### MÃ³dulos identificados
+### Módulos identificados
 - Agenda e eventos
-- InstituiÃ§Ãµes, turmas e aulas
+- Instituições, turmas e aulas
 - Planos de aula
-- Provas e geraÃ§Ã£o de quiz
+- Provas e geração de quiz
 - Telas de ajuda, contato e tutoriais
 
 ### Estrutura do projeto
-- `Pages`: telas principais e fluxos de ediÃ§Ã£o
-- `Models`: entidades do domÃ­nio acadÃªmico
+- `Pages`: telas principais e fluxos de edição
+- `Models`: entidades do domínio acadêmico
 - `Helpers`: formatadores e auxiliares de interface
 - `Pages/Help/Tutoriais`: material de tutorial e apoio
 
 ### Executando localmente
 1. Abra `ProfeMaster/ProfeMaster.sln` no Visual Studio 2022.
-2. Garanta que o workload do .NET MAUI esteja instalado.
+2. Instale o workload do .NET MAUI.
 3. Restaure os pacotes e execute na plataforma escolhida.
