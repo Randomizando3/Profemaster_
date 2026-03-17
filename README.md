@@ -1,28 +1,43 @@
 # ProfeMaster
 
-Aplicativo em .NET MAUI pensado para apoiar a rotina de professores, centralizando agenda, instituicoes, aulas, planos, provas, eventos e ajuda contextual.
+## English
+ProfeMaster is a .NET MAUI app designed to support teachers with agenda management, institutions, classes, lesson plans, exams, events, and help content.
 
-## Modulos identificados
+### Modules identified
+- Agenda and events
+- Institutions, classes, and lessons
+- Lesson plans
+- Exams and quiz generation
+- Help, contact, and tutorial screens
 
+### Project structure
+- `Pages`: main screens and editor flows
+- `Models`: academic domain entities
+- `Helpers`: formatting and UI helpers
+- `Pages/Help/Tutoriais`: tutorial and support material
+
+### Run locally
+1. Open `ProfeMaster/ProfeMaster.sln` in Visual Studio 2022.
+2. Make sure the .NET MAUI workload is installed.
+3. Restore packages and run on the selected platform.
+
+## PortuguÃªs
+ProfeMaster Ã© um app em .NET MAUI pensado para apoiar professores com agenda, instituiÃ§Ãµes, turmas, planos de aula, provas, eventos e conteÃºdo de ajuda.
+
+### MÃ³dulos identificados
 - Agenda e eventos
-- Instituicoes, turmas e aulas
+- InstituiÃ§Ãµes, turmas e aulas
 - Planos de aula
-- Provas e geracao de quiz
-- Tela de ajuda, contato e tutoriais
+- Provas e geraÃ§Ã£o de quiz
+- Telas de ajuda, contato e tutoriais
 
-## Estrutura principal
+### Estrutura do projeto
+- `Pages`: telas principais e fluxos de ediÃ§Ã£o
+- `Models`: entidades do domÃ­nio acadÃªmico
+- `Helpers`: formatadores e auxiliares de interface
+- `Pages/Help/Tutoriais`: material de tutorial e apoio
 
-- `Pages`: telas de uso diario e de cadastro
-- `Models`: entidades do dominio academico
-- `Helpers`: formatadores e seletores de interface
-- `Pages/Help/Tutoriais`: material de apoio e tutoriais internos
-
-## Como executar
-
+### Executando localmente
 1. Abra `ProfeMaster/ProfeMaster.sln` no Visual Studio 2022.
 2. Garanta que o workload do .NET MAUI esteja instalado.
-3. Restaure os pacotes e execute na plataforma desejada.
-
-## Status
-
-README inicial publicado com base na estrutura atual do aplicativo.
+3. Restaure os pacotes e execute na plataforma escolhida.
