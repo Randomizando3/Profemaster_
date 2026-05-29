@@ -4,6 +4,9 @@ namespace ProfeMaster.Pages;
 
 public partial class HomePage : ContentPage
 {
+    private const string PrivacyPolicyUrl = "https://izzihub.com.br/profemasterpolicy.html";
+    private const string DeleteAccountUrl = "https://izzihub.com.br/profemasterdelete.html";
+
     private readonly LocalStore _store;
 
     public HomePage(LocalStore store)
@@ -55,5 +58,23 @@ public partial class HomePage : ContentPage
     {
         await _store.ClearSessionAsync();
         await Shell.Current.GoToAsync("///login");
+    }
+
+    private async void OnOpenPrivacyPolicy(object sender, EventArgs e)
+        => await OpenExternalLink(PrivacyPolicyUrl);
+
+    private async void OnOpenDeleteAccount(object sender, EventArgs e)
+        => await OpenExternalLink(DeleteAccountUrl);
+
+    private async Task OpenExternalLink(string url)
+    {
+        try
+        {
+            await Launcher.Default.OpenAsync(new Uri(url));
+        }
+        catch
+        {
+            await DisplayAlert("Erro", "Não foi possível abrir o link.", "OK");
+        }
     }
 }

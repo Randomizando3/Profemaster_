@@ -1,4 +1,4 @@
-﻿#if ANDROID
+#if ANDROID
 using Android.BillingClient.Api;
 using Microsoft.Maui.ApplicationModel;
 using ProfeMaster.Config;
@@ -9,25 +9,18 @@ namespace ProfeMaster.Services.Billing;
 
 public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService, IPurchasesUpdatedListener
 {
-    // ===== SKUs (Play Console) =====
     private const string PremiumMonthly = "premium_monthly";
-    private const string PremiumYearly  = "premium_yearly";
+    private const string PremiumYearly = "premium_yearly";
+    private const string SuperMonthly = "superpremium_monthly";
+    private const string SuperYearly = "superpremium_yearly";
 
-    private const string SuperMonthly   = "superpremium_monthly";
-    private const string SuperYearly    = "superpremium_yearly";
-
+    private readonly Dictionary<string, ProductDetails> _productCache = new(StringComparer.OrdinalIgnoreCase);
     private BillingClient? _client;
-
-    // Cache por SKU (mensal/anual de cada plano)
-    private readonly Dictionary<string, SkuDetails> _skuCache = new(StringComparer.OrdinalIgnoreCase);
-
     private TaskCompletionSource<(bool ok, string err)>? _purchaseTcs;
 
     public bool IsSupported => true;
 
-    // 0 = OK (BillingResponseCode.OK). Usamos int para evitar incompatibilidades.
     private static bool IsOk(BillingResult r) => r != null && r.ResponseCode == 0;
-
     private static bool IsPurchased(Purchase p) => p != null && p.PurchaseState == PurchaseState.Purchased;
 
     public async Task InitializeAsync(CancellationToken ct = default)
@@ -37,72 +30,72 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
         var tcs = new TaskCompletionSource<bool>();
 
         _client = BillingClient.NewBuilder(AndroidApp.Context)
-            .EnablePendingPurchases()
+            .EnablePendingPurchases(PendingPurchasesParams.NewBuilder().EnableOneTimeProducts().Build())
             .SetListener(this)
             .Build();
 
         _client.StartConnection(new BillingStateListener(
-            onSetupFinished: result =>
+            result =>
             {
                 if (IsOk(result)) tcs.TrySetResult(true);
                 else tcs.TrySetException(new Exception($"Billing setup falhou: {result.ResponseCode} - {result.DebugMessage}"));
             },
-            onDisconnected: () => { }
+            () => { }
         ));
 
         await tcs.Task;
     }
 
-    // ===== Interface =====
-
     public async Task<(string monthly, string yearly)> GetPriceLabelsAsync(PlanTier tier, CancellationToken ct = default)
     {
-        // Best-effort: pode retornar "" se o binding não suportar query corretamente.
         await InitializeAsync(ct);
 
-        var skuM = GetSkuId(tier, yearly: false);
-        var skuY = GetSkuId(tier, yearly: true);
+        var monthly = await GetProductDetailsSafeAsync(GetProductId(tier, yearly: false));
+        var yearly = await GetProductDetailsSafeAsync(GetProductId(tier, yearly: true));
 
-        var dM = await GetSkuDetailsSafeAsync(skuM);
-        var dY = await GetSkuDetailsSafeAsync(skuY);
-
-        // Alguns bindings têm Price, outros PriceAmountMicros/CurrencyCode etc.
-        // Para não quebrar, tentamos Price via reflection.
-        return (TryGetPriceString(dM), TryGetPriceString(dY));
+        return (TryGetPriceString(monthly), TryGetPriceString(yearly));
     }
 
     public async Task<(bool ok, string err)> PurchaseMonthlyAsync(PlanTier tier, CancellationToken ct = default)
     {
         await InitializeAsync(ct);
 
-        var skuId = GetSkuId(tier, yearly: false);
-        var sku = await GetSkuDetailsSafeAsync(skuId);
+        var productId = GetProductId(tier, yearly: false);
+        var product = await GetProductDetailsSafeAsync(productId);
 
-        if (sku == null)
-            return (false, $"SKU mensal não encontrado no Google Play: {skuId}");
+        if (product == null)
+            return (false, $"Produto mensal não encontrado no Google Play: {productId}");
 
-        return await LaunchPurchaseAsync(sku);
+        return await LaunchPurchaseAsync(product);
     }
 
     public async Task<(bool ok, string err)> PurchaseYearlyAsync(PlanTier tier, CancellationToken ct = default)
     {
         await InitializeAsync(ct);
 
-        var skuId = GetSkuId(tier, yearly: true);
-        var sku = await GetSkuDetailsSafeAsync(skuId);
+        var productId = GetProductId(tier, yearly: true);
+        var product = await GetProductDetailsSafeAsync(productId);
 
-        if (sku == null)
-            return (false, $"SKU anual não encontrado no Google Play: {skuId}");
+        if (product == null)
+            return (false, $"Produto anual não encontrado no Google Play: {productId}");
 
-        return await LaunchPurchaseAsync(sku);
+        return await LaunchPurchaseAsync(product);
     }
 
-    // Por enquanto mantém “restore” falso (seu controle é por Firebase).
-    // Depois dá pra implementar queryPurchases e mapear pro tier correto.
-    public Task<bool> HasActivePlanAsync(PlanTier tier, CancellationToken ct = default)
-        => Task.FromResult(false);
+    public async Task<bool> HasActivePlanAsync(PlanTier tier, CancellationToken ct = default)
+    {
+        await InitializeAsync(ct);
 
-    // ===== PurchasesUpdatedListener =====
+        var purchases = await QueryActiveSubscriptionsAsync();
+        if (purchases.Count == 0) return false;
+
+        var monthly = GetProductId(tier, yearly: false);
+        var yearly = GetProductId(tier, yearly: true);
+
+        return purchases.Any(p =>
+            IsPurchased(p) &&
+            (PurchaseContainsProduct(p, monthly) || PurchaseContainsProduct(p, yearly)));
+    }
 
     public void OnPurchasesUpdated(BillingResult billingResult, IList<Purchase>? purchases)
     {
@@ -131,7 +124,6 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
             {
                 if (!IsPurchased(p)) continue;
 
-                // Acknowledge é obrigatório para compra ser concluída (evita reembolso automático).
                 if (!p.IsAcknowledged)
                 {
                     var ackParams = AcknowledgePurchaseParams.NewBuilder()
@@ -167,7 +159,7 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
         }
     }
 
-    private async Task<(bool ok, string err)> LaunchPurchaseAsync(SkuDetails sku)
+    private async Task<(bool ok, string err)> LaunchPurchaseAsync(ProductDetails product)
     {
         await InitializeAsync();
 
@@ -175,8 +167,18 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
         if (activity == null)
             return (false, "Activity atual não disponível.");
 
+        var productParamsBuilder = BillingFlowParams.ProductDetailsParams.NewBuilder()
+            .SetProductDetails(product);
+
+        var offerToken = GetOfferToken(product);
+        if (!string.IsNullOrWhiteSpace(offerToken))
+            productParamsBuilder.SetOfferToken(offerToken);
+
         var flowParams = BillingFlowParams.NewBuilder()
-            .SetSkuDetails(sku)
+            .SetProductDetailsParamsList(new List<BillingFlowParams.ProductDetailsParams>
+            {
+                productParamsBuilder.Build()
+            })
             .Build();
 
         _purchaseTcs = new TaskCompletionSource<(bool ok, string err)>();
@@ -192,92 +194,91 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
         return await _purchaseTcs.Task;
     }
 
-    /// <summary>
-    /// QuerySkuDetails no binding varia. Para compilar SEM depender de overloads,
-    /// tentamos a assinatura (SkuDetailsParams, ISkuDetailsResponseListener) via reflection.
-    /// </summary>
-    private async Task<SkuDetails?> GetSkuDetailsSafeAsync(string skuId)
+    private async Task<ProductDetails?> GetProductDetailsSafeAsync(string productId)
     {
-        if (string.IsNullOrWhiteSpace(skuId))
+        if (string.IsNullOrWhiteSpace(productId))
             return null;
 
-        if (_skuCache.TryGetValue(skuId, out var cached))
+        if (_productCache.TryGetValue(productId, out var cached))
             return cached;
 
         await InitializeAsync();
 
-        var skuParams = SkuDetailsParams.NewBuilder()
-            .SetSkusList(new List<string> { skuId })
-            .SetType(BillingClient.SkuType.Subs)
+        var product = QueryProductDetailsParams.Product.NewBuilder()
+            .SetProductId(productId)
+            .SetProductType(BillingClient.ProductType.Subs)
             .Build();
 
-        var tcs = new TaskCompletionSource<SkuDetails?>();
+        var queryParams = QueryProductDetailsParams.NewBuilder()
+            .SetProductList(new List<QueryProductDetailsParams.Product> { product })
+            .Build();
 
+        var response = await _client!.QueryProductDetailsAsync(queryParams);
+        if (response == null || !IsOk(response.Result))
+            return null;
+
+        var got = response.ProductDetailsList?.FirstOrDefault()
+            ?? response.ProductDetails?.FirstOrDefault();
+        if (got != null) _productCache[productId] = got;
+        return got;
+    }
+
+    private async Task<IList<Purchase>> QueryActiveSubscriptionsAsync()
+    {
+        await InitializeAsync();
+
+        var query = QueryPurchasesParams.NewBuilder()
+            .SetProductType(BillingClient.ProductType.Subs)
+            .Build();
+
+        var response = await _client!.QueryPurchasesAsync(query);
+        return IsOk(response.Result) && response.Purchases != null
+            ? response.Purchases
+            : new List<Purchase>();
+    }
+
+    private static string TryGetPriceString(ProductDetails? product)
+    {
         try
         {
-            var mi2 = _client!.GetType().GetMethod(
-                "QuerySkuDetailsAsync",
-                new[] { typeof(SkuDetailsParams), typeof(ISkuDetailsResponseListener) }
-            );
-
-            if (mi2 != null)
-            {
-                mi2.Invoke(_client, new object[]
-                {
-                    skuParams,
-                    new SkuDetailsListener((result, list) =>
-                    {
-                        if (!IsOk(result) || list == null || list.Count == 0)
-                        {
-                            tcs.TrySetResult(null);
-                            return;
-                        }
-
-                        tcs.TrySetResult(list[0]);
-                    })
-                });
-
-                var got = await tcs.Task;
-                if (got != null) _skuCache[skuId] = got;
-                return got;
-            }
-
-            // Se não existir método compatível, não quebramos o app — só não mostramos preço.
-            return null;
+            return product?
+                .GetSubscriptionOfferDetails()?
+                .FirstOrDefault()?
+                .PricingPhases?
+                .PricingPhaseList?
+                .FirstOrDefault()?
+                .FormattedPrice ?? "";
         }
         catch
         {
-            return null;
+            return "";
         }
     }
 
-    private static string TryGetPriceString(SkuDetails? d)
-    {
-        if (d == null) return "";
+    private static string GetOfferToken(ProductDetails product)
+        => product.GetSubscriptionOfferDetails()?.FirstOrDefault()?.OfferToken ?? "";
 
-        // Tentativa direta (alguns bindings expõem Price)
+    private static bool PurchaseContainsProduct(Purchase purchase, string productId)
+    {
         try
         {
-            var prop = d.GetType().GetProperty("Price");
-            var val = prop?.GetValue(d) as string;
-            if (!string.IsNullOrWhiteSpace(val)) return val;
+            return purchase.Products?.Any(p => string.Equals(p, productId, StringComparison.OrdinalIgnoreCase)) == true;
         }
-        catch { }
-
-        return "";
+        catch
+        {
+            return false;
+        }
     }
 
-    private static string GetSkuId(PlanTier tier, bool yearly)
+    private static string GetProductId(PlanTier tier, bool yearly)
     {
         return tier switch
         {
             PlanTier.SuperPremium => yearly ? SuperYearly : SuperMonthly,
             PlanTier.Premium => yearly ? PremiumYearly : PremiumMonthly,
-            _ => yearly ? PremiumYearly : PremiumMonthly // Free não compra; fallback seguro
+            _ => yearly ? PremiumYearly : PremiumMonthly
         };
     }
-
-    // ===== Wrappers =====
 
     private sealed class BillingStateListener : Java.Lang.Object, IBillingClientStateListener
     {
@@ -294,19 +295,14 @@ public sealed class GooglePlayBillingService : Java.Lang.Object, IBillingService
         public void OnBillingServiceDisconnected() => _onDisconnected();
     }
 
-    private sealed class SkuDetailsListener : Java.Lang.Object, ISkuDetailsResponseListener
-    {
-        private readonly Action<BillingResult, IList<SkuDetails>?> _cb;
-        public SkuDetailsListener(Action<BillingResult, IList<SkuDetails>?> cb) => _cb = cb;
-
-        public void OnSkuDetailsResponse(BillingResult billingResult, IList<SkuDetails>? skuDetailsList)
-            => _cb(billingResult, skuDetailsList);
-    }
-
     private sealed class AckListener : Java.Lang.Object, IAcknowledgePurchaseResponseListener
     {
         private readonly Action<BillingResult> _cb;
-        public AckListener(Action<BillingResult> cb) => _cb = cb;
+
+        public AckListener(Action<BillingResult> cb)
+        {
+            _cb = cb;
+        }
 
         public void OnAcknowledgePurchaseResponse(BillingResult billingResult) => _cb(billingResult);
     }

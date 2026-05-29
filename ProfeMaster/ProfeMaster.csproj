@@ -27,15 +27,15 @@
 		<ApplicationId>com.companyname.profemaster</ApplicationId>
 
 		<!-- Versions -->
-		<ApplicationDisplayVersion>1.12</ApplicationDisplayVersion>
-		<ApplicationVersion>3</ApplicationVersion>
+		<ApplicationDisplayVersion>1.15</ApplicationDisplayVersion>
+		<ApplicationVersion>5</ApplicationVersion>
 
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
 
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
-		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
+		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
 		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
@@ -228,55 +228,54 @@
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net9.0-android'">
 	  <PackageReference Include="Xamarin.Android.Google.BillingClient">
-	    <Version>6.2.1</Version>
+	    <Version>9.0.0</Version>
+	  </PackageReference>
+	  <PackageReference Include="Xamarin.AndroidX.SavedState.SavedState.Ktx">
+	    <Version>1.4.0.2</Version>
 	  </PackageReference>
 	</ItemGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-android|AnyCPU'">
-  <AndroidKeyStore>true</AndroidKeyStore>
-  <AndroidSigningKeyStore>profemaster-upload.jks</AndroidSigningKeyStore>
-  <AndroidSigningKeyAlias>profemaster</AndroidSigningKeyAlias>
-  <AndroidSigningKeyPass>sist2016</AndroidSigningKeyPass>
-  <AndroidSigningStorePass>sist2016</AndroidSigningStorePass>
-  <ApplicationVersion>4</ApplicationVersion>
-  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+  <ApplicationVersion>5</ApplicationVersion>
+  <ApplicationDisplayVersion>1.15</ApplicationDisplayVersion>
 </PropertyGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-android|AnyCPU'">
-  <ApplicationVersion>4</ApplicationVersion>
-  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+  <ApplicationVersion>5</ApplicationVersion>
+  <ApplicationDisplayVersion>1.15</ApplicationDisplayVersion>
 </PropertyGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-ios|AnyCPU'">
-  <ApplicationVersion>4</ApplicationVersion>
-  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+  <ApplicationVersion>5</ApplicationVersion>
+  <ApplicationDisplayVersion>1.15</ApplicationDisplayVersion>
 </PropertyGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-maccatalyst|AnyCPU'">
-  <ApplicationVersion>4</ApplicationVersion>
-  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+  <ApplicationVersion>5</ApplicationVersion>
+  <ApplicationDisplayVersion>1.15</ApplicationDisplayVersion>
 </PropertyGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net9.0-windows10.0.19041.0|AnyCPU'">
-  <ApplicationVersion>4</ApplicationVersion>
-  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+  <ApplicationVersion>5</ApplicationVersion>
+  <ApplicationDisplayVersion>1.15</ApplicationDisplayVersion>
 </PropertyGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-ios|AnyCPU'">
-  <ApplicationVersion>4</ApplicationVersion>
-  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+  <ApplicationVersion>5</ApplicationVersion>
+  <ApplicationDisplayVersion>1.15</ApplicationDisplayVersion>
 </PropertyGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-maccatalyst|AnyCPU'">
-  <ApplicationVersion>4</ApplicationVersion>
-  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+  <ApplicationVersion>5</ApplicationVersion>
+  <ApplicationDisplayVersion>1.15</ApplicationDisplayVersion>
 </PropertyGroup>
 
 <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net9.0-windows10.0.19041.0|AnyCPU'">
-  <ApplicationVersion>4</ApplicationVersion>
-  <ApplicationDisplayVersion>1.14</ApplicationDisplayVersion>
+  <ApplicationVersion>5</ApplicationVersion>
+  <ApplicationDisplayVersion>1.15</ApplicationDisplayVersion>
 </PropertyGroup>
 
 
+<Import Project="Signing.Local.props" Condition="Exists('Signing.Local.props')" />
 
 </Project>

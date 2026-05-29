@@ -478,6 +478,47 @@
                     </Grid>
                 </Border>
 
+                <!-- Links de conta -->
+                <Border BackgroundColor="#FFFFFF"
+                        Stroke="{StaticResource PmStroke}"
+                        StrokeThickness="2"
+                        StrokeShape="RoundRectangle 18"
+                        Padding="14"
+                        Margin="0,0,0,0">
+                    <VerticalStackLayout Spacing="10">
+                        <VerticalStackLayout Spacing="2">
+                            <Label Text="Conta e privacidade"
+                                   FontAttributes="Bold"
+                                   FontSize="14"
+                                   TextColor="{StaticResource PmText}" />
+                            <Label Text="Acesse os documentos do app e solicite a exclusão da conta."
+                                   FontSize="10"
+                                   TextColor="{StaticResource PmMuted}" />
+                        </VerticalStackLayout>
+
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <Button Text="Política"
+                                    Clicked="OnOpenPrivacyPolicy"
+                                    CornerRadius="14"
+                                    FontAttributes="Bold"
+                                    FontSize="11"
+                                    TextColor="{StaticResource PmText}"
+                                    BackgroundColor="{StaticResource PmSoft}"
+                                    HeightRequest="42" />
+
+                            <Button Grid.Column="1"
+                                    Text="Excluir conta"
+                                    Clicked="OnOpenDeleteAccount"
+                                    CornerRadius="14"
+                                    FontAttributes="Bold"
+                                    FontSize="11"
+                                    TextColor="#FFFFFF"
+                                    BackgroundColor="#C43D4D"
+                                    HeightRequest="42" />
+                        </Grid>
+                    </VerticalStackLayout>
+                </Border>
+
                 <!-- Rodapé discreto -->
                 <Label Text="Dica: mantenha seus dados sincronizados clicando em Atualizar nas telas principais."
                        FontSize="10"
