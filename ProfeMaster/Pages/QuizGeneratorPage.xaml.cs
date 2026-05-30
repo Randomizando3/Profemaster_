@@ -18,7 +18,7 @@ public partial class QuizGeneratorPage : ContentPage
     private int _count = 5;
     private bool _busy;
 
-    // ===== Modos de geração =====
+    // ===== Modos de geraÃ§Ã£o =====
     private enum GenMode
     {
         OnlineAI = 0,
@@ -36,7 +36,7 @@ public partial class QuizGeneratorPage : ContentPage
         PropertyNameCaseInsensitive = true
     };
 
-    // ===== Persistência do modo no JSON =====
+    // ===== PersistÃªncia do modo no JSON =====
     // "online" | "offline" | "custom"
     private string _modeTag = "online";
 
@@ -90,20 +90,20 @@ public partial class QuizGeneratorPage : ContentPage
         public string Answer { get; set; } = "A";
 
         public string Theme { get; set; } = "";
-        public string Difficulty { get; set; } = "Ensino Médio";
+        public string Difficulty { get; set; } = "Ensino MÃ©dio";
         public string Source { get; set; } = "online"; // online | custom | import
         public DateTimeOffset AddedAt { get; set; } = DateTimeOffset.UtcNow;
     }
 
     // =========================
     // LIMITES POR PLANO (PROVAS)
-    // Free: até 5 perguntas
-    // Premium: até 10 perguntas
-    // SuperPremium: até 10 perguntas (virtualmente ilimitado em provas, mas perguntas = 10)
+    // Free: atÃ© 5 perguntas
+    // Premium: atÃ© 10 perguntas
+    // SuperPremium: atÃ© 10 perguntas (virtualmente ilimitado em provas, mas perguntas = 10)
     // =========================
     private static int GetPlanMaxQuestions()
     {
-        // AppFlags.ApplyPlan já derruba plano expirado para Free.
+        // AppFlags.ApplyPlan jÃ¡ derruba plano expirado para Free.
         return AppFlags.CurrentPlan switch
         {
             PlanTier.Free => 5,
@@ -134,7 +134,7 @@ public partial class QuizGeneratorPage : ContentPage
         {
             "Fundamental I",
             "Fundamental II",
-            "Ensino Médio",
+            "Ensino MÃ©dio",
             "Vestibular"
         };
         DifficultyPicker.SelectedIndex = 2;
@@ -154,7 +154,7 @@ public partial class QuizGeneratorPage : ContentPage
 
         QuestionsList.ItemsSource = _doc.Questions;
 
-        // >>> AQUI: garante limite já na abertura
+        // >>> AQUI: garante limite jÃ¡ na abertura
         var maxQ = GetPlanMaxQuestions();
         if (_count > maxQ) _count = maxQ;
         SetCount(_count, updateStatus: false);
@@ -164,7 +164,7 @@ public partial class QuizGeneratorPage : ContentPage
 
         // Mensagem discreta de limite no status (sem mexer no XAML por enquanto)
         if (StatusLabel != null)
-            StatusLabel.Text = $"Plano {GetPlanLabel()}: até {maxQ} pergunta(s) por quiz.";
+            StatusLabel.Text = $"Plano {GetPlanLabel()}: atÃ© {maxQ} pergunta(s) por quiz.";
     }
 
     protected override async void OnAppearing()
@@ -186,14 +186,14 @@ public partial class QuizGeneratorPage : ContentPage
     private async Task UpdateNetworkLabelAsync()
     {
         bool hasNet = await _svc.HasInternetAsync();
-        NetLabel.Text = hasNet ? "Online disponível" : "Sem internet (offline disponível)";
+        NetLabel.Text = hasNet ? "Online disponÃ­vel" : "Sem internet (offline disponÃ­vel)";
     }
 
     private void SyncDifficultyLabel()
     {
         var v = (DifficultyPicker.SelectedItem as string);
         if (string.IsNullOrWhiteSpace(v))
-            v = "Ensino Médio";
+            v = "Ensino MÃ©dio";
 
         if (DifficultyValueLabel != null)
             DifficultyValueLabel.Text = v;
@@ -244,7 +244,7 @@ public partial class QuizGeneratorPage : ContentPage
             CountLabel.Text = _count.ToString();
 
         if (updateStatus && StatusLabel != null)
-            StatusLabel.Text = $"Quantidade: {_count} (máx: {hardMax} no {GetPlanLabel()})";
+            StatusLabel.Text = $"Quantidade: {_count} (mÃ¡x: {hardMax} no {GetPlanLabel()})";
     }
 
     private void UpdateEmpty()
@@ -281,7 +281,7 @@ public partial class QuizGeneratorPage : ContentPage
         {
             var count = await GetOfflineBankCountAsync();
             OfflineStatusLabel.Text = count > 0
-                ? $"Banco offline: {count} pergunta(s) disponível(is)."
+                ? $"Banco offline: {count} pergunta(s) disponÃ­vel(is)."
                 : "Banco offline vazio. Gere online ou importe um JSON para preencher.";
         }
     }
@@ -303,7 +303,7 @@ public partial class QuizGeneratorPage : ContentPage
 
         try
         {
-            // 1) lê "mode" do JSON e seta UI corretamente
+            // 1) lÃª "mode" do JSON e seta UI corretamente
             try
             {
                 using var doc = JsonDocument.Parse(json);
@@ -329,7 +329,7 @@ public partial class QuizGeneratorPage : ContentPage
             if (loaded == null) return;
 
             _doc.Theme = loaded.Theme ?? "";
-            _doc.Difficulty = loaded.Difficulty ?? "Ensino Médio";
+            _doc.Difficulty = loaded.Difficulty ?? "Ensino MÃ©dio";
             _doc.GeneratedAt = loaded.GeneratedAt;
 
             _doc.Questions.Clear();
@@ -355,7 +355,7 @@ public partial class QuizGeneratorPage : ContentPage
             if (_doc.Questions.Count > maxQ)
             {
                 _doc.Questions = _doc.Questions.Take(maxQ).ToList();
-                StatusLabel.Text = $"Seu plano {GetPlanLabel()} permite até {maxQ} pergunta(s). O quiz foi ajustado.";
+                StatusLabel.Text = $"Seu plano {GetPlanLabel()} permite atÃ© {maxQ} pergunta(s). O quiz foi ajustado.";
             }
 
             ReNumber();
@@ -378,7 +378,7 @@ public partial class QuizGeneratorPage : ContentPage
             var cnt = _doc.Questions.Count;
             if (cnt < 1) cnt = 1;
 
-            // aqui SetCount já clampa pelo plano
+            // aqui SetCount jÃ¡ clampa pelo plano
             SetCount(cnt, updateStatus: false);
 
             if (_doc.Questions.Count > 0 && string.IsNullOrWhiteSpace(StatusLabel.Text))
@@ -388,7 +388,7 @@ public partial class QuizGeneratorPage : ContentPage
         }
         catch
         {
-            StatusLabel.Text = "Não foi possível carregar o quiz existente (JSON inválido).";
+            StatusLabel.Text = "NÃ£o foi possÃ­vel carregar o quiz existente (JSON invÃ¡lido).";
         }
     }
 
@@ -408,7 +408,7 @@ public partial class QuizGeneratorPage : ContentPage
         var max = GetPlanMaxQuestions();
         if (_count >= max)
         {
-            await DisplayAlert("Limite do plano", $"Seu plano {GetPlanLabel()} permite até {max} pergunta(s) por quiz.", "OK");
+            await DisplayAlert("Limite do plano", $"Seu plano {GetPlanLabel()} permite atÃ© {max} pergunta(s) por quiz.", "OK");
             return;
         }
 
@@ -427,17 +427,17 @@ public partial class QuizGeneratorPage : ContentPage
         if (_count > max)
         {
             SetCount(max, updateStatus: true);
-            await DisplayAlert("Limite do plano", $"Seu plano {GetPlanLabel()} permite até {max} pergunta(s) por quiz.", "OK");
+            await DisplayAlert("Limite do plano", $"Seu plano {GetPlanLabel()} permite atÃ© {max} pergunta(s) por quiz.", "OK");
             return;
         }
 
         var theme = (ThemeEntry.Text ?? "").Trim();
         var baseText = (BaseEditor.Text ?? "").Trim();
-        var difficulty = (DifficultyPicker.SelectedItem as string) ?? "Ensino Médio";
+        var difficulty = (DifficultyPicker.SelectedItem as string) ?? "Ensino MÃ©dio";
 
         if (_mode != GenMode.Custom && string.IsNullOrWhiteSpace(theme))
         {
-            await DisplayAlert("Atenção", "Informe o tema/assunto.", "OK");
+            await DisplayAlert("AtenÃ§Ã£o", "Informe o tema/assunto.", "OK");
             return;
         }
 
@@ -710,7 +710,7 @@ public partial class QuizGeneratorPage : ContentPage
                     Answer = NormalizeAnswer(q.Answer),
 
                     Theme = (theme ?? "").Trim(),
-                    Difficulty = (difficulty ?? "Ensino Médio").Trim(),
+                    Difficulty = (difficulty ?? "Ensino MÃ©dio").Trim(),
                     Source = string.IsNullOrWhiteSpace(source) ? "online" : source.Trim(),
                     AddedAt = DateTimeOffset.UtcNow
                 });
@@ -775,10 +775,10 @@ public partial class QuizGeneratorPage : ContentPage
             var importedCount = await ImportOfflineBankJsonAsync(json);
 
             await DisplayAlert(
-                "Importação concluída",
+                "ImportaÃ§Ã£o concluÃ­da",
                 importedCount > 0
                     ? $"Importado/mesclado: {importedCount} pergunta(s)."
-                    : "Nenhuma pergunta válida foi encontrada no arquivo.",
+                    : "Nenhuma pergunta vÃ¡lida foi encontrada no arquivo.",
                 "OK"
             );
 
@@ -786,7 +786,7 @@ public partial class QuizGeneratorPage : ContentPage
             {
                 var count = await GetOfflineBankCountAsync();
                 OfflineStatusLabel.Text = count > 0
-                    ? $"Banco offline: {count} pergunta(s) disponível(is)."
+                    ? $"Banco offline: {count} pergunta(s) disponÃ­vel(is)."
                     : "Banco offline vazio. Gere online ou importe um JSON para preencher.";
             }
         }
@@ -925,7 +925,7 @@ public partial class QuizGeneratorPage : ContentPage
         }
         catch
         {
-            await DisplayAlert("Erro", "Não foi possível gerar JSON.", "OK");
+            await DisplayAlert("Erro", "NÃ£o foi possÃ­vel gerar JSON.", "OK");
         }
     }
 
@@ -961,7 +961,7 @@ public partial class QuizGeneratorPage : ContentPage
 
         if (_doc.Questions.Count == 0)
         {
-            await DisplayAlert("Atenção", "Não há perguntas para exportar.", "OK");
+            await DisplayAlert("AtenÃ§Ã£o", "NÃ£o hÃ¡ perguntas para exportar.", "OK");
             return;
         }
 
@@ -971,14 +971,15 @@ public partial class QuizGeneratorPage : ContentPage
 
             EnsureValidAnswers(_doc);
 
-            var filename = isAnswerKey ? "quiz_gabarito.pdf" : "quiz_questoes.pdf";
+            var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            var filename = isAnswerKey ? $"quiz_gabarito_{stamp}.pdf" : $"quiz_questoes_{stamp}.pdf";
             var path = Path.Combine(FileSystem.AppDataDirectory, filename);
 
             CreatePdf(path, isAnswerKey);
 
             await Share.Default.RequestAsync(new ShareFileRequest
             {
-                Title = isAnswerKey ? "Gabarito (PDF)" : "Questões (PDF)",
+                Title = isAnswerKey ? "Gabarito (PDF)" : "QuestÃµes (PDF)",
                 File = new ShareFile(path)
             });
 
@@ -996,8 +997,8 @@ public partial class QuizGeneratorPage : ContentPage
 
     private void CreatePdf(string path, bool isAnswerKey)
     {
-        var document = new PdfDocument();
-        document.Info.Title = isAnswerKey ? "Gabarito" : "Questionário";
+        using var document = new PdfDocument();
+        document.Info.Title = isAnswerKey ? "Gabarito" : "QuestionÃ¡rio";
 
         var page = document.AddPage();
         var gfx = XGraphics.FromPdfPage(page);
@@ -1011,53 +1012,61 @@ public partial class QuizGeneratorPage : ContentPage
 
         void NewPage()
         {
+            gfx.Dispose();
             page = document.AddPage();
             gfx = XGraphics.FromPdfPage(page);
             y = margin;
         }
 
-        gfx.DrawString(isAnswerKey ? "GABARITO" : "QUESTIONÁRIO", fontTitle, XBrushes.Black,
-            new XRect(margin, y, page.Width - 2 * margin, 24), XStringFormats.TopLeft);
-        y += 22;
-
-        gfx.DrawString($"Tema: {_doc.Theme}", fontSmall, XBrushes.Black,
-            new XRect(margin, y, page.Width - 2 * margin, 18), XStringFormats.TopLeft);
-        y += 14;
-
-        gfx.DrawString($"Nível: {_doc.Difficulty}   •   Gerado: {_doc.GeneratedAt:dd/MM/yyyy HH:mm}", fontSmall, XBrushes.Black,
-            new XRect(margin, y, page.Width - 2 * margin, 18), XStringFormats.TopLeft);
-        y += 22;
-
-        foreach (var q in _doc.Questions.OrderBy(x => x.Number))
+        try
         {
-            if (y > page.Height - margin - 120) NewPage();
+            gfx.DrawString(isAnswerKey ? "GABARITO" : "QUESTIONÃRIO", fontTitle, XBrushes.Black,
+                new XRect(margin, y, page.Width - 2 * margin, 24), XStringFormats.TopLeft);
+            y += 22;
 
-            if (!isAnswerKey)
+            gfx.DrawString(PdfText($"Tema: {_doc.Theme}"), fontSmall, XBrushes.Black,
+                new XRect(margin, y, page.Width - 2 * margin, 18), XStringFormats.TopLeft);
+            y += 14;
+
+            gfx.DrawString(PdfText($"NÃ­vel: {_doc.Difficulty}   -   Gerado: {_doc.GeneratedAt:dd/MM/yyyy HH:mm}"), fontSmall, XBrushes.Black,
+                new XRect(margin, y, page.Width - 2 * margin, 18), XStringFormats.TopLeft);
+            y += 22;
+
+            foreach (var q in _doc.Questions.OrderBy(x => x.Number))
             {
-                DrawWrappedLine($"{q.Number}) {q.Prompt}", font, ref y, margin, page, gfx);
+                if (y > page.Height - margin - 120) NewPage();
 
-                DrawWrappedLine($"A) {q.A}", fontSmall, ref y, margin + 10, page, gfx);
-                DrawWrappedLine($"B) {q.B}", fontSmall, ref y, margin + 10, page, gfx);
-                DrawWrappedLine($"C) {q.C}", fontSmall, ref y, margin + 10, page, gfx);
-                DrawWrappedLine($"D) {q.D}", fontSmall, ref y, margin + 10, page, gfx);
+                if (!isAnswerKey)
+                {
+                    DrawWrappedLine($"{q.Number}) {q.Prompt}", font, ref y, margin, page, gfx);
 
-                y += 10;
+                    DrawWrappedLine($"A) {q.A}", fontSmall, ref y, margin + 10, page, gfx);
+                    DrawWrappedLine($"B) {q.B}", fontSmall, ref y, margin + 10, page, gfx);
+                    DrawWrappedLine($"C) {q.C}", fontSmall, ref y, margin + 10, page, gfx);
+                    DrawWrappedLine($"D) {q.D}", fontSmall, ref y, margin + 10, page, gfx);
+
+                    y += 10;
+                }
+                else
+                {
+                    var ans = NormalizeAnswer(q.Answer);
+                    DrawWrappedLine($"{q.Number}) {ans}", font, ref y, margin, page, gfx);
+                }
             }
-            else
-            {
-                var ans = NormalizeAnswer(q.Answer);
-                DrawWrappedLine($"{q.Number}) {ans}", font, ref y, margin, page, gfx);
-            }
+
+            document.Save(path);
         }
-
-        document.Save(path);
+        finally
+        {
+            gfx.Dispose();
+        }
     }
 
     private static void DrawWrappedLine(string text, XFont font, ref double y, double x, PdfPage page, XGraphics gfx)
     {
         const int maxChars = 92;
 
-        var t = (text ?? "").Trim();
+        var t = PdfText(text);
         while (t.Length > 0)
         {
             var take = Math.Min(maxChars, t.Length);
@@ -1077,6 +1086,31 @@ public partial class QuizGeneratorPage : ContentPage
 
             if (y > page.Height - 60) break;
         }
+    }
+
+    private static string PdfText(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return "";
+
+        var sb = new StringBuilder(text.Length);
+        foreach (var ch in text)
+        {
+            var mapped = ch switch
+            {
+                '\r' or '\n' or '\t' or '\u00A0' => ' ',
+                '\u2022' => '-',
+                '\u2013' or '\u2014' => '-',
+                '\u2018' or '\u2019' => '\'',
+                '\u201C' or '\u201D' => '"',
+                _ => ch
+            };
+
+            if (!char.IsControl(mapped))
+                sb.Append(mapped <= '\u00FF' ? mapped : '?');
+        }
+
+        return Regex.Replace(sb.ToString(), @"\s+", " ").Trim();
     }
 
     // =========================
@@ -1102,7 +1136,7 @@ public partial class QuizGeneratorPage : ContentPage
     {
         if (_doc.Questions.Count == 0) return null;
 
-        // >>> trava por segurança no build do JSON também
+        // >>> trava por seguranÃ§a no build do JSON tambÃ©m
         var max = GetPlanMaxQuestions();
         if (_doc.Questions.Count > max)
         {
@@ -1144,7 +1178,7 @@ public partial class QuizGeneratorPage : ContentPage
         try
         {
             var theme = (_doc.Theme ?? "").Trim();
-            var difficulty = (_doc.Difficulty ?? "Ensino Médio").Trim();
+            var difficulty = (_doc.Difficulty ?? "Ensino MÃ©dio").Trim();
 
             if (_doc.Questions.Count > 0)
             {
@@ -1212,26 +1246,26 @@ public partial class QuizGeneratorPage : ContentPage
             {
                 new QuizQuestion
                 {
-                    Prompt = "Qual é a capital do Brasil?",
+                    Prompt = "Qual Ã© a capital do Brasil?",
                     A = "Rio de Janeiro",
-                    B = "Brasília",
-                    C = "São Paulo",
+                    B = "BrasÃ­lia",
+                    C = "SÃ£o Paulo",
                     D = "Belo Horizonte",
                     Answer = "B"
                 },
                 new QuizQuestion
                 {
-                    Prompt = "Qual planeta é conhecido como o Planeta Vermelho?",
+                    Prompt = "Qual planeta Ã© conhecido como o Planeta Vermelho?",
                     A = "Terra",
-                    B = "Júpiter",
+                    B = "JÃºpiter",
                     C = "Marte",
-                    D = "Vênus",
+                    D = "VÃªnus",
                     Answer = "C"
                 },
                 new QuizQuestion
                 {
                     Prompt = "Quem escreveu Dom Casmurro?",
-                    A = "José de Alencar",
+                    A = "JosÃ© de Alencar",
                     B = "Machado de Assis",
                     C = "Clarice Lispector",
                     D = "Graciliano Ramos",
@@ -1253,7 +1287,7 @@ public partial class QuizGeneratorPage : ContentPage
 
             await Share.Default.RequestAsync(new ShareFileRequest
             {
-                Title = "Banco Offline – Exemplo",
+                Title = "Banco Offline â€“ Exemplo",
                 File = new ShareFile(path)
             });
         }
@@ -1261,7 +1295,7 @@ public partial class QuizGeneratorPage : ContentPage
         {
             await DisplayAlert(
                 "Erro",
-                "Não foi possível gerar o arquivo de exemplo:\n" + ex.Message,
+                "NÃ£o foi possÃ­vel gerar o arquivo de exemplo:\n" + ex.Message,
                 "OK"
             );
         }
