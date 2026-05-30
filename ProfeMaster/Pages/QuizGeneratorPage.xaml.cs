@@ -503,43 +503,25 @@ public partial class QuizGeneratorPage : ContentPage
             }
 
             // Online AI (Groq)
-            var avoid = new List<string>();
+            StatusLabel.Text = $"Gerando {_count} pergunta(s) com IA...";
 
-            for (int i = 1; i <= _count; i++)
+            List<QuizQuestion> generated = [];
+            for (int attempt = 1; attempt <= 2 && generated.Count == 0; attempt++)
             {
-                StatusLabel.Text = $"Gerando {i}/{_count} (IA) ...";
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Math.Min(180, 45 + (_count * 15))));
+                generated = await _svc.GenerateAsync(theme, baseText, difficulty, _count, cts.Token);
+            }
 
-                QuizQuestion? q = null;
-
-                for (int attempt = 1; attempt <= 3; attempt++)
-                {
-                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-                    q = await _svc.GenerateOneAsync(theme, baseText, difficulty, avoid, cts.Token);
-                    if (q == null) continue;
-
-                    q.Prompt = q.Prompt ?? "";
-                    q.A = q.A ?? "";
-                    q.B = q.B ?? "";
-                    q.C = q.C ?? "";
-                    q.D = q.D ?? "";
-                    q.Answer = NormalizeAnswer(q.Answer);
-
-                    var first = FirstSentence(q.Prompt);
-                    if (!string.IsNullOrWhiteSpace(first))
-                    {
-                        var norm = Normalize(first);
-                        bool repeated = avoid.Any(a => Normalize(a) == norm);
-                        if (!repeated)
-                        {
-                            avoid.Add(first);
-                            break;
-                        }
-                    }
-                }
-
-                if (q == null) continue;
-
-                q.Number = i;
+            int number = 1;
+            foreach (var q in generated.Take(_count))
+            {
+                q.Number = number++;
+                q.Prompt = q.Prompt ?? "";
+                q.A = q.A ?? "";
+                q.B = q.B ?? "";
+                q.C = q.C ?? "";
+                q.D = q.D ?? "";
+                q.Answer = NormalizeAnswer(q.Answer);
                 _doc.Questions.Add(q);
             }
 
@@ -554,11 +536,18 @@ public partial class QuizGeneratorPage : ContentPage
                     difficulty: difficulty,
                     source: "online"
                 );
-            }
 
-            StatusLabel.Text = _doc.Questions.Count > 0
-                ? $"Pronto: {_doc.Questions.Count} pergunta(s) gerada(s). (Banco offline atualizado)"
-                : "Não foi possível gerar perguntas (verifique internet/chave).";
+                StatusLabel.Text = $"Pronto: {_doc.Questions.Count} pergunta(s) gerada(s). (Banco offline atualizado)";
+            }
+            else
+            {
+                var message = string.IsNullOrWhiteSpace(_svc.LastErrorMessage)
+                    ? "Nao foi possivel gerar perguntas agora. Verifique internet/chave e tente novamente."
+                    : _svc.LastErrorMessage;
+
+                StatusLabel.Text = message;
+                await DisplayAlert("IA indisponivel", message, "OK");
+            }
         }
         catch (Exception ex)
         {

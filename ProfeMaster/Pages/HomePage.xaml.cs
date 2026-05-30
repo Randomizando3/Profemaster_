@@ -8,6 +8,7 @@ public partial class HomePage : ContentPage
     private const string DeleteAccountUrl = "https://izzihub.com.br/profemasterdelete.html";
 
     private readonly LocalStore _store;
+    private bool _accountLinksExpanded;
 
     public HomePage(LocalStore store)
     {
@@ -65,6 +66,13 @@ public partial class HomePage : ContentPage
 
     private async void OnOpenDeleteAccount(object sender, EventArgs e)
         => await OpenExternalLink(DeleteAccountUrl);
+
+    private void OnToggleAccountLinks(object sender, EventArgs e)
+    {
+        _accountLinksExpanded = !_accountLinksExpanded;
+        AccountLinksContent.IsVisible = _accountLinksExpanded;
+        AccountLinksToggleLabel.Text = _accountLinksExpanded ? "-" : "+";
+    }
 
     private async Task OpenExternalLink(string url)
     {

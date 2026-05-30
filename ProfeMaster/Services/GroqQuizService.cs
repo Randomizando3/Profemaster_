@@ -13,6 +13,8 @@ public sealed class GroqQuizService
     private readonly HttpClient _http;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
+    public string LastErrorMessage { get; private set; } = "";
+
     public GroqQuizService(HttpClient http)
     {
         _http = http;
@@ -28,52 +30,106 @@ public sealed class GroqQuizService
         List<string> avoid,
         CancellationToken ct = default)
     {
+        var questions = await GenerateAsync(theme, baseText, difficulty, 1, ct, avoid);
+        return questions.FirstOrDefault();
+    }
+
+    public async Task<List<QuizQuestion>> GenerateAsync(
+        string theme,
+        string baseText,
+        string difficulty,
+        int count,
+        CancellationToken ct = default,
+        List<string>? avoid = null)
+    {
         var apiKey = LocalSecrets.GroqApiKey;
         if (string.IsNullOrWhiteSpace(apiKey))
-            return null;
+        {
+            LastErrorMessage = "Chave da IA nao configurada neste aparelho.";
+            return [];
+        }
+
+        LastErrorMessage = "";
+        count = Math.Clamp(count, 1, 10);
 
         using var req = new HttpRequestMessage(HttpMethod.Post, "https://api.groq.com/openai/v1/chat/completions");
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+        req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         req.Content = JsonContent.Create(new ChatRequest
         {
             Model = LocalSecrets.GroqModel,
             Temperature = 0.4,
-            MaxTokens = 700,
+            MaxTokens = Math.Clamp(count * 420, 700, 3500),
             Messages =
             [
                 new ChatMessage
                 {
                     Role = "system",
-                    Content = "Você cria questões objetivas em português do Brasil. Responda somente JSON válido."
+                    Content = "Voce cria questoes objetivas em portugues do Brasil. Responda somente JSON valido."
                 },
                 new ChatMessage
                 {
                     Role = "user",
-                    Content = BuildPrompt(theme, baseText, difficulty, avoid)
+                    Content = BuildPrompt(theme, baseText, difficulty, count, avoid ?? [])
                 }
             ]
         }, options: JsonOptions);
 
-        using var resp = await _http.SendAsync(req, ct);
-        if (!resp.IsSuccessStatusCode)
-            return null;
+        try
+        {
+            using var resp = await _http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, ct);
+            var body = await resp.Content.ReadAsStringAsync(ct);
 
-        var data = await resp.Content.ReadFromJsonAsync<ChatResponse>(JsonOptions, ct);
-        var text = data?.Choices?.FirstOrDefault()?.Message?.Content ?? "";
-        return ParseQuestion(text);
+            if (!resp.IsSuccessStatusCode)
+            {
+                LastErrorMessage = BuildHttpError(resp, body);
+                return [];
+            }
+
+            var data = JsonSerializer.Deserialize<ChatResponse>(body, JsonOptions);
+            var text = data?.Choices?.FirstOrDefault()?.Message?.Content ?? "";
+            var questions = ParseQuestions(text)
+                .Take(count)
+                .ToList();
+
+            if (questions.Count == 0)
+                LastErrorMessage = "A IA respondeu, mas nao retornou perguntas validas. Tente gerar novamente.";
+
+            return questions;
+        }
+        catch (OperationCanceledException)
+        {
+            LastErrorMessage = "Tempo de conexao com a IA esgotado. Tente novamente em instantes.";
+            return [];
+        }
+        catch (HttpRequestException)
+        {
+            LastErrorMessage = "Falha de conexao com a IA. Verifique a internet e tente novamente.";
+            return [];
+        }
+        catch (JsonException)
+        {
+            LastErrorMessage = "A IA retornou uma resposta invalida. Tente gerar novamente.";
+            return [];
+        }
+        catch
+        {
+            LastErrorMessage = "Nao foi possivel gerar o quiz agora. Tente novamente em instantes.";
+            return [];
+        }
     }
 
-    private static string BuildPrompt(string theme, string baseText, string difficulty, List<string> avoid)
+    private static string BuildPrompt(string theme, string baseText, string difficulty, int count, List<string> avoid)
     {
         var avoidText = avoid.Count == 0
             ? "Nenhuma."
             : string.Join("\n", avoid.Select(x => "- " + x));
 
         return $$"""
-Crie 1 questão objetiva de múltipla escolha.
+Crie {{count}} questao(oes) objetiva(s) de multipla escolha.
 
 Tema: {{theme}}
-Nível: {{difficulty}}
+Nivel: {{difficulty}}
 Texto base opcional: {{baseText}}
 
 Evite repetir estas ideias:
@@ -81,12 +137,16 @@ Evite repetir estas ideias:
 
 Retorne somente este JSON, sem markdown:
 {
-  "prompt": "enunciado da questão",
-  "a": "alternativa A",
-  "b": "alternativa B",
-  "c": "alternativa C",
-  "d": "alternativa D",
-  "answer": "A"
+  "questions": [
+    {
+      "prompt": "enunciado da questao",
+      "a": "alternativa A",
+      "b": "alternativa B",
+      "c": "alternativa C",
+      "d": "alternativa D",
+      "answer": "A"
+    }
+  ]
 }
 """;
     }
@@ -103,21 +163,80 @@ Retorne somente este JSON, sem markdown:
             var dto = JsonSerializer.Deserialize<QuestionDto>(text, JsonOptions);
             if (dto == null) return null;
 
-            return new QuizQuestion
-            {
-                Prompt = dto.Prompt?.Trim() ?? "",
-                A = dto.A?.Trim() ?? "",
-                B = dto.B?.Trim() ?? "",
-                C = dto.C?.Trim() ?? "",
-                D = dto.D?.Trim() ?? "",
-                Answer = NormalizeAnswer(dto.Answer)
-            };
+            var question = ToQuestion(dto);
+            return IsUsable(question) ? question : null;
         }
         catch
         {
             return null;
         }
     }
+
+    private static List<QuizQuestion> ParseQuestions(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return [];
+
+        text = ExtractJson(text);
+
+        using var doc = JsonDocument.Parse(text);
+        var root = doc.RootElement;
+
+        if (root.ValueKind == JsonValueKind.Object &&
+            root.TryGetProperty("questions", out var questionsElement) &&
+            questionsElement.ValueKind == JsonValueKind.Array)
+        {
+            return ParseQuestionArray(questionsElement);
+        }
+
+        if (root.ValueKind == JsonValueKind.Array)
+            return ParseQuestionArray(root);
+
+        var single = ParseQuestion(text);
+        return single == null ? [] : [single];
+    }
+
+    private static List<QuizQuestion> ParseQuestionArray(JsonElement questionsElement)
+    {
+        var questions = new List<QuizQuestion>();
+
+        foreach (var item in questionsElement.EnumerateArray())
+        {
+            try
+            {
+                var dto = item.Deserialize<QuestionDto>(JsonOptions);
+                if (dto == null) continue;
+
+                var question = ToQuestion(dto);
+                if (IsUsable(question))
+                    questions.Add(question);
+            }
+            catch
+            {
+                // Keep valid questions even if one item comes malformed.
+            }
+        }
+
+        return questions;
+    }
+
+    private static QuizQuestion ToQuestion(QuestionDto dto)
+        => new()
+        {
+            Prompt = dto.Prompt?.Trim() ?? "",
+            A = dto.A?.Trim() ?? "",
+            B = dto.B?.Trim() ?? "",
+            C = dto.C?.Trim() ?? "",
+            D = dto.D?.Trim() ?? "",
+            Answer = NormalizeAnswer(dto.Answer)
+        };
+
+    private static bool IsUsable(QuizQuestion question)
+        => !string.IsNullOrWhiteSpace(question.Prompt)
+           && !string.IsNullOrWhiteSpace(question.A)
+           && !string.IsNullOrWhiteSpace(question.B)
+           && !string.IsNullOrWhiteSpace(question.C)
+           && !string.IsNullOrWhiteSpace(question.D);
 
     private static string ExtractJson(string text)
     {
@@ -133,6 +252,40 @@ Retorne somente este JSON, sem markdown:
     {
         var a = (answer ?? "").Trim().ToUpperInvariant();
         return a is "A" or "B" or "C" or "D" ? a : "A";
+    }
+
+    private static string BuildHttpError(HttpResponseMessage resp, string body)
+    {
+        var details = TryReadApiError(body);
+
+        return (int)resp.StatusCode switch
+        {
+            401 or 403 => "A chave da IA foi recusada. Confira a chave do Groq neste aparelho.",
+            429 => "Limite da IA atingido. Aguarde um pouco e tente novamente.",
+            >= 500 => "A IA ficou indisponivel por instantes. Tente novamente.",
+            _ when !string.IsNullOrWhiteSpace(details) => details,
+            _ => $"A IA recusou a solicitacao ({(int)resp.StatusCode}). Tente novamente."
+        };
+    }
+
+    private static string TryReadApiError(string body)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(body);
+            if (doc.RootElement.TryGetProperty("error", out var error) &&
+                error.ValueKind == JsonValueKind.Object &&
+                error.TryGetProperty("message", out var message) &&
+                message.ValueKind == JsonValueKind.String)
+            {
+                return message.GetString() ?? "";
+            }
+        }
+        catch
+        {
+        }
+
+        return "";
     }
 
     private sealed class QuestionDto
@@ -158,6 +311,9 @@ Retorne somente este JSON, sem markdown:
 
         [JsonPropertyName("max_tokens")]
         public int MaxTokens { get; set; }
+
+        [JsonPropertyName("response_format")]
+        public ResponseFormat ResponseFormat { get; set; } = new();
     }
 
     private sealed class ChatMessage
@@ -167,6 +323,12 @@ Retorne somente este JSON, sem markdown:
 
         [JsonPropertyName("content")]
         public string Content { get; set; } = "";
+    }
+
+    private sealed class ResponseFormat
+    {
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = "json_object";
     }
 
     private sealed class ChatResponse
